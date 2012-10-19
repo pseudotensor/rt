@@ -4,17 +4,20 @@
 
 %\documentclass[a4paper,12pt]{amsart}
 %\documentclass[12pt, preprint]{aastex}
-\documentclass{emulateapjx}
+\documentclass{emulateapj}
 %\usepackage{latexsym}
 %\usepackage[english]{babel}
 \usepackage{graphicx}
 %\usepackage{psfig}
 %\usepackage{html}
 \usepackage{hyperref}
+\usepackage{amsmath}
+\newcommand{\mat}{\textit{Mathematica 8}}
 
 \shorttitle{General Relativistic Polarized Radiative Transfer}
 \shortauthors{R. V. Shcherbakov}
 \pagestyle{empty}
+
 \begin{document}
 \pagenumbering{roman}
 \title{General Relativistic Polarized Radiative Transfer Code. \\User Guide}
@@ -22,7 +25,7 @@
 
 \author{Roman V. Shcherbakov}
 \affil{Department of Astronomy, University of Maryland, College Park, MD 20742-2421, USA \\Hubble Fellow}
-\email{roman@astro.umd.edu} 
+\email{roman@astro.umd.edu}
 
 %\date{\today}
 \setcounter{page}{1}
@@ -38,12 +41,12 @@ The code is shared with Jonathan McKinney and Anthony Speranza.
 
 
 \section{General ideas}
-The technique and the application of the code are described in \citet{Shcherbakov:2011inter} (later SH11) and \citet{Shcherbakov:2012appl} (later SPM12), respectively. 
-The code performs radiative transfer on top of three-dimensional general relativistic magneto hydrodynamic simulations (3D GRMHD) such as the ones described in 
-\citet{Penna:2010dj,Tchekhovskoy:2011qp,McKinney2012,Narayan:2012dw}. Radiation is not expected to significantly alter the dynamical quantities in the so-called radiatively inefficient accretion flows (RIAFs) \citep{Narayan:1998re,Quataert:2001op}. Therefore, one can perform the numerical simulations without cooling and then perform the radiative transfer in the post-processing. 
+The technique and the application of the code are described in \citet{Shcherbakov:2011inter} (later SH11) and \citet{Shcherbakov:2012appl} (later SPM12), respectively.
+The code performs radiative transfer on top of three-dimensional general relativistic magneto hydrodynamic simulations (3D GRMHD) such as the ones described in
+\citet{Penna:2010dj,Tchekhovskoy:2011qp,McKinney2012,Narayan:2012dw}. Radiation is not expected to significantly alter the dynamical quantities in the so-called radiatively inefficient accretion flows (RIAFs) \citep{Narayan:1998re,Quataert:2001op}. Therefore, one can perform the numerical simulations without cooling and then perform the radiative transfer in the post-processing.
 
 The radiative transfer of polarized cyclo-synchrotron is performed. The code only handles thermal emitting electrons, but this can readily be extended to non-thermal particles.
-The general radiative transfer equation in plain geometry is given by formula (17) in SH11, where emissivities $\varepsilon_{I,Q,V}$, absorptivities $\alpha_{I,Q,V}$ and rotativities 
+The general radiative transfer equation in plain geometry is given by formula (17) in SH11, where emissivities $\varepsilon_{I,Q,V}$, absorptivities $\alpha_{I,Q,V}$ and rotativities
 $\rho_{Q,V}$ are given by formulas (21)-(25). Note, that the expression (20) for emissivities is valid for any particle distribution, while the expressions (22) and (23) for absorptivities and rotativities are only valid for thermal particles. Non-thermal rotativities were computed in \citet{Huang:2011de}.
 
 The proper extension of radiative transfer to GR is described in SH11. We switch from the Stokes vector ${\bf S}$ to the vector of photon occupation numbers ${\bf N}$ (eq. (55) in SH11).
@@ -63,28 +66,38 @@ The velocity of matter approaches the speed of light near the event horizon. The
 The information about the flow at that later time is stored in a \textit{fieldlineYYYY.bin} file with a different $YYYY>XXXX$ number. The emissivity etc. at that later time is determined by quantities in \textit{fieldlineYYYY.bin}. The code allows to read several \textit{fieldlineXXXX.bin} files from the storage and perform self-consistent radiative transfer calculations, where the numerical simulation effectively evolves as the light propagates through the flow.
 
 \subsection{Coordinates and transformations}
-Since the simulation grid is not spherical, the distortions need to be quantified. 
+Since the simulation grid is not spherical, the distortions need to be quantified.
 First, we should know the coordinates of grid points. Second, we need to know the Jacobian matrix of transformation between the distorted coordinates and the unmodified Kerr-Schild (KS) coordinates. The metric tensor in KS system is analytic and is computed directly within the code.
 Both coordinates and Jacobian matrices are parts of \textit{gdump.bin} file. However, I don't want to read that file (or even a part of it) within the code, since the format of that file
-may also change with time. Instead, I read $1/phlen$'s part of \textit{gdump.bin} in \textit{Mathematica 8}, then extract the coordinates and the Jacobian matrix at each point.
-Both are written into \textit{dxdxp.dat} file, which has a small size. 
-The \textit{Mathematica} code to produce \textit{dxdxp.dat} from \textit{gdump.bin} is the auxiliary part of the full code.
+may also change with time. Instead, I read $1/phlen$'s part of \textit{gdump.bin} in \mat, then extract the coordinates and the Jacobian matrix at each point.
+Both are written into \textit{dxdxp.dat} file, which has a small size.
+The \mat code to produce \textit{dxdxp.dat} from \textit{gdump.bin} is the auxiliary part of the full code.
 
 The transformation of coordinates is the correspondence of the consecutive number of a grid cell $(nr,n\theta,n\phi)$ to "real" MKS coordinates $(r,\theta,\phi)$.
 The transformation of $n\phi$ to $\phi$ is strictly linear. The transformation of $nr$ to $r$ is close to exponential.
-Coordinate $\theta$ in the function of both $nr$ and $n\theta$ in the latest versions of Jon's HARM code. 
-That latter dependence is highly sophisticated and hard to invert, which makes us create \textit{dxdxp.dat} file as opposed to analytic computations of coordinates and the transformation matrices.
+Coordinate $\theta$ in the function of both $nr$ and $n\theta$ in the latest versions of Jon's HARM code.
+That latter dependence is highly sophisticated and hard to invert, which makes us create \textit{dxdxp.dat} binary file as opposed to analytic computations of coordinates and the transformation matrices.
 
 \subsection{Average density and temperature profiles}
-The numerical simulations output the internal energy density at each point 
-\citep{Narayan:1995kj}
-\citep{Sharma_heating:2007}
+The numerical simulations output the internal energy density at each point. However, those are the electrons, which radiate.
+The electron temperature $T_e$ is expected to be much lower than the proton temperature $T_p$ close to the BH \citep{Narayan:1995kj}. The Coulomb collisions or the plasma processes might not be strong enough to equilibrate the temperatures, and the two-temperature flow arises.
+Electrons can be cooler, because they can cool \citep{Drappeau:2012dq}, because their heat capacity is much higher at relativistic temperatures \citep{Shcherbakov:2010cond}, because
+viscosity is expected to mainly heat the protons \citep{Narayan:1995kj,Sharma_heating:2007}.
 
-The code is designed to compute a series of images/intensities for simulation times from $t0$ till $t1$ (those times correspond to $XXXX$ number in \textit{fieldlineXXXX.bin}).
-
+It is not really possible to compute the temperature of electrons from the first principles, or prove that the distribution is thermal. Some researchers set the electron temperature to be a constant fraction of proton temperature $T_p/T_e=\rm const$ \citep{Moscibrodzka:2009,Dexter:2010lk}. However, I employ a more sophisticated technique. I follow \citet{Sharma_heating:2007} and compute $T_e$ starting from the outer simulation boundary some $10^5r_{\rm g}$ away from the center. Such computation includes the Coulomb collisions, relativistic heat capacity of electrons, redistribution of viscous energy dissipation between species $Q_e/Q_i=C(T_e/T_i)^{0.5}$, where $C$ is a constant.
+The code computes correspondence of $T_e$ on $u$ in the equatorial plane over the averaged profiles of density and temperature.
+Then it draws $T_e$ from that correspondence to $u$ at any point of the simulation (see section 4.2 of SPM12).
+Those averaged radial profiles of density and temperature are created by \textit{m\_ts} routine (see below) and stored in \textit{TsmapNAME.dat} text file,
+where \textit{NAME} is the simulation name.
 
 \subsection{Cyclo-synchrotron emissivities and rotativities}
-
+A crucial part of GR polarized radiative transfer is the correct absorptivities/emissivities/rotativities.
+Those are computed by a separate \mat script. Those coefficients are typically function of three parameters: 
+electron temperature $\theta_e=k_b T_e/(m_e c^2)$ (or the whole particle distribution), angle between the magnetic field line and the direction of ${\bf k}$ vector
+$\theta_{kB}$, and the ratio of cyclotron frequency to observed frequency $\nu_B/\nu$. The assumed momentum distribution of particles is isotropic.
+However, the number of parameters can be reduced in certain approximations down to two for emissivity/absorptivity, and down to one for rotativities (Faraday rotation and conversion) (see SPM12). The relevant text files are two-parametric \textit{lookupjIy.dat} file for total emissivity, \textit{lookupjQy.dat} file for linearly polarized emissivity,
+\textit{lookupjVy.dat} for circularly polarized emissivity, \textit{lookupjQa.dat} for Faraday conversion coefficient, and \textit{lookupjVa.dat} for Faraday rotation coefficient.
+It is redundant to have two dimensions for rotativities, but this is done for the sake of uniformity.
 
 \section{Extension to large radius}
 
