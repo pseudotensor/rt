@@ -1,0 +1,103 @@
+%\documentclass[preprint2]{aastex}
+%\documentclass[12pt, preprint]{aastex}
+%\documentclass{emulateapj}
+
+%\documentclass[a4paper,12pt]{amsart}
+%\documentclass[12pt, preprint]{aastex}
+\documentclass{emulateapjx}
+%\usepackage{latexsym}
+%\usepackage[english]{babel}
+\usepackage{graphicx}
+%\usepackage{psfig}
+%\usepackage{html}
+\usepackage{hyperref}
+
+\shorttitle{General Relativistic Polarized Radiative Transfer}
+\shortauthors{R. V. Shcherbakov}
+\pagestyle{empty}
+\begin{document}
+\pagenumbering{roman}
+\title{General Relativistic Polarized Radiative Transfer Code. \\User Guide}
+%\maketitle \fontsize{12pt}{\baselineskip}
+
+\author{Roman V. Shcherbakov}
+\affil{Department of Astronomy, University of Maryland, College Park, MD 20742-2421, USA \\Hubble Fellow}
+\email{roman@astro.umd.edu} 
+
+%\date{\today}
+\setcounter{page}{1}
+
+
+\begin{abstract}
+The code is provided "AS IS" without any assumed liability or technical support.
+The code is shared with Jonathan McKinney and Anthony Speranza.
+\end{abstract}
+%\keywords{radiative transfer --- polarization --- magnetic fields}
+
+%\maketitle
+
+
+\section{General ideas}
+The technique and the application of the code are described in \citet{Shcherbakov:2011inter} (later SH11) and \citet{Shcherbakov:2012appl} (later SPM12), respectively. 
+The code performs radiative transfer on top of three-dimensional general relativistic magneto hydrodynamic simulations (3D GRMHD) such as the ones described in 
+\citet{Penna:2010dj,Tchekhovskoy:2011qp,McKinney2012,Narayan:2012dw}. Radiation is not expected to significantly alter the dynamical quantities in the so-called radiatively inefficient accretion flows (RIAFs) \citep{Narayan:1998re,Quataert:2001op}. Therefore, one can perform the numerical simulations without cooling and then perform the radiative transfer in the post-processing. 
+
+The radiative transfer of polarized cyclo-synchrotron is performed. The code only handles thermal emitting electrons, but this can readily be extended to non-thermal particles.
+The general radiative transfer equation in plain geometry is given by formula (17) in SH11, where emissivities $\varepsilon_{I,Q,V}$, absorptivities $\alpha_{I,Q,V}$ and rotativities 
+$\rho_{Q,V}$ are given by formulas (21)-(25). Note, that the expression (20) for emissivities is valid for any particle distribution, while the expressions (22) and (23) for absorptivities and rotativities are only valid for thermal particles. Non-thermal rotativities were computed in \citet{Huang:2011de}.
+
+The proper extension of radiative transfer to GR is described in SH11. We switch from the Stokes vector ${\bf S}$ to the vector of photon occupation numbers ${\bf N}$ (eq. (55) in SH11).
+Radiative transfer is conducted along the geodesic path of massless particles via the technique called "ray tracing". This technique is best applied, when the emission/absorption/rotation coefficients depend only on the local dynamical properties of the medium and not on the local properties of radiation field. It is possible to use the applied technique to Compton scattering as well, but then we need to compute and retain in computer memory the radiation field at each point. Ray tracing consists of solving for the photon geodesic from the picture plane/telescope/observer's plane in the direction of the black hole (BH). The geodesics either go back to infinity or fall onto the BH. Then the relevant equations on the evolution of Stokes occupation numbers are solved from the end points on the geodesics back to the observer's plane. The resultant polarized intensities on the plane constitute an image. Integrated over the observer's angle intensities give the total fluxes \citep{Rybicki1979}.
+
+The code has several inputs and several modes of operation.
+\section{Inputs}
+\subsection{GRMHD simulation snapshots}
+The files \textit{fieldlineXXXX.bin} are the simulation snapshots. They contain the full 3D dynamical quantities: arbitrarily normalized density $\rho$, internal energy density $u$,
+4-velocity $u^\nu$, 3-vector of lab-frame magnetic field $B_i$ (see \citealt{Penna:2010dj}), and two more quantities, which we do not need. All quantities are 4-byte real numbers
+The simulations are performed on a distorted spherical grid, modified Kerr-Schild (MKS) coordinates. The effective dimensions are ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$ in radial, poloidal, and toroidal directions, respectively. \textit{fieldlineXXXX.bin} files contain the preamble of the length which changed over the years. Thus, start reading the file from the position
+\begin{equation}
+p=filesize-rlen*thlen*phlen*11*4.
+\end{equation}
+
+The velocity of matter approaches the speed of light near the event horizon. Therefore, as the photons propagate within the flow, the flow itself has enough time to change.
+The information about the flow at that later time is stored in a \textit{fieldlineYYYY.bin} file with a different $YYYY>XXXX$ number. The emissivity etc. at that later time is determined by quantities in \textit{fieldlineYYYY.bin}. The code allows to read several \textit{fieldlineXXXX.bin} files from the storage and perform self-consistent radiative transfer calculations, where the numerical simulation effectively evolves as the light propagates through the flow.
+
+\subsection{Coordinates and transformations}
+Since the simulation grid is not spherical, the distortions need to be quantified. 
+First, we should know the coordinates of grid points. Second, we need to know the Jacobian matrix of transformation between the distorted coordinates and the unmodified Kerr-Schild (KS) coordinates. The metric tensor in KS system is analytic and is computed directly within the code.
+Both coordinates and Jacobian matrices are parts of \textit{gdump.bin} file. However, I don't want to read that file (or even a part of it) within the code, since the format of that file
+may also change with time. Instead, I read $1/phlen$'s part of \textit{gdump.bin} in \textit{Mathematica 8}, then extract the coordinates and the Jacobian matrix at each point.
+Both are written into \textit{dxdxp.dat} file, which has a small size. 
+The \textit{Mathematica} code to produce \textit{dxdxp.dat} from \textit{gdump.bin} is the auxiliary part of the full code.
+
+The transformation of coordinates is the correspondence of the consecutive number of a grid cell $(nr,n\theta,n\phi)$ to "real" MKS coordinates $(r,\theta,\phi)$.
+The transformation of $n\phi$ to $\phi$ is strictly linear. The transformation of $nr$ to $r$ is close to exponential.
+Coordinate $\theta$ in the function of both $nr$ and $n\theta$ in the latest versions of Jon's HARM code. 
+That latter dependence is highly sophisticated and hard to invert, which makes us create \textit{dxdxp.dat} file as opposed to analytic computations of coordinates and the transformation matrices.
+
+\subsection{Average density and temperature profiles}
+The numerical simulations output the internal energy density at each point 
+\citep{Narayan:1995kj}
+\citep{Sharma_heating:2007}
+
+The code is designed to compute a series of images/intensities for simulation times from $t0$ till $t1$ (those times correspond to $XXXX$ number in \textit{fieldlineXXXX.bin}).
+
+
+\subsection{Cyclo-synchrotron emissivities and rotativities}
+
+
+\section{Extension to large radius}
+
+\section{Modes of operation}
+
+\section{Features of the image}
+
+
+\bibliographystyle{apj}
+\bibliography{BBL/refs_rev1}
+
+%\begin{thebibliography}{15}
+%\bibitem[{{Shcherbakov} \& {Huang}(2011)}]{Shcherbakov:2011inter}{Shcherbakov}, R.~V., \& {Huang}, L. 2011, \textit{MNRAS}, 410, 1052
+%\bibitem[{{Shcherbakov} {et~al.}(2012)}]{Shcherbakov:2012appl}{Shcherbakov}, R.~V., {Penna}, R.~F., \& {McKinney}, J.~C. 2012, \textit{ApJ}, 755, 133
+%\end{thebibliography}
+\end{document}
