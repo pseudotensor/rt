@@ -86,7 +86,7 @@ Since the simulation grid is not spherical, the distortions need to be quantifie
 First, we should know the coordinates of grid points. Second, we need to know the Jacobian matrix of transformation between the distorted coordinates and
 the unmodified Kerr-Schild (KS) coordinates. The metric tensor in KS system is analytic and is computed directly within the code.
 Both coordinates and Jacobian matrices are parts of \textit{gdump.bin} file. However, I don't want to read that file (or even a part of it) within the code,
-since the format of that file may also change with time. Instead, I read $1/phlen$'s part of \textit{gdump.bin} in \mat, then extract the coordinates and the Jacobian matrix at each point.
+since the format of that file may also change with time. Instead, I read $1/{\bf phlen}$'s part of \textit{gdump.bin} in \mat, then extract the coordinates and the Jacobian matrix at each point.
 Both are written into \textit{dxdxp.dat} file, which has a small size.
 The \mat code to produce \textit{dxdxp.dat} from \textit{gdump.bin} is the auxiliary part of the full code.
 
@@ -129,30 +129,34 @@ The radiative transfer code has seven modes of operation at present. They serve 
 computing the spectrum for a single set of flow parameters, exploring the full parameters space, searching for a local minimum of $\chi^2/dof$ in the parameter space,
 thoroughly surfing the region of parameter space, creating a flow image, performing convergence studies.
 The flow parameters are the spin $a_*$, the inclination angle $\theta$, the accretion rate $\dot{M}$, the heating constant $C$ or the ratio of temperatures $T_i/T_e$ at certain radius.
-For each set of parameters we compute the spectrum/image at several times correspondent to times of simulation snapshots with numbers from $fmin$ to $fmax$ with a step $sep$.
-For example, $fmin=6950$, $fmax=9950$, and $sep=150$ were used in \citet{Shcherbakov:2012appl} to compute the spectrum at $21$ points of time.
-Parameter $fdiff$ determines in which range of times $\Delta t$ around the simulation snapshot times $t_0$ the simulation is taken to evolve as the rays propagate.
-For example, $fdiff=60$ means that snapshots \textit{fieldlineXXXX.bin} with numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ are employed to compute the spectrum at 
-a time correspondent to $XXXX_0$. The value $fdiff=0$ corresponds to "fast light propagation", i.e. the simulation is not evolved as the light propagates along geodesics.
-In such case at each time the spectrum/image is simulated for a single simulation snapshot. Large values of $fdiff$ may not work because of memory limitations.
+For each set of parameters we compute the spectrum/image at several times correspondent to times of simulation snapshots with numbers from ${\bf fmin}$ to ${\bf fmax}$ with a step ${\bf sep}$.
+For example, ${\bf fmin}=6950$, ${\bf fmax}=9950$, and ${\bf sep}=150$ were used in \citet{Shcherbakov:2012appl} to compute the spectrum at $21$ points of time.
+Parameter ${\bf fdiff}$ determines in which range of times $\Delta t$ around the simulation snapshot times $t_0$ the simulation is taken to evolve as the rays propagate.
+For example, ${\bf fdiff}=60$ means that snapshots \textit{fieldlineXXXX.bin} with numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ are employed to compute the spectrum at 
+a time correspondent to $XXXX_0$. The value ${\bf fdiff}=0$ corresponds to "fast light propagation", i.e. the simulation is not evolved as the light propagates along geodesics.
+In such case at each time the spectrum/image is simulated for a single simulation snapshot. Large values of ${\bf fdiff}$ may not work because of memory limitations.
 Some time ago all simulated spectra used to be computed based on single snapshots/averaged model. 
 The routines for such computations were called \textit{s\_name}. Now the routines are called \textit{m\_name} to indicate
 the computations are always performed on multiple snapshots/at multiple points of time.
-The range of frequencies for the radiative transfer can be chosen in any routine with variables $kmin$ and $kmax$.
+The range of frequencies for the radiative transfer can be chosen in any routine with variables ${\bf kmin}$ and ${\bf kmax}$.
+
+The "main" function is contained in \textit{transfer\_quad} file, whose primary goal is to read the 
+command line parameters and decide on the mode of operation. That file also defines global variables,
+and a couple of core functions, which are to be discussed below.
 
 \subsection{\textit{m\_space}}
-This routine allows for a given spin $sp\sim a_*$ and inclination angle $th=\theta$ to surf the parameter space of heating constant $heat=C$.
-For each value of $heat$ we search for the value of density normalization $rhonor$ (which is proportional to the accretion rate $\dot{M}$), which provides the best $\chi^2$ fit to the data.
-Then we explore the values of $rhonor$ near that best value.
-The values of heating constant $heat$ roll from $0.75$ down to $0.15$.
-The routine is run for a range of inclination angles $th$.
+This routine allows for a given spin ${\bf sp}\sim a_*$ and inclination angle ${\bf th}=\theta$ to surf the parameter space of heating constant ${\bf heat}=C$.
+For each value of ${\bf heat}$ we search for the value of density normalization ${\bf rhonor}$ (which is proportional to the accretion rate $\dot{M}$), which provides the best $\chi^2$ fit to the data.
+Then we explore the values of ${\bf rhonor}$ near that best value.
+The values of heating constant ${\bf heat}$ roll from $0.75$ down to $0.15$.
+The routine is run for a range of inclination angles ${\bf th}$.
 Such technique allows for thorough exploration of the entire parameter space to make sure no local minimum is missed.
-Looking at $rhonor$ values near the minimum allows to immediately estimate the confidence interval, e.g., based on $\Delta\chi^2$ technique.
+Looking at ${\bf rhonor}$ values near the minimum allows to immediately estimate the confidence interval, e.g., based on $\Delta\chi^2$ technique.
 Search for the best combination of parameters and the estimate of the confidence interval are done by a separate \mat  scripts.
 
 \subsection{\textit{m\_quick}}
-A simple computation of a spectrum for a single set of parameters $sp$, $th$, $rhonor$, $heat$, $fdiff$ within the range from
-$fmin$ to $fmax$. The result is written into \textit{quickaSTRING.dat} file.
+A simple computation of a spectrum for a single set of parameters ${\bf sp}$, ${\bf th}$, ${\bf rhonor}$, ${\bf heat}$, ${\bf fdiff}$ within the range from
+${\bf fmin}$ to ${\bf fmax}$. The result is written into \textit{quickaSTRING.dat} file.
 The routine is convenient to use for debugging the code.
 
 \subsection{\textit{m\_conv}}
@@ -160,7 +164,7 @@ A range of convergence tests/tests on sensitivity to auxiliary flow parameters i
 The descriptions and ideas behind such tests can be found in the Table 3 and the Appendix of \citet{Shcherbakov:2012appl}.
 The sample spectrum is computed first similar to \textit{m\_quick} routine. Then one parameter is changed and the spectrum is recomputed.
 Then the change in reduced chi-squared, $\chi^2_H/dof$ defined by formula (A1), is computed the quantify the changes in the spectrum.
-In the present version tests (1) and (2) explores the number of geodesics given by $snxy^2$ to compute the spectrum.
+In the present version tests (1) and (2) explores the number of geodesics given by ${\bf snxy}^2$ to compute the spectrum.
 Tests (3) and (4) check how far from the BH the radiative transfer should start on geodesics, which go through the horizon.
 Tests (5) and (6) test the size of the emitting region.
 Tests (7) to (9) explore the changes in the slopes of extensions of quantities to large radius (changes in magnetic field slope
@@ -168,12 +172,12 @@ might not be consistently implemented at present).
 Tests (10) and (11) explore the number of spectra computed over a long period of time to represent the true mean spectrum 
 over that period of time.
 Tests (12) to (14) explore for how long one needs to have the simulation evolve simultaneously with the propagation of light rays.
-Tests (15) to (38) explore the sensitivity to small changes in main parameters $heat$, $rhonor$, and $th$.
-These latter tests are useful to figure out the test steps in $heat$, $rhonor$, and $th$ 
+Tests (15) to (38) explore the sensitivity to small changes in main parameters ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$.
+These latter tests are useful to figure out the test steps in ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$ 
 to use in minimization routines.
 
 \subsection{\textit{m\_surf}}
-Explores the rectangular grid in any two out of three parameters $heat$, $rhonor$, and $th$.
+Explores the rectangular grid in any two out of three parameters ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$.
 Computation is useful to show the contours of $\Delta\chi^2$ and illustrate the confidence intervals.
 
 \subsection{\textit{m\_imag}}
@@ -184,11 +188,60 @@ However, the resolution is higher for an image, which makes the calculation slow
 Thus, I use \textit{m\_quick} to quickly compute the spectra over many frequencies and \textit{m\_imag} to compute
 the images over a few frequencies.
 \subsection{\textit{m\_sear}}
+This routine searches for a local minimum with the help of a steepest descent method.
+First, I set up some initial conditions, which does not have to be provide a fit.
+Then I explore the initial conditions, where one of the parameters is changed, i.e., ${\bf heat}$ changed to ${\bf heat}(1+{\bf dheat})$
+etc. The steepest descent methods searches for a local minimum until the algorithm converges (as given by
+${\bf ddh}$, ${\bf ddr}$ and ${\bf dth}$ variables), or until $20$ iterations are performed.
+The algorithm is known to be stuck in a limit cycle at low ${\bf heat}$ values, thus the limit on the number of 
+iterations is important.
 
 \subsection{\textit{m\_ts}}
+This routine reads multiple simulation snapshots and finds the average of density and internal energy density 
+around the equatorial plane in $\theta$, over all $\phi$, for each radius $r$.
+The resultant profiles are sorted to be homogeneous, which is needed to define a single-valued $Te(u)$ function.
+The sorted radial profile is written into \textit{TsmapxSTRING.dat} file.
+
+\section{Compilation and usage}
+The code can be successfully compiled (with minor modifications) in Microsoft Visual Studio ("icl" compiler), 
+GNU compiler "gcc", Intel Compiler "icc". The recommended software versions to ensure compilation and 
+fast binary are: version 2010 of Visual Studio, version 4.6 or higher of "gcc", version 11.1 or higher "icc".
+
+When submitting a job with \textit{qsub} on a supercomputer such as Deepthought at UMD or Nautilus at NICS
+the environment variable $PBS\_ARRAYID$ is read. It corresponds to the index of a batch job. 
+Remember that some systems have a low limit on the number of concurrent jobs.
+Whenever a code is run on a regular computer, the environment variable $PBS\_ARRAYID$ needs to be defined.
+
+The typical usage is  \textit{transfer\_quad A B C D}.
+The typical "script" file on Nautilus is ...
+
 
 \section{Core routines}
-In this section we describe the routines and function, which define and perform the computations.
+In this section we describe the routines and functions, which define and perform the computations.
+All equations are derived in separate \mat  scripts, which are to be shared as well.
+\subsection{\textit{init}}
+\subsection{\textit{intensity}}
+Performs the computation of intensity along a pre-computed set of geodesics.
+\subsection{\textit{imaging}}
+This routine is very similar to \textit{intensity}.
+Performs the computation of intensity along a pre-computed set of geodesics.
+\subsection{\textit{evalpointzero}}
+Main routine 
+\subsection{\textit{solvetrans}}
+Frond-end routine for solving radiative transfer equations
+\subsection{\textit{transnew}}
+Radiative transfer equations in polarized polar coordinates
+\subsection{\textit{geoint}}
+Frond-end routine for solving for the geodesics
+\subsection{\textit{geodes}}
+Equations, which define the geodesic line as well as two parallel-propagated vectors.
+\subsection{\textit{emis}}
+Look-up of emissivity/Faraday rotation \& conversion coefficients on 2D grid.
+\subsection{Function \textit{solte} in \textit{transfer\_quad}}
+The evolution equations on proton and electron temperatures. The equations are solved within \textit{init} function.
+
+\section{Variables}
+
 \subsection{Haha}
 
 
