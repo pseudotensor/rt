@@ -1,0 +1,2 @@
+showq -n -w user=shcher
+make -B

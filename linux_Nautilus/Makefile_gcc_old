@@ -1,0 +1,18 @@
+CC=g++
+CXX=g++
+CFLAGS=-fopenmp -O3
+CXXFLAGS=-fopenmp -O3
+LIBS=
+RM=/bin/rm
+
+EXECS = transfer_quad
+OBJS = transfer_quad.o
+
+$(EXECS): $(OBJS) Makefile
+
+	$(CC) $(CFLAGS) -o $(EXECS) $(OBJS) $(LIBS)
+$(OBJS): Makefile
+.c.o:
+	$(CC) $(CFLAGS) -o $*.o -c $*.c
+clean:
+	$(RM) -f $(EXECS) $(OBJS) gmon.out *~ *.o *.oo
