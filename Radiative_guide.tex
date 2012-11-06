@@ -132,15 +132,15 @@ The flow parameters are the spin $a_*$, the inclination angle $\theta$, the accr
 For each set of parameters we compute the spectrum/image at several times correspondent to times of simulation snapshots with numbers from ${\bf fmin}$ to ${\bf fmax}$ with a step ${\bf sep}$.
 For example, ${\bf fmin}=6950$, ${\bf fmax}=9950$, and ${\bf sep}=150$ were used in \citet{Shcherbakov:2012appl} to compute the spectrum at $21$ points of time.
 Parameter ${\bf fdiff}$ determines in which range of times $\Delta t$ around the simulation snapshot times $t_0$ the simulation is taken to evolve as the rays propagate.
-For example, ${\bf fdiff}=60$ means that snapshots \textit{fieldlineXXXX.bin} with numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ are employed to compute the spectrum at 
+For example, ${\bf fdiff}=60$ means that snapshots \textit{fieldlineXXXX.bin} with numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ are employed to compute the spectrum at
 a time correspondent to $XXXX_0$. The value ${\bf fdiff}=0$ corresponds to "fast light propagation", i.e. the simulation is not evolved as the light propagates along geodesics.
 In such case at each time the spectrum/image is simulated for a single simulation snapshot. Large values of ${\bf fdiff}$ may not work because of memory limitations.
-Some time ago all simulated spectra used to be computed based on single snapshots/averaged model. 
+Some time ago all simulated spectra used to be computed based on single snapshots/averaged model.
 The routines for such computations were called \textit{s\_name}. Now the routines are called \textit{m\_name} to indicate
 the computations are always performed on multiple snapshots/at multiple points of time.
 The range of frequencies for the radiative transfer can be chosen in any routine with variables ${\bf kmin}$ and ${\bf kmax}$.
 
-The "main" function is contained in \textit{transfer\_quad} file, whose primary goal is to read the 
+The "main" function is contained in \textit{transfer\_quad} file, whose primary goal is to read the
 command line parameters and decide on the mode of operation. That file also defines global variables,
 and a couple of core functions, which are to be discussed below.
 
@@ -169,11 +169,11 @@ Tests (3) and (4) check how far from the BH the radiative transfer should start 
 Tests (5) and (6) test the size of the emitting region.
 Tests (7) to (9) explore the changes in the slopes of extensions of quantities to large radius (changes in magnetic field slope
 might not be consistently implemented at present).
-Tests (10) and (11) explore the number of spectra computed over a long period of time to represent the true mean spectrum 
+Tests (10) and (11) explore the number of spectra computed over a long period of time to represent the true mean spectrum
 over that period of time.
 Tests (12) to (14) explore for how long one needs to have the simulation evolve simultaneously with the propagation of light rays.
 Tests (15) to (38) explore the sensitivity to small changes in main parameters ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$.
-These latter tests are useful to figure out the test steps in ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$ 
+These latter tests are useful to figure out the test steps in ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$
 to use in minimization routines.
 
 \subsection{\textit{m\_surf}}
@@ -181,10 +181,10 @@ Explores the rectangular grid in any two out of three parameters ${\bf heat}$, $
 Computation is useful to show the contours of $\Delta\chi^2$ and illustrate the confidence intervals.
 
 \subsection{\textit{m\_imag}}
-This routine is very similar to \textit{m\_quick}. However, instead of computing the spectrum, we compute 
+This routine is very similar to \textit{m\_quick}. However, instead of computing the spectrum, we compute
 the image (2D table) of Stokes parameters in the picture plane. A separate \mat  routine is used to draw the actual images.
 The same routine can technically compute the image and the spectrum.
-However, the resolution is higher for an image, which makes the calculation slower. 
+However, the resolution is higher for an image, which makes the calculation slower.
 Thus, I use \textit{m\_quick} to quickly compute the spectra over many frequencies and \textit{m\_imag} to compute
 the images over a few frequencies.
 \subsection{\textit{m\_sear}}
@@ -193,28 +193,83 @@ First, I set up some initial conditions, which does not have to be provide a fit
 Then I explore the initial conditions, where one of the parameters is changed, i.e., ${\bf heat}$ changed to ${\bf heat}(1+{\bf dheat})$
 etc. The steepest descent methods searches for a local minimum until the algorithm converges (as given by
 ${\bf ddh}$, ${\bf ddr}$ and ${\bf dth}$ variables), or until $20$ iterations are performed.
-The algorithm is known to be stuck in a limit cycle at low ${\bf heat}$ values, thus the limit on the number of 
+The algorithm is known to be stuck in a limit cycle at low ${\bf heat}$ values, thus the limit on the number of
 iterations is important.
 
 \subsection{\textit{m\_ts}}
-This routine reads multiple simulation snapshots and finds the average of density and internal energy density 
+This routine reads multiple simulation snapshots and finds the average of density and internal energy density
 around the equatorial plane in $\theta$, over all $\phi$, for each radius $r$.
 The resultant profiles are sorted to be homogeneous, which is needed to define a single-valued $Te(u)$ function.
 The sorted radial profile is written into \textit{TsmapxSTRING.dat} file.
 
 \section{Compilation and usage}
-The code can be successfully compiled (with minor modifications) in Microsoft Visual Studio ("icl" compiler), 
-GNU compiler "gcc", Intel Compiler "icc". The recommended software versions to ensure compilation and 
+\subsection{Compilation}
+The code can be successfully compiled (with minor modifications) in Microsoft Visual Studio ("icl" compiler),
+GNU compiler "gcc", Intel Compiler "icc". The recommended software versions to ensure compilation and
 fast binary are: version 2010 of Visual Studio, version 4.6 or higher of "gcc", version 11.1 or higher "icc".
 
 When submitting a job with \textit{qsub} on a supercomputer such as Deepthought at UMD or Nautilus at NICS
-the environment variable $PBS\_ARRAYID$ is read. It corresponds to the index of a batch job. 
+the environment variable $PBS\_ARRAYID$ is read. It corresponds to the index of a batch job.
 Remember that some systems have a low limit on the number of concurrent jobs.
 Whenever a code is run on a regular computer, the environment variable $PBS\_ARRAYID$ needs to be defined.
 
-The typical usage is  \textit{transfer\_quad A B C D}.
-The typical "script" file on Nautilus is ...
+\subsection{Usage}
+The usage is \textit{transfer\_quad A B C D} with defined $PBS\_ARRAYID$.
+The parameter $A$ chooses a spin of the flow or chooses one of the predefined models. $A-1$ is the index in ${\bf atab}$, ${\bf astr}$, and ${\bf ncuttab}$ arrays defined in
+$\textit{win\_lin\_NAME.c}$ files. The first parameter $D$ chooses the operation mode (the mode is sometimes chosen in \textit{transfed\_quad} routine itself for debugging purposes).
+Parameter $B$ means the number of separate points of time, over which the computation of image/intensity etc. are performed in all modes except \textit{m\_surf}.
+It coincides with the number of simulation snapshots for ${\bf fdiff}=0$. In mode \textit{m\_surf} the parameter $B$ switched between surfing different pairs of parameters:
+$B=1 => {\bf tth}~and~{\bf rhonor}$, $B=2 => {\bf rhonor}~and~{\bf heat}$, $B=3 => {\bf heat}~and~{\bf tth}$.
+Parameter $C$ means different things for different $D$.
+$D=1$ is for {\textit{m\_space}} mode. Then $C$
 
+The typical "script" file on Nautilus is ...
+"module load gnu/4.6.3" in ".modules" file in home directory
+"export TMOUT=86400" in ".bash\_profile" file in home directory
+
+\subsection{Todo steps on Nautilus}
+\begin{enumerate}
+\item{For compilation load intel/12.1.233 module with a command "module load intel/12.1.233". This compiler produces the fastest code - about $0.5\%$ faster than GCC 4.6.3.
+Make sure no other intel or GCC compiler (apart from default GCC 4.3.4 is loaded with command "module list").
+The best way to achieve these steps is to add  "module unload intel/11.1.038" and "module load intel/12.1.233" lines to \textit{.modules} file in the home directory, 
+then relogin to Nautilus.}
+\item{Define ${\bf rgrav}$ in \textit{transfer\_quad.cpp} and the proportionality coefficient for the final flux in \textit{intensity.cpp} to correspond to the physical problem at hand. 
+Make sure ${\bf rgrav}$ is self-consistently used as either $M$ or $2M$. At present ${\bf rgrav}=2GM/c^2$. \textbf{The definitions are to be redone and put in a separate initialization file.}}
+\item{Create directory with any name (I use name \textit{rt}) for radiative transfer code in home directory. Create directory with any name (I use name \textit{analysis}) 
+for analysis. Make sure the variable ${\bf dir}$ in \textit{win\_lin\_Jon.c} points at analysis directory.}
+\item{Copy the code w/ all files into \textit{/home/rt/}. Copy $5$ files with radiative transfer coefficients for thermal plasma to \textit{/home/analysis/}.}
+\item{Create a directory \textit{/home/analysis/SIMULATION/}, where \textit{SIMULATION} is a name of a particular GRMHD simulation of interest. 
+Add this name as a part of ${\bf astr}$ array in \textit{win\_lin\_Jon.c} file, add a correspondent spin into ${\bf atab}$ array.
+One may need to correspondingly increase the sizes of those array. Make sure the values of ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$ correspond to radial, 
+poloidal and toroidal resolutions. The code will not complain about a program, but a correspondent \mat script will.}
+\item{Make sure that ALL \textit{fieldlineXXXX.bin} files of interest exist in ${\bf adir}+ SIMULATION +{\bf fieldstr}$ directory. \textit{SIMULATION}= thickdisk7 fails this test at present.}
+\item{Compile the code with "make -B" command. It should take under 30 seconds.}
+\item{Make sure the number of OpenMP threads is ${\bf nthreads}=16$ in \textit{win\_lin\_Jon.c}.}
+\item{Copy a sample \textit{qu1.csh} or create a new batch job submission file. Make sure the number of CPUs ${\bf ncpus}=16(={\bf nthreads})$ in the batch job file.}
+\item{Copy one of the late \textit{fieldlineXXXX.bin} files on a laptop/desktop. Copy \textit{gdump.bin} file from ${\bf adir}+ SIMULATION +{\bf fieldstr}$ to laptop/desktop.}
+\item{Run a \mat script on those files to create \textit{dxdxp.dat} file. Run a series of \mat tests to see that we understand the structure of \textit{fieldlineXXXX.bin} file and
+that everything is consistent.}
+\item{Copy \textit{dxdxp.dat} file into \textit{/home/analysis/SIMULATION/} directory, where, e.g. SIMULATION=thickdisk7.}
+\item{Create a correspondent batch job and run radiative transfer code in \textit{m\_ts} mode to create a file of average temperature/density profiles.}
+\item{Rename the resultant \textit{/home/analysis/SIMULATION/TsmapSIMULATIONx.dat} file into \textit{/home/analysis/SIMULATION/TsmapSIMULATION.dat} file. This is done to avoid accidentally 
+overwriting the file of averaged profiles.}
+\item{Figure out the frequencies, for which we want to compute the radiative transfer. Figure out the fluxes at these frequencies. Enter everything into ${\bf sftab}$ variable in
+\textit{transfer\_quad.cpp}. While a set of frequencies is obligatory, the fluxes are not obligatory unless a model-fitting routine is invoked.}
+\item{Come up with a fiducial set of parameters $\bf rhonor$, $\bf heat$, $\bf th$ and run radiative transfer code in \textit{m\_quick} mode. One needs to set $\bf fdiff=0$ and 
+define $\bf thlimit$ and $\bf isBcut$ variables. Also set ${\bf fmin}$, ${\bf fmax}$, and ${\bf ind}$ to some values. Low value ${\bf ind}=2$ is preferred.
+Recompile the code each time the parameters are changed.}
+\item{When the code finished running, check the output files in \textit{/home/analysis/} and \textit{/home/rt/} directories. Note any errors/abnormal code termination etc.}
+\item{Run \mat script to plot the lightcurve and perform any other analysis one needs.}
+\item{Try to manually change three parameters for a quick computation in order to produce a spectrum, which resembles the observed spectrum.}
+\item{Define the $\chi^2$ computation and a set of residuals.  Run the code in \textit{m\_sear} mode and find a local minimum. Recompile the code after any parameters were changed. 
+A simplified version of \textit{m\_sear} is implemented ate present: it might not find a global minimum, especially if the polarized quantities are fitted for.
+A full version would include running \textit{m\_sear} for a set of fixed inclination angles and searching in space of $\bf rhonor$ and $\bf heat$ only.
+It is recommended that ${\bf ind}=21$ is set for this step.}
+\item{Run the code in \textit{m\_imag} mode and create image files. Run the correspondent \mat script to visualize the images.}
+\item{Run the code in \textit{m\_quick} for maximum $\bf ind$, run correspondent \mat script and enjoy the full variable lightcurve.}
+\item{Run the code in \textit{m\_imag} for maximum $\bf ind$, run correspondent \mat script to create all images. Use, e.g. \textit{JPGvideo} program to make movies.
+Upload movies to Youtube.}
+\end{enumerate}
 
 \section{Core routines}
 In this section we describe the routines and functions, which define and perform the computations.
@@ -226,7 +281,7 @@ Performs the computation of intensity along a pre-computed set of geodesics.
 This routine is very similar to \textit{intensity}.
 Performs the computation of intensity along a pre-computed set of geodesics.
 \subsection{\textit{evalpointzero}}
-Main routine 
+Main routine
 \subsection{\textit{solvetrans}}
 Frond-end routine for solving radiative transfer equations
 \subsection{\textit{transnew}}
