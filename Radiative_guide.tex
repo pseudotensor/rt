@@ -14,13 +14,13 @@
 \usepackage{amsmath}
 \newcommand{\mat}{\textit{Mathematica 8}}
 
-\shorttitle{General Relativistic Polarized Radiative Transfer}
+\shorttitle{ASTRORAY}
 \shortauthors{R. V. Shcherbakov}
 \pagestyle{empty}
 
 \begin{document}
 \pagenumbering{roman}
-\title{General Relativistic Polarized Radiative Transfer Code. \\User Guide}
+\title{General Relativistic Polarized Radiative Transfer Code ASTRORAY. \\User Guide}
 %\maketitle \fontsize{12pt}{\baselineskip}
 
 \author{Roman V. Shcherbakov}
@@ -231,16 +231,16 @@ The typical "script" file on Nautilus is ...
 \begin{enumerate}
 \item{For compilation load intel/12.1.233 module with a command "module load intel/12.1.233". This compiler produces the fastest code - about $0.5\%$ faster than GCC 4.6.3.
 Make sure no other intel or GCC compiler (apart from default GCC 4.3.4 is loaded with command "module list").
-The best way to achieve these steps is to add  "module unload intel/11.1.038" and "module load intel/12.1.233" lines to \textit{.modules} file in the home directory, 
+The best way to achieve these steps is to add  "module unload intel/11.1.038" and "module load intel/12.1.233" lines to \textit{.modules} file in the home directory,
 then relogin to Nautilus.}
-\item{Define ${\bf rgrav}$ in \textit{transfer\_quad.cpp} and the proportionality coefficient for the final flux in \textit{intensity.cpp} to correspond to the physical problem at hand. 
+\item{Define ${\bf rgrav}$ in \textit{transfer\_quad.cpp} and the proportionality coefficient for the final flux in \textit{intensity.cpp} to correspond to the physical problem at hand.
 Make sure ${\bf rgrav}$ is self-consistently used as either $M$ or $2M$. At present ${\bf rgrav}=2GM/c^2$. \textbf{The definitions are to be redone and put in a separate initialization file.}}
-\item{Create directory with any name (I use name \textit{rt}) for radiative transfer code in home directory. Create directory with any name (I use name \textit{analysis}) 
+\item{Create directory with any name (I use name \textit{rt}) for radiative transfer code in home directory. Create directory with any name (I use name \textit{analysis})
 for analysis. Make sure the variable ${\bf dir}$ in \textit{win\_lin\_Jon.c} points at analysis directory.}
 \item{Copy the code w/ all files into \textit{/home/rt/}. Copy $5$ files with radiative transfer coefficients for thermal plasma to \textit{/home/analysis/}.}
-\item{Create a directory \textit{/home/analysis/SIMULATION/}, where \textit{SIMULATION} is a name of a particular GRMHD simulation of interest. 
+\item{Create a directory \textit{/home/analysis/SIMULATION/}, where \textit{SIMULATION} is a name of a particular GRMHD simulation of interest.
 Add this name as a part of ${\bf astr}$ array in \textit{win\_lin\_Jon.c} file, add a correspondent spin into ${\bf atab}$ array.
-One may need to correspondingly increase the sizes of those array. Make sure the values of ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$ correspond to radial, 
+One may need to correspondingly increase the sizes of those array. Make sure the values of ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$ correspond to radial,
 poloidal and toroidal resolutions. The code will not complain about a program, but a correspondent \mat script will.}
 \item{Make sure that ALL \textit{fieldlineXXXX.bin} files of interest exist in ${\bf adir}+ SIMULATION +{\bf fieldstr}$ directory. \textit{SIMULATION}= thickdisk7 fails this test at present.}
 \item{Compile the code with "make -B" command. It should take under 30 seconds.}
@@ -251,17 +251,17 @@ poloidal and toroidal resolutions. The code will not complain about a program, b
 that everything is consistent.}
 \item{Copy \textit{dxdxp.dat} file into \textit{/home/analysis/SIMULATION/} directory, where, e.g. SIMULATION=thickdisk7.}
 \item{Create a correspondent batch job and run radiative transfer code in \textit{m\_ts} mode to create a file of average temperature/density profiles.}
-\item{Rename the resultant \textit{/home/analysis/SIMULATION/TsmapSIMULATIONx.dat} file into \textit{/home/analysis/SIMULATION/TsmapSIMULATION.dat} file. This is done to avoid accidentally 
+\item{Rename the resultant \textit{/home/analysis/SIMULATION/TsmapSIMULATIONx.dat} file into \textit{/home/analysis/SIMULATION/TsmapSIMULATION.dat} file. This is done to avoid accidentally
 overwriting the file of averaged profiles.}
 \item{Figure out the frequencies, for which we want to compute the radiative transfer. Figure out the fluxes at these frequencies. Enter everything into ${\bf sftab}$ variable in
 \textit{transfer\_quad.cpp}. While a set of frequencies is obligatory, the fluxes are not obligatory unless a model-fitting routine is invoked.}
-\item{Come up with a fiducial set of parameters $\bf rhonor$, $\bf heat$, $\bf th$ and run radiative transfer code in \textit{m\_quick} mode. One needs to set $\bf fdiff=0$ and 
+\item{Come up with a fiducial set of parameters $\bf rhonor$, $\bf heat$, $\bf th$ and run radiative transfer code in \textit{m\_quick} mode. One needs to set $\bf fdiff=0$ and
 define $\bf thlimit$ and $\bf isBcut$ variables. Also set ${\bf fmin}$, ${\bf fmax}$, and ${\bf ind}$ to some values. Low value ${\bf ind}=2$ is preferred.
 Recompile the code each time the parameters are changed.}
 \item{When the code finished running, check the output files in \textit{/home/analysis/} and \textit{/home/rt/} directories. Note any errors/abnormal code termination etc.}
 \item{Run \mat script to plot the lightcurve and perform any other analysis one needs.}
 \item{Try to manually change three parameters for a quick computation in order to produce a spectrum, which resembles the observed spectrum.}
-\item{Define the $\chi^2$ computation and a set of residuals.  Run the code in \textit{m\_sear} mode and find a local minimum. Recompile the code after any parameters were changed. 
+\item{Define the $\chi^2$ computation and a set of residuals.  Run the code in \textit{m\_sear} mode and find a local minimum. Recompile the code after any parameters were changed.
 A simplified version of \textit{m\_sear} is implemented ate present: it might not find a global minimum, especially if the polarized quantities are fitted for.
 A full version would include running \textit{m\_sear} for a set of fixed inclination angles and searching in space of $\bf rhonor$ and $\bf heat$ only.
 It is recommended that ${\bf ind}=21$ is set for this step.}
@@ -295,12 +295,37 @@ Look-up of emissivity/Faraday rotation \& conversion coefficients on 2D grid.
 \subsection{Function \textit{solte} in \textit{transfer\_quad}}
 The evolution equations on proton and electron temperatures. The equations are solved within \textit{init} function.
 
-\section{Variables}
-
-\subsection{Haha}
+\section{Code variables}
 
 
-\section{Features of the image}
+\section{Supporting \mat scripts}
+A lot of scripts are to be grouped into a single structured file \textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT.
+It consists of variety of scripts, which compute auxiliary quantities, derive some parts of ASTRORAY code to be directly copied into C++, and check GRMHD code.
+{\textbf Please, run "Cell->Delete all output" in \mat before committing the file to GIT.}
+The data processing and QPO computations are stored in separate \mat scripts to be shared later.
+\subsection{\textit{check\_GRMHD\_code.nb}}
+\subsubsection{Emis functions}
+The script "Computing emissivities/rotativities" does what its title says. The precise relativistic thermal electron distribution is used in all computations.
+It is easy to explicitly change the distribution to compute emissivities. However, if a new distribution is non-thermal, 
+then the absorptivities need to be computed separately, stored as another set of tables and read by the code.
+
+The Faraday rotation and conversion for thermal distribution is computed in my paper \citep{Shcherbakov:2008fa}.
+It is somewhat harder to compute Faraday rotation and conversion for non-thermal particle distribution.
+One needs to follow my other paper \citet{Huang:2011de}. The code from that paper is available online.
+
+A perfect future particle distribution is the relativistic Lorentzian distribution \citep{Shcherbakov:2009po}
+\begin{equation}
+f(p)\propto\left(1+\frac{\sqrt{1+p^2}-1}{\kappa T}\right)^{-\kappa+1}.
+\end{equation} In the limit $\kappa->\infty$ the distribution becomes the thermal distribution with temperature $T=k_B T_e/(m_e c^2)$.
+For small $\kappa$ the distribution is the power-law with a flexible amount of low-energy particles, controlled by the parameter $T$.
+Thus, a single distribution can be used everywhere! One does not have to artificially merge the thermal and non-thermal distributions and increase the number of free parameters.
+
+\subsubsection{Evalpointzero functions}
+A particularly useful script is "Checking gdump/fieldline, making dxdxp -> for Jon's jet simulations with QPOs (i.e. thickdisk7)". This script reads \textit{gdump.bin} and a single \textit{fieldlineXXXX.bin} files from a specified place on disk.
+The script performs a number of tests to ensure the format of each file is properly decoded and that the encoded data are correctly understood.
+Then the script computes \textit{dxdxp.dat} file, which is required for the ASTRORAY to work.
+
+The script in "Limiting the polar region" checks how bad the polar region looks: I make various ContourPlots.
 
 
 \bibliographystyle{apj}
