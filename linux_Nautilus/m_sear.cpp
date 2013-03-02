@@ -16,12 +16,14 @@ accur=xaccur;accurr=xaccurr;fact=xfact;ss=xss;int snxy=xsnxy;doub step=xstep,sst
 
 int fmin,fmax,sep;
 //ind=21;fdiff=60;
-fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=1.9407;fdiff=0;//Jon simulations
-fmin=5534;fmax=7034;sp=0;rhonor=92947.75; heat=0.18598;th=2.1203;fdiff=0;
-fmin=5534;fmax=7034;sp=0;rhonor=92947.75; heat=0.18598;th=2.1203;fdiff=0;
-fmin=5534;fmax=7034;sp=0;rhonor=1.4e+5; heat=0.17;th=2.2542;fdiff=0;
 fmin=5534;fmax=7034;sp=0;rhonor=144694.13267; heat=0.17339;th=2.4059;thlimit=0.0;fdiff=0;isBcut=true;//Jon simulations with B^2/\rho cut-off
-fmin=5534;fmax=7034;sp=0;rhonor=142642.42683 ; heat=0.16737;th=2.6367;thlimit=0.1;fdiff=0;isBcut=false;//Jon simulations, no B^2/\rho cut-off, thlimit=0.1
+fmin=5534;fmax=7034;sp=0;rhonor=192642.42683 ; heat=0.16737;th=2.61;thlimit=0.1;fdiff=0;isBcut=true;//Jon simulations, B^2/\rho cut-off, thlimit=0.1
+
+fmin=5534;fmax=7034;sp=0;rhonor=142642.42683;heat=0.16737;th=2.6367;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;//Jon simulations, no B^2/\rho cut-off, thlimit=0.1
+fmin=5534;fmax=7034;sp=0;rhonor=288331.85590;heat=0.14320;th=2.4529;thlimit=0.1;fdiff=0;isBcut=false;isBred=true;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
+
+fmin=2000;fmax=7000;sp=0;rhonor=261385.84479;heat=0.15572;th=2.3768;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=true;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
+fmin=2000;fmax=7000;sp=0;rhonor=144897.83871;heat=0.17172;th=2.3897;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=false;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
 
 //if(co==21){fmin=6850;fmax=9850;}
 //else{
@@ -42,19 +44,8 @@ fmin=5534;fmax=7034;sp=0;rhonor=142642.42683 ; heat=0.16737;th=2.6367;thlimit=0.
 ind=co;testN=atoi(descr);
 nP=12;if(isLP87)nPeff=nP; else nPeff=nP-1;
 sep=(fmax-fmin)/(ind-1);
-printf("testN=%d;  ind=%d\n",testN,ind);//recomputed - 25 Feb 2012
-/*if(sp==0){rhonor=1030713.25; heat=0.42107;  th=0.7328;fdiff=60;}//4.2802//best fits for fdiff=60;
-	if(sp==1){rhonor= 988988.82; heat=0.37012;  th=1.8407;fdiff=60;}//2.9363
-	if(sp==2){rhonor= 817113.52; heat=0.37239;  th=2.0159;fdiff=60;}//3.0837
-	if(sp==3){rhonor= 656228.94; heat=0.39849;  th=2.2074;fdiff=60;}//4.1912
-	if(sp==4){rhonor= 397281.19; heat=0.41343;  th=2.1439;fdiff=60;}//3.0059
+printf("testN=%d;  ind=%d\n",testN,ind);
 
-	if(sp==0){rhonor=1042075.25; heat=0.41929;  th=0.7231;fdiff=60;}//4.3485//best fits for fdiff=0;
-	if(sp==1){rhonor= 872253.56; heat=0.39804;  th=1.8726;fdiff=60;}//1.9967
-	if(sp==2){rhonor= 884119.22; heat=0.35708;  th=2.1054;fdiff=60;}//2.4761
-	if(sp==3){rhonor= 651827.84; heat=0.40215;  th=2.2109;fdiff=60;}//3.5874
-	if(sp==4){rhonor= 385700.77; heat=0.41720;  th=2.1351;fdiff=60;}//3.5910 
-*/
 dheat=0.;drho=0.;dtheta=0.;
 switch (testN){
 case 1: break;											
@@ -65,6 +56,18 @@ case 5:	drho=-0.25;drho=-0.6;break;
 case 6:	dtheta=0.1;dtheta=0.5;break;
 case 7:	dtheta=-0.1;dtheta=-0.5;break;
 }
+/*switch (testN){
+case 1: th=2.4840;heat=0.16992;rhonor=147780.66084;break;
+case 2: th=2.4812;heat=0.21682;rhonor=104110.02380;break;
+case 3: th=2.4198;heat=0.13443;rhonor=171629.22288;break;
+case 4: th=2.4978;heat=0.16175;rhonor=163531.22261;break;
+case 5: th=2.4039;heat=0.17473;rhonor=140163.50164;break;
+case 6: th=2.6143;heat=0.16798;rhonor=149993.46045;break;
+case 7: th=2.1688;heat=0.16663;rhonor=156507.65524;break;
+}*/
+
+
+
 heat*=(1+dheat);rhonor*=(1+drho);th+=dtheta;
 	//sp=5;rhonor=361204.; heat=0.445612; th=2.125;
 printf("in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d\n",co,sp,th,heat,rhonor,fdiff);//
@@ -78,31 +81,31 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){niter++;
 		inp[2][0]=heat;inp[2][1]=rhonor*(1+drho);inp[2][2]=th;
 		inp[3][0]=heat;inp[3][1]=rhonor;inp[3][2]=th*(1+dtheta);
 		start=std::clock();
-
-		for(oo=0;oo<4;oo++){//2D heat and rhonor integration converges quickly, whereas 3D heat, rhonor and th integration has problems (since LP changes unpredictably with changes in th)
+	 for(oo=0;oo<4;oo++)for(kk=kmin;kk<=kmax;kk++){ztotin[kk][oo]=0.;zLPo[kk][oo]=0.;zCP[kk][oo]=0.;zEVPA[kk][oo]=0.;};
+//beginning of integration block
+		for(fnum=fmin;fnum<=fmax;fnum+=sep){
+			for(oo=0;oo<4;oo++){//2D heat and rhonor integration converges quickly, whereas 3D heat, rhonor and th integration has problems (since LP changes unpredictably with changes in th)
 		heat=inp[oo][0];rhonor=inp[oo][1];th=inp[oo][2];
-		//beginning of integration block
-		for(kk=kmin;kk<=kmax;kk++){xtotin[kk]=0.;xLPo[kk]=0.;xCP[kk]=0.;xEVPA[kk]=0.;};
-		for(fnum=fmin;fnum<=fmax;fnum+=sep){init(sp,fmin,fmax,sep);
+		init(sp,fmin,fmax,sep);
 		#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 		#include "intensity.cpp"
-		for(kk=kmin;kk<=kmax;kk++){xtotin[kk]+=totin[kk]/ind;xLPo[kk]+=LPo[kk]/ind;xCP[kk]+=CP[kk]/ind;xEVPA[kk]+=ang[kk]/ind;};
-		;}
-		//end of integration block 
-		for(il=4;il<=10;il++)resid[il-4][oo]=(xtotin[il]-tofit[il][1])/dFnu[il];
-		resid[7][oo]=(xLPo[4]-tofit[4][2])/dLP[0];
-		resid[8][oo]=(xLPo[7]-tofit[7][2])/dLP[1];
-		resid[9][oo]=(xLPo[8]-tofit[8][2])/dLP[2];
-		resid[10][oo]=(xCP[7]-tofit[7][4])/dCP;
-		resid[11][oo]=(xCP[8]-tofit[8][4])/dCP;
-		if(oo==0){xisq=0.;for(il=0;il<nP;il++)xisq+=resid[il][0]*resid[il][0]/(nPeff-3);
-			printf("heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",heat, rhonor, th, xisq);
-			stringstream sss;sss<<(int)100*a<<"in"<<co<<"N"<<testN;//"th"<<(int)floor(100*tth+1e-6)<<
+		for(kk=kmin;kk<=kmax;kk++){ztotin[kk][oo]+=totin[kk]/ind;zLPo[kk][oo]+=LPo[kk]/ind;zCP[kk][oo]+=CP[kk]/ind;zEVPA[kk][oo]+=ang[kk]/ind;};
+		;};}
+//end of integration block 
+	for(oo=0;oo<4;oo++){
+		for(il=4;il<=10;il++)resid[il-4][oo]=(ztotin[il][oo]-tofit[il][1])/dFnu[il];
+		resid[7][oo]=(zLPo[4][oo]-tofit[4][2])/dLP[0];
+		resid[8][oo]=(zLPo[7][oo]-tofit[7][2])/dLP[1];
+		resid[9][oo]=(zLPo[8][oo]-tofit[8][2])/dLP[2];
+		resid[10][oo]=(zCP[7][oo]-tofit[7][4])/dCP;
+		resid[11][oo]=(zCP[8][oo]-tofit[8][4])/dCP;}
+{xisq=0.;for(il=0;il<nP;il++)xisq+=resid[il][0]*resid[il][0]/(nPeff-3);
+			printf("heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",inp[0][0], inp[0][1], inp[0][2], xisq);
+			stringstream sss;sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;//"th"<<(int)floor(100*tth+1e-6)<<
 			outstr=dir+"xisqa"+sss.str(); outstr+=".dat";
 			FILE * xFile; xFile = fopen (outstr.c_str(),"a");
-			fprintf(xFile,"%.2f %.4f %.4f %.5f %.5f %.3e\n",a,xisq,th,heat,rhonor,rate*year/Msun);fclose(xFile);
-			};
-		}
+			fprintf(xFile,"%.2f %.4f %.4f %.5f %.5f %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);fclose(xFile);};
+
 		ans=( std::clock() - start ) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; finished %d iterations; th=%.3f; heat=%.3f\n", ans,niter,th,heat);
 	
 

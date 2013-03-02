@@ -42,29 +42,29 @@ for(rk=0;rk<rlen;rk++){rho[rk]=0.;ts[rk]=0.;}
 	pbuf=fline.rdbuf();
 	int fsize=pbuf->pubseekoff (0,ios::end),tosize=11*phlen*thlen*rlen*sizeof(float);
 	pbuf->pubseekpos(fsize-tosize);
-	fline.read(reinterpret_cast<char *>((*uu)[0]), tosize);
+	fline.read(reinterpret_cast<char *>(uu[0]), tosize);
 	fline.close();
 for(rk=0;rk<rlen;rk++)for(thk=thlen/2-3;thk<=thlen/2+3;thk++)for(phk=0;phk<phlen;phk++)
-{rho[rk]+=(*uu)[0][phk][thk][rk][0]/7/phlen/ind;
-ts[rk]+=(*uu)[0][phk][thk][rk][1]/7/phlen/ind*mp*cc*cc/3/kb/(*uu)[0][phk][thk][rk][0];};
+{rho[rk]+=(*uu[0])[phk][thk][rk][0]/7/phlen/ind;
+ts[rk]+=(*uu[0])[phk][thk][rk][1]/7/phlen/ind*mp*cc*cc/3/kb/(*uu[0])[phk][thk][rk][0];};
 
 //int nx=37;doub rx=rad[nx-1]; //for(m=20;m<=200;m+=10){nx=m;rx=xx[nx-1][0];
 	//rate=0.;
 //	for(k=0;k<thlen-1;k++)for(i=0;i<phlen;i++)
-//	rate+=2./phlen*PI*(rx-off)*(rx*rx+ asq*theta[0][k]*theta[0][k+1])*(*uu)[0][i][k][nx-1][0]*(*uu)[0][i][k][nx-1][4]*(*uu)[0][i][k][nx-1][5]*(theta[0][k]-theta[0][k+1]);
+//	rate+=2./phlen*PI*(rx-off)*(rx*rx+ asq*theta[0][k]*theta[0][k+1])*(*uu[0])[i][k][nx-1][0]*(*uu[0])[i][k][nx-1][4]*(*uu[0])[i][k][nx-1][5]*(theta[0][k]-theta[0][k+1]);
 //	rate*=rhonor*rgrav*rgrav*cc*mp;
 //
 
 
 int nx=37,m;doub rx=rad[nx-1],u0;//can't compute rate without knowing dxdxp, for which another calculations is required
 //rate=0.;
-//for(k=0;k<thlen-1;k++)for(i=0;i<phlen;i++){u0=(*uu)[0][i][k][nx-1][4];usp[0][i][k][0]=u0; usp[0][i][k][1]=u0*(*uu)[0][i][k][nx-1][5];usp[0][i][k][2]=u0*(*uu)[0][i][k][nx-1][6];usp[0][i][k][3]=u0*(*uu)[0][i][k][nx-1][7];
+//for(k=0;k<thlen-1;k++)for(i=0;i<phlen;i++){u0=(*uu[0])[i][k][nx-1][4];usp[0][i][k][0]=u0; usp[0][i][k][1]=u0*(*uu[0])[i][k][nx-1][5];usp[0][i][k][2]=u0*(*uu[0])[i][k][nx-1][6];usp[0][i][k][3]=u0*(*uu[0])[i][k][nx-1][7];
 //	uspKS[0][i][k]=0.;for(m=0;m<4;m++)uspKS[0][i][k]+=dxdxp[nx-1][k][1][m]*usp[0][i][k][m];//radial velocity in KS metric
-//rate+=2./phlen*PI*(rx*rx+ asq*theta[nx-1][k]*theta[nx-1][k+1])*(*uu)[0][i][k][nx-1][0]*uspKS[0][i][k]*(theta[nx-1][k]-theta[nx-1][k+1]);};
+//rate+=2./phlen*PI*(rx*rx+ asq*theta[nx-1][k]*theta[nx-1][k+1])*(*uu[0])[i][k][nx-1][0]*uspKS[0][i][k]*(theta[nx-1][k]-theta[nx-1][k+1]);};
 //rate*=rhonor*rgrav*rgrav*cc*mp;
 //printf("fnum=%d  rate=%.3e\n", fnum, rate*year/Msun);
 doub rhoinst=0.;
-for(thk=thlen/2-3;thk<=thlen/2+3;thk++)for(phk=0;phk<phlen;phk++)rhoinst+=(*uu)[0][phk][thk][nx-1][0]/7/phlen;
+for(thk=thlen/2-3;thk<=thlen/2+3;thk++)for(phk=0;phk<phlen;phk++)rhoinst+=(*uu[0])[phk][thk][nx-1][0]/7/phlen;
 printf("fn=%d: average density at r=%f is rho=%f \n",fnum,rx,rhoinst);
 }
 	

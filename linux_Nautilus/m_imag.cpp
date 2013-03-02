@@ -13,8 +13,8 @@ accur=xaccur;accurr=xaccurr;fact=xfact;ss=xss;doub step=xstep,sstep=xsstep,Iint=
 //int nxy=xsnxy;//should be no more than 401
 //! using h
 	start=std::clock();iswrite=true;
-kmin=4;kmax=10;//for imaging 4-> 87GHz, 7 ->230GHz; 9 -> 674GHz
-
+kmin=4;kmax=10;//for imaging 4-> 87GHz, 7 ->230GHz; 10 -> 857GHz
+kmin=4;kmax=10;kstep=3;
 // 2 0 2.0 4  -- are command lines
 
 //fmin=6850;fmax=9850;sep=150;//ind=0..20
@@ -52,12 +52,26 @@ case 19: fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=2.9;fdiff=0;break
 case 20: fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=1.59;fdiff=0;break;//Jon simulations
 case 21: fmin=6434;fmax=7034;sp=0;rhonor=5.e+4; heat=0.37;th=2.1;fdiff=0;break;//Jon simulations
 case 22: fmin=5534;fmax=7034;sp=0;rhonor=144694.13267; heat=0.17339;th=2.4059;fdiff=0;break;//Jon simulations with B^2/\rho cut-off
+case 23: fmin=5534;fmax=7034;sp=0;rhonor=142642.42683; heat=0.16737;th=2.6367;thlimit=0.1;fdiff=0;isBcut=false;break;//Jon simulations, no B^2/\rho cut-off, thlimit=0.1
+case 24: fmin=5534;fmax=7034;sp=0;rhonor=274614.53874; heat=0.14422;th=2.4483;thlimit=0.1;fdiff=0;isBcut=true;break;//Jon simulations, both B^2/\rho cut-off and thlimit=0.1
+case 28: fmin=5534;fmax=7034;sp=0;rhonor=288331.85590; heat=0.14320;th=2.4529;thlimit=0.1;fdiff=0;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
+case 29: sp=0;rhonor=261385.84479; heat=0.15572;th=2.3768;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
+case 30: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 31: sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 32: sp=0;rhonor=147780.66084; heat=0.16992;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 33: sp=0;rhonor=261385.84479; heat=0.15572;th=2.3768;thlimit=0.1;fdiff=0;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
+case 34: sp=0;rhonor=144897.83871; heat=0.17172;th=2.3897;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 35: sp=0;rhonor=261385.84479; heat=0.15572;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
+case 36: sp=0;rhonor=261385.84479; heat=0.15572;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
 };printf("Bpo=%.3f, fdiff=%d at frequency f=%.3fGHz\n",Bpo,fdiff,sftab[kmax][0]);
 printf("th=%f\n",th);tth=th;xth=th;
 
-ind=co;sep=(fmax-fmin)/(ind-1);
-for(m=0;m<ind;m++){//comment out for ind given by PBS_ARRAYID
-fnum=fmin+m*sep;
+fmin=co;fmax=mco;sep=1;
+//ind=co;sep=(fmax-fmin)/(ind-1);
+
+//for(fnum=0;m<ind;m++){//comment out for ind given by PBS_ARRAYID
+for(fnum=fmin;fnum<=fmax;fnum+=sep){
+//fnum=fmin+m*sep;
 	init(sp,fmin,fmax,sep);
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "imaging.cpp"	

@@ -8,6 +8,7 @@
 #include <math.h>
 #include <ctime>
 #include <omp.h>
+//#include <mpi.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -27,7 +28,7 @@ using namespace std;
 //#include "win_lin.c"
 
 int geon=0;
-const int ndd=650, sflen=13/*10*/,flen=3, thn=50, xylen=256*64, dd=3,wdd=11, fdiffmax=1/*90*/,maxco=2100/*1000 for intensity*/, temlen=301, nWlen=120, Tlen=100, nxy=201, snxy=285;
+const int ndd=650, sflen=13/*10*/,flen=3, thn=50, xylen=256*64, dd=3,wdd=11, maxfield=200,maxco=2100/*1000 for intensity*/, temlen=301, nWlen=120, Tlen=100, nxy=201, snxy=585;
 const doub PI = 4.0*atan(1.0), st=0.05,  maxx=12.1, minn=1.2, step=1e-2, sstep=-0.09, Iint=1e-10, Iang=1.;
 const doub nWmin=12000.*pow(1.1,-nWlen/2.), lnWmin=log(nWmin), nWmax=12000.*pow(1.1,nWlen/2),lnWmax=log(nWmax), rrmax=3.4e+5, rhoout=130., Tout=1.5e+7,
 Tminr=0.4*pow(1.05,-Tlen),Tmin=0.4,Tmax=0.4*pow(1.05,Tlen),lTminr=log(Tminr),lTmin=log(Tmin),lTmax=log(Tmax),mp=1.67e-24, me=9.1e-28, cc=3.e+10, kb=1.38e-16,
@@ -43,28 +44,32 @@ const doub dFnu[sflen+1]={0.031,0.012,0.015,0.026,0.080, 0.1517, 0.2644, 0.1414,
 doub dEVPA[3]={11.,5.4,2.21};//dFnu=0.33, dCP=0.27, dLP=0.26
 const gsl_odeiv_step_type * T, * TT, *Tz;//auxilliary for diff. equations
 
-bool inited=false, iswrite,fl=true, echeck1=false, echeck2=false, echeck3=false, Bdir=true, isBcut=false;//LP%, EVPA, CP%
+bool inited=false, iswrite,fl=true, echeck1=false, echeck2=false, echeck3=false, Bdir=true, isBcut=false, isBred=false;//LP%, EVPA, CP%
 string fdir,outstr,instr;
-int fnum, cas,th_id,i,/*j,*/k, w, sp, ncut, nm,co,fdiff=0,mintim,maxtim,stNt;string fif="";
+int fnum, cas,th_id,i,/*j,*/k, w, sp, ncut, nm,co,mco,fdiff=0,mintim,maxtim,stNt,loaded[maxfield];string fif="";
 
 std::clock_t start;
 doub rg, temp, rat, dof=0.,t, fact=1.,xisq, ans, th, tth,xth, r, r0, a, off, res, asq, accur,accurr,maxy,rate,ratex,maxT,minT, xxisq,xang, ss=1e-2, dense=1.,
 		fljVc=1., flrQc=1.,flrVc=1.;
 doub resid[15][4],delta[15],Jac[15][3],bb[3],matr[3][3],det;
-doub usp[2*fdiffmax+1][phlen][thlen][4], uspKS[2*fdiffmax+1][phlen][thlen];
+doub usp[maxfield][phlen][thlen][4], uspKS[maxfield][phlen][thlen];
 typedef doub (*ausar)[snxy+1][snxy+1][sflen+1][5];ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen+1][5];ausar ausin2 = (ausar) new doub[snxy+1][snxy+1][5];
 typedef double (*arra)[nxy+1][nxy+1][5]; arra intab = (arra) new double[nxy+1][nxy+1][5];
 typedef double (*para)[20];para params = (para) new double[20];
 doub rtab[2000],Tstab[2000]; //for calculating the electron temperature
 
 float ww[phlen][thlen][rlen][wdd], uext[phlen][thlen][5], dxdxp[ndd][thlen][4][4],coord[ndd][thlen][2],coordx[ndd][thlen][2];//float uu[2*fdiffmax+1][phlen][thlen][rlen][wdd];
-typedef float (*uuarr)[2*fdiffmax+1][phlen][thlen][rlen][wdd];uuarr uu = (uuarr) new float[2*fdiffmax+1][phlen][thlen][rlen][wdd];
+//typedef float (*uuarr)[2*fdiffmax+1][phlen][thlen][rlen][wdd];uuarr uu = (uuarr) new float[2*fdiffmax+1][phlen][thlen][rlen][wdd];
+typedef float (*uuarr)[phlen][thlen][rlen][wdd];uuarr uu[200];//130 fits in 64GB memory for Jon's simulations from 2012
+//typedef float (*uuarr)[phlen][thlen][rlen][wdd]; double *uu[2*fdiffmax+1];
+//[2*fdiffmax+1]
 typedef double (*usgarr)[thlen][rlen][usgsize];usgarr usgread = (usgarr) new double[thlen][rlen][usgsize];
 doub xx[rlen][dd];
 doub damp,TpTe,heat,ts[10000], te[10000],tp[10000], rcut, rhopo, Upo, Bpo, rhonor,Bnor,Bcon,Bmax,Bmin,rhocon,rhomax,rhomin,rmin,rmax,Ucon,Umax,Umin,
 lrmin,lrmax, thlimit,
 theta[ndd][thlen], rad[rlen], lrar[rlen], x2min,x2max, in[sflen+1][5], totin[sflen+1],LPo[sflen+1],CP[sflen+1],
 xtotin[sflen+1],xLPo[sflen+1],xCP[sflen+1],xEVPA[sflen+1], ytotin[sflen+1],yLPo[sflen+1],yCP[sflen+1],
+ztotin[sflen+1][4],zLPo[sflen+1][4],zCP[sflen+1][4],zEVPA[sflen+1][4],
 err[sflen+1],ang[sflen+1],avrate,Te6,avTpTe,avTe6;doub jI[Tlen+1][nWlen+1],jQ[Tlen+1][nWlen+1], jV[Tlen+1][nWlen+1],rQ[2*Tlen+1],rV[2*Tlen+1],cheat,crhonor,lastxisq,
 lastrhonor,lastheat;
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;
@@ -104,11 +109,11 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas)
 #include "transnew.cpp"
 }
 int main(int argc, char* argv[])
-{
+{int n1,n2,n3;
+for(n1=0;n1<2*fdiff+1;n1++)uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd];
 //char * descr = getenv("LSB_JOBINDEX");
 char * descr = getenv("PBS_ARRAYID");
-//char * descr = getenv("PBS_JOBID");
-int nP,nPeff,kk,j,ittot=0, niter=0, oo,ix,il,iy, kmin,kmax,sep; doub t;
+int nP,nPeff,kk,j,ittot=0, niter=0, oo,ix,il,iy, kmin,kmax,kstep,sep; doub t;
 
 doub inp[4][3],dheat,drho,dtheta,ddh,ddr,dth;//sp=0,a=0; 1->0.5; 2->0.7; 3->0.9; 4->0.98
 T  = gsl_odeiv_step_rk2;accur =3e-4;
@@ -121,7 +126,8 @@ lastheat=heat;lastrhonor=rhonor;sep=50;fact=1.;oo=1;iswrite=true;int sear;kmin=4
 
 #pragma omp parallel num_threads(nthreads) shared(ittot) private(w)
 {w = omp_get_thread_num();printf("Hello from thread %d\n", w);}
-if(argc==5){sp=atoi(argv[1])-1;co=atoi(argv[2]);Bpo=atof(argv[3]);sear=atoi(argv[4]);} else return 0;
+if(argc==5){sp=atoi(argv[1])-1;co=atoi(argv[2]);Bpo=atof(argv[3]);mco=floor(Bpo+0.001);sear=atoi(argv[4]);} else return 0;
+//sear=1;
 switch (sear){
 case 0: //surfs the parameter space near best fit to flux
 	//#include "s_space.cpp"

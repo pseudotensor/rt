@@ -1,5 +1,5 @@
 //using namespace std;
-int m,k,j,tn,xrn,rn,n,sn,i,nr,nt,np;
+int m,k,j,tn,xrn,rn,n,sn,i,nr,nt,np,n1;
 bool fl=true;filebuf *pbuf;
 doub rr, costh, temp,tempsq, cossq,sinsq,rsq,Del,rhosq;
 doub iKS[4][4], iMKS[4][4], MKStoKS[4][4], rest[11], Bup[4],Bi[4],u[4],uKS[4],uloKS[4],ulo[4],BupKS[4],rho,sc[4];
@@ -7,28 +7,17 @@ doub iKS[4][4], iMKS[4][4], MKStoKS[4][4], rest[11], Bup[4],Bi[4],u[4],uKS[4],ul
 
 a=atab[sp];asq=a*a;ncut=ncuttab[sp];
 fdir=adir+astr[sp]+fieldstr;
-if(fdiff>fdiffmax){printf("Can't load that many snapshots... \n");return 0;};
-mintim=1-0.0001*fdiff;maxtim=1+0.0001*fdiff;
-
-for(i=-fdiff;i<=fdiff;i++){
-	stringstream sstr;
-	sstr<<setfill('0')<<setw(4)<<fnum+i;
-	ifstream fline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in|ios::binary);
-	pbuf=fline.rdbuf();
-	int fsize=pbuf->pubseekoff (0,ios::end),tosize=11*phlen*thlen*rlen*sizeof(float);
-	pbuf->pubseekpos(fsize-tosize);
-	fline.read(reinterpret_cast<char *>((*uu)[fdiff+i]), tosize);
-if(fline.good())printf("fieldline %d loaded\n",fnum+i); else {printf("fieldline %d cannot be loaded \n",fnum+i);exit(1);}
-	fline.close();}
-//rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+//if(fdiff>fdiffmax){printf("Can't load that many snapshots... \n");return 0;};
+mintim=1-0.00005*dtimdf*fdiff;maxtim=1+0.00005*dtimdf*fdiff;
 
 if(!inited){
 //r, theta, rho (density), U (internal energy) , u^0, u^1, u^2, u^3, u_0, u_1, u_2, u_3, b_1, b_2, b_3, (b_1)^2, (b_2)^2, (b_3)^2
 	//reading or creating density & temperature profiles
 	ifstream faire ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
 	for(k=0;k<rlen;k++)for(i=0;i<dd;i++)faire>>xx[k][i];
-if(faire.good())printf("Tsmap loaded\n"); else {printf("Tsmap cannot be loaded \n");exit(2);}
 	faire.close();
+	for(n1=0;n1<2*fdiff+1;n1++)loaded[n1]=0;
+	for(n1=0;n1<2*fdiff+1;n1++)uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd];//allocating memory for snapshots - might take a while
 
 //	ifstream gre((dir+astr[sp]+xstr+"usgdump2d").c_str(), ios::in|ios::binary);
 //	pbuf=gre.rdbuf(); pbuf->pubseekpos(usgoff);int tosize=usgsize*rlen*thlen*sizeof(double);
@@ -40,7 +29,7 @@ if(faire.good())printf("Tsmap loaded\n"); else {printf("Tsmap cannot be loaded \
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));
 	dxp.read(reinterpret_cast<char *>(dxdxp), ndd*thlen*4*4*sizeof(float));
 	dxp.close();
-
+	
 	for(k=0;k<ndd;k++)for(i=0;i<thlen;i++){
 	//theta[k][i]=-cos((*usgread)[i][k][8]);//reading any grid
 	theta[k][i]=coord[k][i][1];//reading any grid
@@ -69,6 +58,25 @@ if(faire.good())printf("Tsmap loaded\n"); else {printf("Tsmap cannot be loaded \
 	//lrmin=log(rmin-off);lrmax=log(rmax-off);
 	inited=true;};
 
+//if(fx==3786)fx++;if(fx==3790)fx++;if(fx==3791)fx++;if(fx==3888)fx++;if(fx==3891)fx++;if(fx==3892)fx++;
+//if(fx==3893)fx++;if(fx==3894)fx++;if(fx==3896)fx++;if(fx==5000)fx++;if(fx==5001)fx++;if(fx==5002)fx++;
+for(i=-fdiff;i<=fdiff;i++){
+	stringstream sstr;int ioff=i+fdiff;
+	int fx=fnum+i;bool reuse=false;
+	for(n1=0;n1<2*fdiff+1;n1++)
+		if(loaded[n1]==fx){printf("Found coincidence for fnum=%d\n",fx);uuarr ptr=uu[ioff];uu[ioff]=uu[n1];uu[n1]=ptr;loaded[ioff]=fx;reuse=true;break;};
+	if(reuse)continue;//the snapshot we want to load is already in memory
+	sstr<<setfill('0')<<setw(4)<<fx;
+	ifstream fline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in|ios::binary);
+	pbuf=fline.rdbuf();
+	int fsize=pbuf->pubseekoff (0,ios::end),tosize=11*phlen*thlen*rlen*sizeof(float);
+	pbuf->pubseekpos(fsize-tosize);
+	fline.read(reinterpret_cast<char *>(uu[ioff]), tosize);
+if(fline.good())printf("fieldline %d read\n",fx);fline.close();
+	loaded[ioff]=fx;
+}
+//rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+
 rcut=xx[ncut-1][0];//switching to realistic boundary at 3.4*10^5M
 rhopo=-log(rhoout*dense/rhonor/xx[ncut-1][2])/log(rrmax/rcut);
 Upo=-log(Tout/xx[ncut-1][1])/log(rrmax/rcut);
@@ -89,9 +97,10 @@ Tstab[k]=Ucon*pow((doub)rtab[k]/rcut,(doub)-Upo);};
 int nx=60;doub rx=exp(coord[nx-1][0][0]),u0;
 rate=0.;
 for(k=0;k<thlen-1;k++)for(i=0;i<phlen;i++)
-	for(j=0;j<=2*fdiff;j++) {u0=(*uu)[j][i][k][nx-1][4];usp[j][i][k][0]=u0; usp[j][i][k][1]=u0*(*uu)[j][i][k][nx-1][5];usp[j][i][k][2]=u0*(*uu)[j][i][k][nx-1][6];usp[j][i][k][3]=u0*(*uu)[j][i][k][nx-1][7];
+	for(j=0;j<=2*fdiff;j++) {u0=(*uu[j])[i][k][nx-1][4];
+usp[j][i][k][0]=u0; usp[j][i][k][1]=u0*(*uu[j])[i][k][nx-1][5];usp[j][i][k][2]=u0*(*uu[j])[i][k][nx-1][6];usp[j][i][k][3]=u0*(*uu[j])[i][k][nx-1][7];
 	uspKS[j][i][k]=0.;for(m=0;m<4;m++)uspKS[j][i][k]+=dxdxp[nx-1][k][1][m]*usp[j][i][k][m];//radial velocity in KS metric
-rate+=2./phlen*PI*(rx*rx+ asq*theta[nx-1][k]*theta[nx-1][k+1])*(*uu)[j][i][k][nx-1][0]*uspKS[j][i][k]*(theta[nx-1][k]-theta[nx-1][k+1]);};
+rate+=2./phlen*PI*(rx*rx+ asq*theta[nx-1][k]*theta[nx-1][k+1])*(*uu[j])[i][k][nx-1][0]*uspKS[j][i][k]*(theta[nx-1][k]-theta[nx-1][k+1]);};
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1);
 
 //int nx=60,m;doub rx=exp(coord[nx-1][0][0]);rate=0.;
@@ -140,8 +149,8 @@ for(nt=0;nt<thlen;nt++)//for(nr=0;nr<rlen;nr++)
 	for(i=0;i<4;i++)for(k=0;k<4;k++)for(j=0;j<4;j++)for(m=0;m<4;m++)iMKS[i][k]+=MKStoKS[m][i]*iKS[m][j]*MKStoKS[j][k];
 	
 	for(np=0;np<phlen;np++){
-		for(m=0;m<11;m++)rest[m]=(*uu)[sn][np][nt][xrn][m];
-		rho=rest[0]*rhonor; rest[1]*=mp*cc*cc/3/kb/rest[0];
+		for(m=0;m<11;m++)rest[m]=(*uu[sn])[np][nt][xrn][m];
+		rho=rest[0]*rhonor; rest[1]*=mp*cc*cc/3/kb/(rest[0]);
 		u[0]=rest[4];u[1]=u[0]*rest[5];u[2]=u[0]*rest[6];u[3]=u[0]*rest[7];
 		Bi[1]=Bnor*rest[8];Bi[2]=Bnor*rest[9];Bi[3]=Bnor*rest[10];
 uext[np][nt][3]=rho;
@@ -182,4 +191,4 @@ uext[np][nt][2]=B[3];
 		};
 };
 printf("\n");return(0);
-//rest[m]=(*uu)[sn][k][tn][xrn][m]
+//rest[m]=(*uu[sn])[k][tn][xrn][m]

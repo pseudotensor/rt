@@ -18,8 +18,8 @@ ppy[currth].nu=1e9*sftab[kk][0];
 (*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]);
 (*ausin)[iix][iiy][kk][2]=II[1]*sin(II[2])*sin(II[3]);
 (*ausin)[iix][iiy][kk][3]=II[1]*cos(II[3]);
-(*ausin)[iix][iiy][kk][4]=ppy[currth].llmax;
-//(*ausin)[ix][iy][kk][4]=II[4];
+//(*ausin)[iix][iiy][kk][4]=ppy[currth].llmax;
+(*ausin)[iix][iiy][kk][4]=II[4];
 
 //if((35<iy)&&(iy<65)&&(85<ix)&&(ix<115))(*ausin)[ix][iy][kk][0]/=2.;
 //if((125<iy)&&(iy<155)&&(85<ix)&&(ix<115))(*ausin)[ix][iy][kk][0]/=10.;
@@ -39,6 +39,7 @@ for(il=0;il<5;il++)in[kk][il]*=maxy*maxy;
 totin[kk]=66.4648*in[kk][0];LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0];CP[kk]=100.*in[kk][3]/in[kk][0];
 ang[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);err[kk]=66.4648*in[kk][4];//err[kk]=100*fabs(in[kk][4]/in[kk][0]-1.);
 printf("%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],ang[kk], CP[kk],err[kk]);
+
 //Q-1;  U-2
 
 
@@ -60,4 +61,13 @@ faire.write(reinterpret_cast<char *>(params), 20*sizeof(double));
 faire.write(reinterpret_cast<char *>(intab), 5*(nxy+1)*(nxy+1)*sizeof(doub));
 faire.close();
 }
+
+if(iswrite){
+stringstream sstr;sstr <<(int)100*a<<"th"<<(int)floor(100*xth+1e-6)<<"fn"<<fnum<<"hi";//"hi" is a for high resolution
+string stra = sstr.str();
+FILE * pFile; pFile=fopen ((dir+"poliresa"+stra+fif+".dat").c_str(),"a");
+for(kk=kmin;kk<=kmax;kk++)
+fprintf(pFile,"%d %.2f %.5f %.4f %.4f %.4f %.4f %.5f %.4f %.4f %.2f %.4e %.4f\n",
+		fnum,sftab[kk][0],totin[kk],LPo[kk],ang[kk],CP[kk],err[kk],heat,rhonor,xxisq,TpTe,rate*year/Msun,th);
+fclose(pFile);};
 //WinExec("\"C:\\Program Files\\Wolfram Research\\Mathematica\\7.0\\math\" -noprompt -initfile \"G:\\mathematica\\3DMHD\\pol_imaging_script\"",SW_SHOWDEFAULT);

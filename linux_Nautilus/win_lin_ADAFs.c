@@ -1,5 +1,6 @@
 const string dir="E:\\GRMHD\\ADAFs\\", adir="E:\\GRMHD\\ADAFs\\", fieldstr="\\fieldlines\\", xstr="\\";
 const int nthreads=24;//desktop
+const int dtimdf=2;//change of time between fieldlineXXXX files within consecutive numbers XXXX
 #include "Windows.h"
 #include <tchar.h>
 const int ncuttab[5] = {100, 110, 116, 128, 138}, rlen=264, thlen=126,phlen=60,

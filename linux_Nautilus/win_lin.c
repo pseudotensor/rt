@@ -1,5 +1,6 @@
 const string dir="E:\\GRMHD\\", adir="E:\\GRMHD\\", fieldstr="\\fieldlines\\", xstr="\\";
 const int nthreads=24;//desktop
+const int dtimdf=2;//change of time between fieldlineXXXX files within consecutive numbers XXXX
 #include "Windows.h"
 #include <tchar.h>
 const int ncuttab[5] = {145, 147, 149, 153, 162}, rlen=256, thlen=64,phlen=32, 

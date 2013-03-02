@@ -1,0 +1,180 @@
+Timing with intel 12.1.233
+bad code - threads=2 => 2066.46s
+bad code - threads=4 => 2076.18s
+bad code - threads=8 => 2111.94s (44s per fieldline)
+bad code - threads=16=> 3087.03s (35s per fieldline)
+bad code - threads=32=> 3953.58s (23s per fieldline)
+bad code - threads=64=> 8009.06s (27s per fieldline)
+
+On Nautilus with 8GB memory
+threads=8 => 2111.94s (44s per fieldline)
+threads=16=> 2347.93s (25s per fieldline)
+threads=32=> 5135.94s (34s per fieldline)
+threads=64=> 5741.49s (17s per fieldline)
+threads=32=> 5076.25s (35s per fieldline)
+threads=32=> 6991.88s (44s per fieldline)
+threads=16=> 3164.17s (34s per fieldline)
+
+On Nautilus without preset memory limit (= 4GB per core)
+threads=2 => 2078.87s 
+threads=4 => 2082.43s (87s per fieldline)  
+threads=8 => 2095.84s (44s per fieldline)
+threads=16=> 3167.08s (35s per fieldline)
+threads=32=> 3156.99s (34s per fieldline)
+threads=64=> 3329.45s (28s per fieldline)
+
+On Desktop
+threads=2  => 1072.5s
+threads=4  =>  570.1s
+threads=8  =>  308.4s
+threads=16 =>  161.4s
+threads=32 =>   91.4s
+threads=48 =>   67.6s
+
+
+Timing on Nautilus:
+t=1006.35 for 16 threads with intel 12.1.233
+t=1013.54 for 16 threads with GCC 4.6.3
+t=1079.44 for 16 threads with intel 11.1.038
+t=1322.71 for 16 threads with GCC 4.3.4
+
+
+
+spin 0.5;  fdiff=60 -> fdiff=90; ind=21 => xisq=0.06642 - extension outside 25M does not vary - pass!
+spin 0.5;  fdiff=40 -> fdiff=60; ind=21 => xisq=0.23273 - extension outside 25M does not vary - does not pass.
+spin 0.5;  fdiff=0  -> fdiff=60; ind=21 => xisq=0.20367 - extension outside 25M does not vary - does not pass.
+spin 0.98; fdiff=60 -> fdiff=90; ind=21 => xisq=0.08870 - extension outside 25M does not vary - pass!
+
+fdiff=0 -> fdiff=1; ind=2  =>  xisq=0.01687
+fdiff=0 -> fdiff=2; ind=2  =>  xisq=0.04469
+fdiff=0 -> fdiff=42; ind=21 => xisq=0.23011 - almost passed! + extension outside 25M varies
+fdiff=0 -> fdiff=42; ind=21 => xisq=0.20039 - almost passed! + extension outside 25M does not vary - not a significant change!
+fdiff=28-> fdiff=42; ind=21 => xisq=0.13806 - almost passed... + extension outside 25M does not vary
+
+fdiff=60 -> fdiff=90; ind=21 => xisq=0.08056 - extension outside 25M varies
+fdiff=42 -> fdiff=63; ind=21 => xisq=0.10820 - extension outside 25M varies
+fdiff=28 -> fdiff=42; ind=21 => xisq=0.43479 - extension outside 25M varies
+fdiff=18 -> fdiff=28; ind=21 => xisq=0.21337 - extension outside 25M varies
+fdiff=9 -> fdiff=18; ind=21 => xisq=0.09318 - extension outside 25M varies
+fdiff=0 -> fdiff=9; ind=21 => xisq= - extension outside 25M varies
+
+Don't start more than 40 tasks (x4 threads) working simultaneously - this saturates I/O lustre system...
+2.734e-008 - no fdiff
+3.176e-008 - fdiff=60;
+2.740e-008 - fdiff=10;
+
+fmin-=x;fmax-=x;
+x=1;ind=2 => xisq=0.00541
+x=2;ind=2 => xisq=0.01659
+x=4;ind=2 => xisq=0.05720
+x=8;ind=2 => xisq=0.28846
+x=8;ind=11 => xisq=0.07243
+
+24 threads - 33.71s
+with Windows fixes
+
+24 threads - 32.01s
+16 threads - 46.23s
+12 threads - 57.69s
+11 threads - 63.16s
+ 8 threads - 85.65s
+ 6 threads - 115.09s
+ 4 threads - 160.29s
+ 3 threads - 212.25s
+ 2 threads - 306.65s
+ 1 thread  - 528.00s
+
+
+changing outer power-law extentions:
+1. flattening 0.8 -> 0.67 in rhopo => +10% change at 14.9GHz (with T adjusted to fit the maximum)
+2. flattening by 0.5 of magnetic fields => +60% at 14.9GHz, 10% at 22.5GHz, same + for CP
+3. flattening by 0.1 of T_e => +7% at 14.9GHz, LP jumps up
+
+float  - 15.9s
+double - 16.8s
+float win32 - 26.8s (SSE2)
+float win32 - 24.06 no SSE
+
+double win32 - 14.70s: SSE2 & fast 
+double win32 - 20.26s: SSE2 & precise
+double win32 - 18.23s: SSE & fast 
+double win32 - 18.23s: fast 
+
+
+(accurr=0.02; step=-0.09)
+snxy=261 =>144.99s 6e-4 in I; 3e-3 in LP; 0.0 in EVPA; 0e-3 in CP - from 201
+snxy=201 => 86.12s 1e-3 in I; 1e-2 in LP; 0.2 in EVPA; 1e-2 in CP
+snxy=151 => 49.31s - etalon
+snxy=131 => 37.27s 3e-3 in I; 1e-2 in LP; 0.1 in EVPA; 1e-2 in CP
+snxy=115 => 28.95s 2e-3 in I; 1e-3 in LP; 0.1 in EVPA; 1e-2 in CP
+snxy=101 => 22.21s 3e-3 in I; 1e-2 in LP; 0.4 in EVPA; 2e-2 in CP
+snxy=85  => 15.87s 1e-4 in I; 5e-3 in LP; 0.3 in EVPA; 5e-3 in CP - the best
+snxy=71  => 11.06s 3e-3 in I; 1e-2 in LP; 0.5 in EVPA; 0.06 in CP!
+snxy=61  =>  8.41s 1e-3 in I; 0e-5 in LP; 0.2 in EVPA; 0.07 in CP
+snxy=45  =>  4.62s 6e-3 in I; 5e-3 in LP; 0.6 in EVPA; 0.08 in CP
+snxy=35  =>  2.84s 3e-4 in I; 0.07 in LP; 0.1 in EVPA; 0.07 in CP
+snxy=27  =>  1.72s 6e-3 in I; 0.1  in LP; 1.5 in EVPA; 0.5  in CP
+
+
+(accurr=1e-3; step=-0.09)
+snxy=151 =>115.22s 3e-3 in I; 7e-3 in LP; 0.4 in EVPA; 2e-2 in CP
+snxy=101 => 52.26s etalon
+snxy=85  => 37.02s 3e-3 in I; 1e-2 in LP; 0.1 in EVPA; 3e-2 in CP
+snxy=71  => 25.90s 7e-3 in I; 5e-3 in LP; 0.2 in EVPA; 4e-2 in CP
+snxy=61  => 19.47s 4e-3 in I; 5e-3 in LP; 0.1 in EVPA; 0.09 in CP
+snxy=45  => 10.81s 1e-2 in I; 7e-3 in LP; 1.3 in EVPA; 0.07 in CP
+snxy=35  =>  6.43s 4e-3 in I; 0.10 in LP; 0.1 in EVPA; 0.09 in CP
+snxy=27  =>  3.93s 2e-3 in I; 0.10 in LP; 1.8 in EVPA; 0.5  in CP
+
+
+accurr=0.4 (accurr=1e-3 => etalon)
+step=-0.007=> 14.40s 5e-3 in LP
+step=-0.010=> 10.37s 0.3 change in EVPA
+step=-0.015=>  7.16s 1e-2 in LP
+step=-0.025=>  4.63s 2e-2 in LP; 2e-3 in I
+step=-0.04 =>  3.23s 1e-2 in LP; 0.3 in EVPA
+step=-0.06 =>  2.46s 0.08 in LP; 1.4 in EVPA
+step=-0.09 =>  2.00s 0.2 in LP; 3.2 in EVPA
+step=-0.15 =>  1.65s 0.4 in LP; 12 in EVPA; 4e-3 in I
+step=-0.30 =>  1.47s 0.4 in LP; 20 in EVPA; 4e-3 in I!
+step=-0.50 =>  1.42s 0.4 in LP; 21 in EVPA; 2e-2 in I
+
+accurr=2e-2 (accurr=1e-3 => etalon)
+step=-0.007=> 15.52s 3e-3 in LP
+step=-0.010=> 11.47s 2e-3 in LP; 0.1 in EVPA
+step=-0.015=>  8.46s 3e-3 in LP
+step=-0.025=>  6.23s 1e-2 in LP
+step=-0.04 =>  5.24s 4e-3 in LP
+step=-0.06 =>  4.84s 1e-2 in LP; 0.1 in EVPA
+step=-0.09 =>  4.62s 2e-2 in LP; 1e-3 in I
+step=-0.15 =>  4.51s 2e-2 in LP; 1e-3 in I
+step=-0.30 =>  4.48s 2e-2 in LP; 1e-3 in I
+step=-0.50 =>  4.46s 1e-2 in LP; 0.2 in EVPA
+
+
+accurr=1e-3
+step=-0.007=> 18.22s
+step=-0.010=> 15.09s 1e-3
+step=-0.015=> 13.02s
+step=-0.025=> 11.59s
+step=-0.04 => 11.06s - etalon
+step=-0.06 => 10.84s
+step=-0.09 => 10.81s 0.1 change in EVPA
+step=-0.15 => 10.80s - exact
+step=-0.30 => 10.73s;
+step=-0.50 => 10.80s;
+
+1e-5 => 35.51s; 
+1e-4 => 19.77s;
+2e-4 => 16.66s;
+4e-4 => 13.96s; 3e-4 error in I
+1e-3 => 10.98s; - etalon
+2e-3 =>  9.31s;
+4e-3 =>  7.77s; 2e-3 error in LP
+1e-2 =>  6.15s; 1e-2 error in LP
+2e-2 =>  5.26s; 5e-3 error in LP
+4e-2 =>  4.71s; 2e-2 error in LP
+1e-1 =>  3.96s; 2e-2 error in LP
+2e-1 =>  3.51s; 4e-2 error in LP
+4e-1 =>  3.23s; 1e-2 error in LP
+1e+0 =>  3.21s; 1e-2 error in LP

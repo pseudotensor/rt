@@ -49,9 +49,11 @@ tha=(1.-lrman)*theta[rn][ia]+lrman*theta[rn+1][ia];thb=(1.-lrman)*theta[rn][ib]+
 drman=(costh-tha)/(thb-tha);
 tn=thlen-ib-1;thman=1-drman;//theta "traditional" coordinates
 
-
-phfrac=fmod(ph*phlen/PI+0.5,phlen);if(phfrac<0)phfrac+=phlen;
+/*changed PI to 2*PI*/
+phfrac=fmod(ph*phlen/(2*PI)+0.5,phlen);if(phfrac<0)phfrac+=phlen;
 k=floor(phfrac);phman=phfrac-k;int ak=(1+k)%phlen;//circular boundary condition 
+//if(ph<0){k+=0.;}
+
 
 if(fdiff==0){sn=0;sing=true;} else {timfrac=(t-mintim)/(maxtim-mintim)*2*fdiff;sn=floor(timfrac);timman=timfrac-sn;sing=false;}
 if(t>=maxtim){sn=0;sing=true;};
@@ -67,9 +69,13 @@ iKS[3][0]=iKS[0][3];iKS[3][1]=iKS[1][3];iKS[3][2]=iKS[2][3];iKS[3][3]=sinsq*(rho
 
 
 if(rr<=rcut){
-if(sing)for(m=0;m<11;m++)rest[m]=(1-lrman)*(1-thman)*(1-phman)*(*uu)[sn][k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu)[sn][k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu)[sn][k][tn+1][rn][m]+lrman*thman*(1-phman)*
-(*uu)[sn][k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu)[sn][ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu)[sn][ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu)[sn][ak][tn+1][rn][m]+lrman*thman*phman*(*uu)[sn][ak][tn+1][rn+1][m];
-else for(m=0;m<11;m++)rest[m]=((4.-lrman-thman-phman-timman)*(*uu)[sn][k][tn][rn][m]+lrman*(*uu)[sn][k][tn][rn+1][m]+thman*(*uu)[sn][k][tn+1][rn][m]+phman*(*uu)[sn][ak][tn][rn][m]+timman*(*uu)[sn+1][k][tn][rn][m])/4.;
+if(sing)for(m=0;m<11;m++)rest[m]=(1-lrman)*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu[sn])[k][tn+1][rn][m]+lrman*thman*(1-phman)*
+(*uu[sn])[k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu[sn])[ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu[sn])[ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu[sn])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn])[ak][tn+1][rn+1][m];
+else for(m=0;m<11;m++)rest[m]=(1-timman)*((1-lrman)*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu[sn])[k][tn+1][rn][m]+lrman*thman*(1-phman)*
+(*uu[sn])[k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu[sn])[ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu[sn])[ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu[sn])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn])[ak][tn+1][rn+1][m])
++timman*((1-lrman)*(1-thman)*(1-phman)*(*uu[sn+1])[k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu[sn+1])[k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu[sn+1])[k][tn+1][rn][m]+lrman*thman*(1-phman)*
+(*uu[sn+1])[k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu[sn+1])[ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu[sn+1])[ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu[sn+1])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn+1])[ak][tn+1][rn+1][m]);
+//{rest[m]=((4.-lrman-thman-phman-timman)*(*uu[sn])[k][tn][rn][m]+lrman*(*uu[sn])[k][tn][rn+1][m]+thman*(*uu[sn])[k][tn+1][rn][m]+phman*(*uu[sn])[ak][tn][rn][m]+timman*(*uu[sn+1])[k][tn][rn][m])/4.;}
 
 //if(rest[1]/rest[0]>1.)rest[1]=rest[0]*1.;//limiting temperature - mostly works in the equatorial plane for high frequency :(
 rho=rest[0]*rhonor; Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];
@@ -160,7 +166,8 @@ int indT=stNt; doub Ta=ts[0], Tb=ts[indT];
 doub Tx,Tz=Ttot;ia=0;ib=indT;ix;
 if((Ta<=Tz) && (Tz<=Tb)){
 	while(ib>ia+1){ix=(ia+ib)>>1;Tx=ts[ix];if(Tz<Tx){ib=ix;}else{ia=ix;};};}
-else{printf("Lookup error 2\n");};
+else{
+	printf("Lookup error 2\n");};
 Ta=ts[ia];Tb=ts[ib];
 drman=(Tz-Ta)/(Tb-Ta);
 //tst=(1-drman)*ts[ia]+drman*ts[ib];
@@ -189,6 +196,7 @@ if(fr<0){
 double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc;
 //if(magn>10)tet=1.;//excluding the region of very high magnetization by effectively setting Te=0; magn>30
 if(isBcut){if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))){tet=1.;};};
+if(isBred){tet*=exp(-magn/10.);};
 //for thickdisk7: magn>30 at r=rg; magn>10 at r=9 => magn-20/(9-rg)*(r-rg)>30
 
 nufr=nu*fr;nW=2*me*cc*2*PI*nufr/(3*ee*kbperp); Bnu=(2*kb*nufr*nufr*tet)/cc/cc;

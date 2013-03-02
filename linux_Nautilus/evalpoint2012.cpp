@@ -50,8 +50,8 @@ if(rr<=rcut){lrfrac=(lr-lrmin)/(lrmax-lrmin)*(rlen-1.);n=floor(lrfrac);lrman=lrf
 
 //if(sing)for(m=0;m<11;m++)rest[m]=((3.-lrman-x2man-phman)*uu[sn][k][j][n][m]+lrman*uu[sn][k][j][n+1][m]+x2man*uu[sn][k][j+1][n][m]+phman*uu[sn][ak][j][n][m])/3.;
 //else for(m=0;m<11;m++)rest[m]=((4.-lrman-x2man-phman-timman)*uu[sn][k][j][n][m]+lrman*uu[sn][k][j][n+1][m]+x2man*uu[sn][k][j+1][n][m]+phman*uu[sn][ak][j][n][m]+timman*uu[sn+1][k][j][n][m])/4.;
-if(sing)for(m=0;m<11;m++)rest[m]=((3.-lrman-x2man-phman)*(*uu)[sn][k][j][n][m]+lrman*(*uu)[sn][k][j][n+1][m]+x2man*(*uu)[sn][k][j+1][n][m]+phman*(*uu)[sn][ak][j][n][m])/3.;
-else for(m=0;m<11;m++)rest[m]=((4.-lrman-x2man-phman-timman)*(*uu)[sn][k][j][n][m]+lrman*(*uu)[sn][k][j][n+1][m]+x2man*(*uu)[sn][k][j+1][n][m]+phman*(*uu)[sn][ak][j][n][m]+timman*(*uu)[sn+1][k][j][n][m])/4.;
+if(sing)for(m=0;m<11;m++)rest[m]=((3.-lrman-x2man-phman)*(*uu[sn])[k][j][n][m]+lrman*(*uu[sn])[k][j][n+1][m]+x2man*(*uu[sn])[k][j+1][n][m]+phman*(*uu[sn])[ak][j][n][m])/3.;
+else for(m=0;m<11;m++)rest[m]=((4.-lrman-x2man-phman-timman)*(*uu[sn])[k][j][n][m]+lrman*(*uu[sn])[k][j][n+1][m]+x2man*(*uu[sn])[k][j+1][n][m]+phman*(*uu[sn])[ak][j][n][m]+timman*(*uu[sn+1])[k][j][n][m])/4.;
 
 rho=rest[0]*rhonor; rest[1]*=mp*cc*cc/3/kb/rest[0];
 u[0]=rest[4];u[1]=u[0]*rest[5];u[2]=u[0]*rest[6];u[3]=u[0]*rest[7];
@@ -62,9 +62,9 @@ else {n=ncut-1;
 	//rest[m]=((2.-x2man-phman)*ww[k][j][n][m]+x2man*ww[k][j+1][n][m]+phman*ww[ak][j][n][m])/2.;
 
 //sn=fdiff;for(m=0;m<11;m++)rest[m]=((2.-x2man-phman)*uu[sn][k][j][n][m]+x2man*uu[sn][k][j+1][n][m]+phman*uu[sn][ak][j][n][m])/2.;//extension outside 25M does not vary
-sn=fdiff;for(m=0;m<11;m++)rest[m]=((2.-x2man-phman)*(*uu)[sn][k][j][n][m]+x2man*(*uu)[sn][k][j+1][n][m]+phman*(*uu)[sn][ak][j][n][m])/2.;//extension outside 25M does not vary
-//if(sing)for(m=0;m<11;m++)rest[m]=((2.-x2man-phman)*(*uu)[sn][k][j][n][m]+x2man*(*uu)[sn][k][j+1][n][m]+phman*(*uu)[sn][ak][j][n][m])/2.;//extension outside 25M varies
-//else {for(m=0;m<11;m++)rest[m]=((3.-x2man-phman-timman)*(*uu)[sn][k][j][n][m]+x2man*(*uu)[sn][k][j+1][n][m]+phman*(*uu)[sn][ak][j][n][m]+timman*(*uu)[sn+1][k][j][n][m])/3.;}
+sn=fdiff;for(m=0;m<11;m++)rest[m]=((2.-x2man-phman)*(*uu[sn])[k][j][n][m]+x2man*(*uu[sn])[k][j+1][n][m]+phman*(*uu[sn])[ak][j][n][m])/2.;//extension outside 25M does not vary
+//if(sing)for(m=0;m<11;m++)rest[m]=((2.-x2man-phman)*(*uu[sn])[k][j][n][m]+x2man*(*uu[sn])[k][j+1][n][m]+phman*(*uu[sn])[ak][j][n][m])/2.;//extension outside 25M varies
+//else {for(m=0;m<11;m++)rest[m]=((3.-x2man-phman-timman)*(*uu[sn])[k][j][n][m]+x2man*(*uu[sn])[k][j+1][n][m]+phman*(*uu[sn])[ak][j][n][m]+timman*(*uu[sn+1])[k][j][n][m])/3.;}
 
 	rho=rest[0]*rhonor*pow(rr/rcut,-rhopo);
 	rest[1]*=mp*cc*cc/3/kb/rest[0]*pow(rr/rcut,-Upo);//correct temperature

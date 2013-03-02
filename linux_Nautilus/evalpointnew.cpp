@@ -56,15 +56,15 @@ if(t>=maxtim){sn=0;sing=true;};
 if(t<=mintim){sn=2*fdiff;sing=true;};
 
 if(rr<=rcut){
-if(sing)for(m=0;m<11;m++)rest[m]=(1-lrman)*(1-thman)*(1-phman)*(*uu)[sn][k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu)[sn][k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu)[sn][k][tn+1][rn][m]+lrman*thman*(1-phman)*
-(*uu)[sn][k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu)[sn][ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu)[sn][ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu)[sn][ak][tn+1][rn][m]+lrman*thman*phman*(*uu)[sn][ak][tn+1][rn+1][m];
-else for(m=0;m<11;m++)rest[m]=((4.-lrman-thman-phman-timman)*(*uu)[sn][k][tn][rn][m]+lrman*(*uu)[sn][k][tn][rn+1][m]+thman*(*uu)[sn][k][tn+1][rn][m]+phman*(*uu)[sn][ak][tn][rn][m]+timman*(*uu)[sn+1][k][tn][rn][m])/4.;
+if(sing)for(m=0;m<11;m++)rest[m]=(1-lrman)*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu[sn])[k][tn+1][rn][m]+lrman*thman*(1-phman)*
+(*uu[sn])[k][tn+1][rn+1][m]+(1-lrman)*(1-thman)*phman*(*uu[sn])[ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu[sn])[ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu[sn])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn])[ak][tn+1][rn+1][m];
+else for(m=0;m<11;m++)rest[m]=((4.-lrman-thman-phman-timman)*(*uu[sn])[k][tn][rn][m]+lrman*(*uu[sn])[k][tn][rn+1][m]+thman*(*uu[sn])[k][tn+1][rn][m]+phman*(*uu[sn])[ak][tn][rn][m]+timman*(*uu[sn+1])[k][tn][rn][m])/4.;
 rho=rest[0]*rhonor; rest[1]*=mp*cc*cc/3/kb/rest[0];
 u[0]=rest[4];u[1]=u[0]*rest[5];u[2]=u[0]*rest[6];u[3]=u[0]*rest[7];
 Bi[1]=Bnor*rest[8];Bi[2]=Bnor*rest[9];Bi[3]=Bnor*rest[10];//Btemp=Bnor;
 }
 else {xrn=ncut-1;sn=fdiff;
-for(m=0;m<11;m++)rest[m]=(1-thman)*(1-phman)*(*uu)[sn][k][tn][xrn][m]+thman*(1-phman)*(*uu)[sn][k][tn+1][xrn][m]+(1-thman)*phman*(*uu)[sn][ak][tn][xrn][m]+thman*phman*(*uu)[sn][ak][tn+1][xrn][m];
+for(m=0;m<11;m++)rest[m]=(1-thman)*(1-phman)*(*uu[sn])[k][tn][xrn][m]+thman*(1-phman)*(*uu[sn])[k][tn+1][xrn][m]+(1-thman)*phman*(*uu[sn])[ak][tn][xrn][m]+thman*phman*(*uu[sn])[ak][tn+1][xrn][m];
 //extension outside 25M does not vary
 	rho=rest[0]*rhonor*pow(rr/rcut,-rhopo);
 	rest[1]*=mp*cc*cc/3/kb/rest[0]*pow(rr/rcut,-Upo);//correct temperature
