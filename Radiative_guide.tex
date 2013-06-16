@@ -298,7 +298,7 @@ The evolution equations on proton and electron temperatures. The equations are s
 \section{Code variables}
 
 
-\section{Supporting \mat scripts}
+\section{Supporting MATHEMATICA 8 scripts}
 A lot of scripts are to be grouped into a single structured file \textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT.
 It consists of variety of scripts, which compute auxiliary quantities, derive some parts of ASTRORAY code to be directly copied into C++, and check GRMHD code.
 {\textbf Please, run "Cell->Delete all output" in \mat before committing the file to GIT.}
@@ -306,7 +306,7 @@ The data processing and QPO computations are stored in separate \mat scripts to 
 \subsection{\textit{check\_GRMHD\_code.nb}}
 \subsubsection{Emis functions}
 The script "Computing emissivities/rotativities" does what its title says. The precise relativistic thermal electron distribution is used in all computations.
-It is easy to explicitly change the distribution to compute emissivities. However, if a new distribution is non-thermal, 
+It is easy to explicitly change the distribution to compute emissivities. However, if a new distribution is non-thermal,
 then the absorptivities need to be computed separately, stored as another set of tables and read by the code.
 
 The Faraday rotation and conversion for thermal distribution is computed in my paper \citep{Shcherbakov:2008fa}.
