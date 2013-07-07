@@ -23,7 +23,8 @@ fmin=5534;fmax=7034;sp=0;rhonor=142642.42683;heat=0.16737;th=2.6367;thlimit=0.1;
 fmin=5534;fmax=7034;sp=0;rhonor=288331.85590;heat=0.14320;th=2.4529;thlimit=0.1;fdiff=0;isBcut=false;isBred=true;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
 
 fmin=2000;fmax=7000;sp=0;rhonor=261385.84479;heat=0.15572;th=2.3768;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=true;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
-fmin=2000;fmax=7000;sp=0;rhonor=144897.83871;heat=0.17172;th=2.3897;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=false;//Jon simulations, B^2/\rho reduction, thlimit=0.1, no B^2\rho cutoff
+fmin=2000;fmax=7000;sp=0;rhonor=144897.83871;heat=0.17172;th=2.3897;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=false;//Jon simulations, thlimit=0.1, no B^2\rho cutoff or B^2/\rho reduction
+fmin=2000;fmax=7000;sp=0;rhonor=144897.83871;heat=0.17172;th=2.3897;thlimit=0.1;fdiff=(int)Bpo; isBcut=false;isBred=false;//Olek simulations thlimit=0.1;
 
 //if(co==21){fmin=6850;fmax=9850;}
 //else{

@@ -1,0 +1,18 @@
+#!/bin/sh
+#BSUB -q GC
+#BSUB -u rshcherbakov@cfa.harvard.edu
+#BSUB -J trans1[1-50]
+#BSUB -o transfer_%I.out
+#BSUB -e transfer_%I.err
+#BSUB -n 8
+#BSUB -R "span[ptile=8]"
+
+export OMP_NUM_THREADS=8
+
+./transfer_quad 1 11 2.0 0
+# 1 - spin 0.
+# 11 - number of shots to average over
+# 2.0 - slope of B field
+# 0 - type of computation, search parameter space
+# LSB_JOBINDEX - inclination angle
+# http://arxiv.org/abs/1007.4832

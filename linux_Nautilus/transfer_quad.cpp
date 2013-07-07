@@ -28,14 +28,14 @@ using namespace std;
 //#include "win_lin.c"
 
 int geon=0;
-const int ndd=650, sflen=13/*10*/,flen=3, thn=50, xylen=256*64, dd=3,wdd=11, maxfield=200,maxco=2100/*1000 for intensity*/, temlen=301, nWlen=120, Tlen=100, nxy=201, snxy=585;
+const int ndd=650, sflen=13/*10*/,flen=3, thn=50, xylen=256*64, dd=3,wdd=11, maxfield=200,maxco=3000,/*1000 for intensity*/maxst=5000, temlen=301, nWlen=120, Tlen=100, nxy=501, snxy=585;
 const doub PI = 4.0*atan(1.0), st=0.05,  maxx=12.1, minn=1.2, step=1e-2, sstep=-0.09, Iint=1e-10, Iang=1.;
 const doub nWmin=12000.*pow(1.1,-nWlen/2.), lnWmin=log(nWmin), nWmax=12000.*pow(1.1,nWlen/2),lnWmax=log(nWmax), rrmax=3.4e+5, rhoout=130., Tout=1.5e+7,
 Tminr=0.4*pow(1.05,-Tlen),Tmin=0.4,Tmax=0.4*pow(1.05,Tlen),lTminr=log(Tminr),lTmin=log(Tmin),lTmax=log(Tmax),mp=1.67e-24, me=9.1e-28, cc=3.e+10, kb=1.38e-16,
 rgrav=1.33e+12, ee=4.8e-10, The=me*cc*cc/kb, year=86400.*365.25,Msun=2.00e+33,
 //sftabx[sflen+2][2]={{8.45, 120}, {14.90 , 73.}, {22.50,63.}, {43.00, 46.}, {87.73 , 33.}, {102.00, 24.}, {145.00 , 15.}, {230.86, 13.}, {349.00 , 11.}, {674.00, 8.}, {857.00, 7.},{220.,13.}},
-sftab[sflen+2][2]={{8.45, 120}, {14.90 , 73.}, {22.50,63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500.,8.6}, {3000.,8.6},{5000.,8.6},
-{220.,13.}}, freqtab[flen+1][2]={{43.,45.},{87.,30.},{230.86,/*22.2*/12.2},{690.,7.}},
+sftab[sflen+5][2]={{8.45, 120}, {14.90 , 73.}, {22.50,63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500.,8.6}, {3000.,8.6},{5000.,8.6},
+{10e+3,8.6},{20e+3,8.6},{50e+3,8.6}, {220.,13.}}, freqtab[flen+1][2]={{43.,45.},{87.,30.},{230.86,/*22.2*/12.2},{690.,7.}},
 tofit[sflen+1][5]={{8.450, 0.683, 0, 0, -0.2500}, {14.90, 0.871, 0, 0, -0.6200}, {22.50, 0.979, 0.1900, 131.0, 0}, {43.00, 1.135, 0.5500, 94.25, 0},
 {87.73, 1.841, 1.420, -4., 0}, {102.0, 1.908, 0, 0, 0},{145.0, 2.275, 0, 0, 0}, {230.9, 2.637, 7.398, 111.5, -1.200}, {349.0, 3.181, 6.499, 146.9, -1.500},
 {674.0, 3.286,0, 0, 0}, {857.0, 2.867, 0, 0, 0},{1500.,1.,0.,0.,0.},{3000.,1.,0.,0.,0.},{5000.,1.,0.,0.,0.}};
@@ -56,7 +56,7 @@ doub usp[maxfield][phlen][thlen][4], uspKS[maxfield][phlen][thlen];
 typedef doub (*ausar)[snxy+1][snxy+1][sflen+1][5];ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen+1][5];ausar ausin2 = (ausar) new doub[snxy+1][snxy+1][5];
 typedef double (*arra)[nxy+1][nxy+1][5]; arra intab = (arra) new double[nxy+1][nxy+1][5];
 typedef double (*para)[20];para params = (para) new double[20];
-doub rtab[2000],Tstab[2000]; //for calculating the electron temperature
+doub rtab[2000],Tstab[2000],dphi=0.; //for calculating the electron temperature
 
 float ww[phlen][thlen][rlen][wdd], uext[phlen][thlen][5], dxdxp[ndd][thlen][4][4],coord[ndd][thlen][2],coordx[ndd][thlen][2];//float uu[2*fdiffmax+1][phlen][thlen][rlen][wdd];
 //typedef float (*uuarr)[2*fdiffmax+1][phlen][thlen][rlen][wdd];uuarr uu = (uuarr) new float[2*fdiffmax+1][phlen][thlen][rlen][wdd];
@@ -127,7 +127,7 @@ lastheat=heat;lastrhonor=rhonor;sep=50;fact=1.;oo=1;iswrite=true;int sear;kmin=4
 #pragma omp parallel num_threads(nthreads) shared(ittot) private(w)
 {w = omp_get_thread_num();printf("Hello from thread %d\n", w);}
 if(argc==5){sp=atoi(argv[1])-1;co=atoi(argv[2]);Bpo=atof(argv[3]);mco=floor(Bpo+0.001);sear=atoi(argv[4]);} else return 0;
-//sear=1;
+
 switch (sear){
 case 0: //surfs the parameter space near best fit to flux
 	//#include "s_space.cpp"

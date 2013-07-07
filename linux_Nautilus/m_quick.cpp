@@ -65,9 +65,9 @@ case 12: fmin=10000;fmax=18720;sp=0;rhonor=2.5e+8; heat=0.55;th=1.8407;fdiff=0;b
 case 13: fmin=8999;fmax=10299;sp=2;rhonor=6.e+7; heat=0.55;th=1.7;fdiff=0;break;//new simulations
 case 14: fmin=4000;fmax=5500;sp=3;rhonor=2.4e+7; heat=0.55;th=1.7;fdiff=0;break;//new simulations
 case 15: fmin=2700;fmax=2750;sp=4;rhonor=2.4e+7; heat=0.55;th=1.7;fdiff=0;break;//new simulations
-case 16: fmin=10095;fmax=11747;sp=0;rhonor=1.e+7; heat=0.32;th=1.8407;fdiff=0;break;//ADAF simulations
-case 17: fmin=4559;fmax=5559;sp=2;rhonor=1.e+7; heat=0.36;th=1.8407;fdiff=0;break;//ADAF simulations
-case 18: fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=1.9407;fdiff=0;break;//Jon simulations
+case 16: sp=0;fmin=12424;fmax=22424;rhonor=3.e+7; heat=0.32;th=2.140;thlimit=0.001;fdiff=0;break;//Olek's ADAF simulations, spin 0, 12424-22424
+case 17: sp=1;fmin=4204;fmax=9204;rhonor=7738726.93249; heat=0.50;th=2.6064;thlimit=0.1;fdiff=0;break;//Olek's ADAF simulations, spin 0.7, 3492-9204
+case 18: sp=2;fmin=2376;fmax=4876;rhonor=8249075.68023; heat=0.45911;th=2.5203;thlimit=0.1;fdiff=0;break;//Olek's ADAF simulations, spin 0.9, 2376-4876
 case 19: fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=2.9;fdiff=0;break;//Jon simulations
 case 20: fmin=6434;fmax=7034;sp=0;rhonor=1.05e+5; heat=0.17;th=1.59;fdiff=0;break;//Jon simulations
 case 21: fmin=6434;fmax=7034;sp=0;rhonor=5.e+4; heat=0.37;th=2.1;fdiff=0;break;//Jon simulations
@@ -83,13 +83,17 @@ case 30: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;thlimit=0.1;fdiff=30;i
 case 31: sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
 case 32: sp=0;rhonor=147780.66084; heat=0.16992;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
 case 33: sp=0;rhonor=261385.84479; heat=0.15572;th=2.3768;thlimit=0.1;fdiff=0;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
-case 34: sp=0;rhonor=144897.83871; heat=0.17172;th=2.3897;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 34: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
 case 35: sp=0;rhonor=261385.84479; heat=0.15572;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
 case 36: sp=0;rhonor=261385.84479; heat=0.15572;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//Jon simulations, thlimit=0.1 and rho reduction; no B^2/\rho cut-off
+case 37: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=2.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
+case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//Jon simulations, thlimit=0.1; no rho reduction and no B^2/\rho cut-off
 };printf("Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
 
-fmin=co;fmax=mco;sep=1;ind=fmax-fmin+1;
-//ind=co;sep=(fmax-fmin)/(ind-1);
+fmin=co;fmax=mco;
+//ind=21;sep=(fmax-fmin)/(ind-1);
+sep=1;ind=(fmax-fmin)/sep+1;
+
 	tth=th;xth=th;
 	for(fnum=fmin;fnum<=fmax;fnum+=sep){init(sp,fmin,fmax,sep);
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)

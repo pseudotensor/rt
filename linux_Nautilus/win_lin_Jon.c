@@ -1,5 +1,6 @@
 //const string dir="/nics/d/home/shcher/analysis/", adir="/lustre/medusa/jmckinne/data1/jmckinne/jmckinne/", fieldstr="/dumps/", xstr="/";
-const string dir="/lustre/medusa/shcher/analysis/", adir="/lustre/medusa/jmckinne/data1/jmckinne/jmckinne/", fieldstr="/dumps/", xstr="/";
+//const string dir="/lustre/medusa/shcher/analysis/", adir="/lustre/medusa/jmckinne/data1/jmckinne/jmckinne/", fieldstr="/dumps/", xstr="/";
+const string dir="/lustre/medusa/shcher/analysis/", adir="/nics/d/home/shcher/analysis/", fieldstr="/dumps/", xstr="/";
 const int nthreads=16;//Nautilus
 const int dtimdf=4;//change of time between fieldlineXXXX files within consecutive numbers XXXX
 const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,

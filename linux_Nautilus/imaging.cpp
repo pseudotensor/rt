@@ -1,7 +1,7 @@
 for(ix=0;ix<(nxy+1)*(nxy+1);ix++){
 //for(iy=0;iy<=nxy;iy++){//y
 int kk,iiy,iix,il;iix=(int)ix/(nxy+1);iiy=ix %(nxy+1);
-for(kk=kmin;kk<=kmax;kk++){
+for(kk=kmin;kk<=kmax;kk+=kstep){
 doub t,maxy=fact*sftab[kk][1], xg=-maxy+2.*maxy/nxy*doub(iix),yg=-maxy+2.*maxy/nxy*doub(iiy),//*(1-1e-10)
 b=sqrt(xg*xg+yg*yg),beta=atan2(yg,xg);
 #include "geoint.cpp"
@@ -25,7 +25,7 @@ ppy[currth].nu=1e9*sftab[kk][0];
 //if((125<iy)&&(iy<155)&&(85<ix)&&(ix<115))(*ausin)[ix][iy][kk][0]/=10.;
 };};//};
 
-for(kk=kmin;kk<=kmax;kk++){
+for(kk=kmin;kk<=kmax;kk+=kstep){
 for(ix=0;ix<=nxy;ix++)for(iy=0;iy<=nxy;iy++)for(il=0;il<=4;il++)(*intab)[ix][iy][il]=(*ausin)[ix][iy][kk][il];
 for(il=0;il<5;il++)in[kk][il]=0.;doub hei=2./nxy;doub maxy=fact*sftab[kk][1];
 
@@ -66,7 +66,7 @@ if(iswrite){
 stringstream sstr;sstr <<(int)100*a<<"th"<<(int)floor(100*xth+1e-6)<<"fn"<<fnum<<"hi";//"hi" is a for high resolution
 string stra = sstr.str();
 FILE * pFile; pFile=fopen ((dir+"poliresa"+stra+fif+".dat").c_str(),"a");
-for(kk=kmin;kk<=kmax;kk++)
+for(kk=kmin;kk<=kmax;kk+=kstep)
 fprintf(pFile,"%d %.2f %.5f %.4f %.4f %.4f %.4f %.5f %.4f %.4f %.2f %.4e %.4f\n",
 		fnum,sftab[kk][0],totin[kk],LPo[kk],ang[kk],CP[kk],err[kk],heat,rhonor,xxisq,TpTe,rate*year/Msun,th);
 fclose(pFile);};

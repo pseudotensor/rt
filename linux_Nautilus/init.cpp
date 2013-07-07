@@ -116,11 +116,11 @@ cz = gsl_odeiv_control_standard_new(0.0, acc, 1.0, 0.0);
 sz = gsl_odeiv_step_alloc (Tz, 2);
 
 IT[0]=Tstab[ndd-1];IT[1]=IT[0];stNt=0;rz=rrmax;
-step=-0.0025*rz;hz=step;
+step=-0.001*rz;hz=step;
 ts[0]=IT[0];tp[0]=IT[0];te[0]=IT[0];
 
 while (rz > 1.001*rmin)
-{	stNt++; if(-hz>0.012*rz)hz=-0.008*rz;
+{	stNt++; if(-hz>0.008*rz)hz=-0.005*rz;
 	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &hz, IT);
 te[stNt]=IT[0];
 tp[stNt]=IT[1];
@@ -129,7 +129,7 @@ printf("fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3e\n", f
 ;};
 maxT=ts[stNt];minT=ts[0];
 
-if(stNt>10000)printf("Exceeded buffer! Recalculate!\n");
+if(stNt>maxst){printf("Exceeded buffer! Recalculate!\n");return 0;};
 gsl_odeiv_evolve_free (ez);gsl_odeiv_control_free (cz);gsl_odeiv_step_free (sz);
 //compute quantities in the co-moving frame at the boundary
 xrn=ncut-1;sn=fdiff;

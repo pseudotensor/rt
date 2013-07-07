@@ -1,0 +1,18 @@
+#!/bin/sh
+#BSUB -q itc_normal
+#BSUB -u rshcherbakov@cfa.harvard.edu
+#BSUB -J best26[1-7]
+#BSUB -o transfer_%I.out
+#BSUB -e transfer_%I.err
+#BSUB -n 8
+#BSUB -R "span[ptile=8]"
+
+export OMP_NUM_THREADS=8
+
+./transfer_quad2 2 6 2.0 5
+# 2 - spin 0.5
+# 6 - number of time window, averaged over 11 snapshots
+# 2.0 - slope of B field
+# 5 - type of computation, search for the best fit
+# LSB_JOBINDEX - initial guess of the best parameters
+# http://arxiv.org/abs/1007.4832

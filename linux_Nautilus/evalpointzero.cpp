@@ -26,7 +26,7 @@ for(m=0;m<4;m++)ly[m]=(1-drman)*ppy[curr].cooxx[m][ia]+drman*ppy[curr].cooxx[m][
 for(m=0;m<4;m++)kBL[m]=((1-drman)*ppy[curr].cooxx[m+4][ia]+drman*ppy[curr].cooxx[m+4][ib])/r0;
 for(m=0;m<4;m++)e1BL[m]=(1-drman)*ppy[curr].cooxx[m+8][ia]+drman*ppy[curr].cooxx[m+8][ib];
 
-rr=ly[1];costh=ly[2];ph=-ly[3];//metrics is calculated without the exclusion of the polar region!
+rr=ly[1];costh=ly[2];ph=dphi-ly[3];//metrics is calculated without the exclusion of the polar region!
 //remember "-" sign!
 if((fabs(rr)>100000.)||(rr<1.)){
 printf("Error in geodesic rr=%f\n",rr);};
@@ -174,7 +174,8 @@ drman=(Tz-Ta)/(Tb-Ta);
 tpt=(1-drman)*tp[ia]+drman*tp[ib];
 tet=(1-drman)*te[ia]+drman*te[ib];
 
-if(tet<0){tet=0.0001; printf("te<0");};
+if(tet<0){
+	tet=0.0001; printf("te<0");};
 
 	doub kxx[4]={0.,0.,0.,0.};for(m=0;m<4;m++){for(j=0;j<4;j++)kxx[m]+=yyloKS[m][j]*kupKS[j];};
 	doub e1xx[4]={0.,0.,0.,0.};for(m=0;m<4;m++){for(j=0;j<4;j++)e1xx[m]+=yyloKS[m][j]*e1upKS[j];};
