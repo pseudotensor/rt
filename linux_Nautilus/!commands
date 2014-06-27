@@ -1,3 +1,0 @@
-showq -n -w user=shcher
-make -B
-getent group tug1111 # displays users in a particular group

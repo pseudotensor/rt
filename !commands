@@ -1,0 +1,6 @@
+make -B
+showq -n -w user=shcher
+bqueues -u shcher
+bjobs -q kipac-ibq -u all
+sed -i 's/foo/bar' files
+getent group tug1111 # displays users in a particular group
