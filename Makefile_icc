@@ -5,8 +5,8 @@ CXXFLAGS=-openmp
 LIBS=-lstdc++
 RM=/bin/rm
 
-EXECS = transfer_quad
-OBJS = transfer_quad.o
+EXECS = ASTRORAY_main
+OBJS = ASTRORAY_main.o
 
 $(EXECS): $(OBJS) Makefile
 

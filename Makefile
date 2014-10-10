@@ -2,11 +2,11 @@ CC=icc
 CXX=icc
 CFLAGS=-openmp
 CXXFLAGS=-openmp
-LIBS=-lstdc++
+LIBS=
 RM=/bin/rm
 
-EXECS = transfer_quad
-OBJS = transfer_quad.o
+EXECS = ASTRORAY_main
+OBJS = ASTRORAY_main.o
 
 $(EXECS): $(OBJS) Makefile
 
@@ -16,4 +16,3 @@ $(OBJS): Makefile
 	$(CC) $(CFLAGS) -o $*.o -c $*.c
 clean:
 	$(RM) -f $(EXECS) $(OBJS) gmon.out *~ *.o *.oo
-                        
