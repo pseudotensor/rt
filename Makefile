@@ -1,7 +1,7 @@
-CC=icc
-CXX=icc
-CFLAGS=-openmp
-CXXFLAGS=-openmp
+CC=g++
+CXX=g++
+CFLAGS=-fopenmp -Ofast
+CXXFLAGS=-fopenmp -Ofast
 LIBS=
 RM=/bin/rm
 

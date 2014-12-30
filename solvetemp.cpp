@@ -19,6 +19,9 @@ int solvetemperature (doub rz, const doub zz[],doub ff[],void *pas) {
 			};
 	    };
     } else {
+        //RG:
+        //cout << "irmin,irmax,rx="+ra+irmin+irmax+rx+"\n";
+        printf("irmin,irmax,rx=%e,%e,%e\n",irmin,irmax,rx);
         printf("Lookup error 1\n Exiting \n");
         exit(-1);
     };

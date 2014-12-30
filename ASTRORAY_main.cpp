@@ -64,8 +64,8 @@ using namespace std;
 
 //different setups are below
 //these files are also platform-specific, as they include directory names in Windows/Linux/UNIX
-//#include "win_lin_Jon.c"
-#include "win_lin_ADAFs.c"
+#include "win_lin_Jon.c"
+//#include "win_lin_ADAFs.c"
 
 const doub PI = 4.0*atan(1.0);
 
@@ -78,10 +78,13 @@ const int  ndd=650,           //radial dimension of coordinate/coordinate transf
 	       maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
 	       maxco=3000,        //maximum number of points on a geodesic
 	       maxst=12000,       //maximum number of points for radial temperature profile
+//RG:default
 	       nWlen=120,         //number of frequencies for which propagation coefficients are computed
+//RG:powerlaw
+//	       nWlen=60,         //number of frequencies for which propagation coefficients are computed
 	       Tlen=100,          //number of temperatures for which propagation coefficients are computed
-	       nxy=201,           //actual image resolution in picture plane for imaging (points along a side)
-	       snxy=301;          //maximum resolution in picture plane for flux calculations
+           nxy=99,//201,           //actual image resolution in picture plane for imaging (points along a side)
+           snxy=99; //301;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A*
 	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
@@ -196,10 +199,15 @@ extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
 
 int main(int argc, char* argv[]) {
 	int n1;
+    
     for(n1=0;n1<2*fdiff+1;n1++)
+
+      //RG
+      printf("[ASTRORAY_main.cpp] n1=%d\n",n1);
+
 		uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd];//allocating memory for fluid simulation files
     typedef doub (*ausar)[snxy+1][snxy+1][sflen][5]; 
-    ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen][5];//allocating memory for radiative transfer resuls
+    ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen][5];//allocating memory for radiative transfer results
     int w,          //thread number for testing
 		ittot=0,    //number of steps for radiative transfer solver (sum among all threads)
 		niter=0,    //number of iterations for chi^2 minimization
@@ -229,6 +237,10 @@ int main(int argc, char* argv[]) {
 	mco=floor(Bpo+0.001);//second and third command line arguments are used differently by subroutines
 	sear=atoi(argv[4]);  //fourth command line argument - type of computation
 //sear=0;//setting a particular type of computation for testing
+
+    //RG: 
+    cout << "CHOOSE MODE: sear=" << argv[4] << "\n";
+
     switch (sear){
 	    case 0: //surf the entire parameter space searching for the best fit to polarized spectrum
 	        #include "m_space.cpp"

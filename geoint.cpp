@@ -18,7 +18,7 @@ c = gsl_odeiv_control_standard_new(0.0, accur, 1.0, 0.0);//relative accuracy "ac
 e = gsl_odeiv_evolve_alloc (12);
 gsl_odeiv_system sys = {solvegeodesic, NULL, 12, NULL};//prepare to solve ODE of 12 variables given by "solvegeodesic" function
 
-//a - spin, r0 - distance from picture plain to BH, th - cosine of polar angle, b - impact parameter, 
+//a - spin, r0 - distance from picture plane to BH, th - cosine of polar angle, b - impact parameter, 
 //beta - angle in a picture plane counterclockwise from the direction to the north pole  
 //BH rotates clockwise as viewed from above the north pole
 

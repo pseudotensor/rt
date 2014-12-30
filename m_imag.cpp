@@ -4,7 +4,8 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 //xsnxy=101,  //5. number of points N along one side in the picture plane for N x N intensity grid
+  //xsnxy=101,  //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xsnxy=99,  //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=1e-2,   //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
 	 xIint=1e-10,  //8. initial intensity along each ray for radiative transfer
@@ -20,12 +21,6 @@ string qadd="";    //output filename modifier, helps to distinguish cases
 
 accur=xaccur;      //assigning values to global variables, which control radiative transfer
 accurr=xaccurr;
-fact=xfact;
-ss=xss;
-
-kmin=2;kmax=10;    //define a set of frequencies from "sftab" table
-kstep=2;           //step in an array of frequencies
-
 cas=atoi(descr);   //batch job ID = selection of model spin, snapshot IDs, density, heating constant, viewing angle + auxiliary parameters
 start=clock(); 
 iswrite=true;      //write results to disk
@@ -43,16 +38,33 @@ switch (cas){      //selection of a model (only few examples are shown)
 	case 36: sp=0;rhonor=261385.84479; heat=0.15572;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//changing viewing angle, almost face-on
 	case 37: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=2.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 2*PI/3
 	case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+    //RG:
+ case 112: fmin=6200;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
 };
 printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 
-ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
+//RG: WHAT IS THIS? WHY 21?
+//ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
+ind=fmax-fmin;                 //set a number of fluid simulation snapshots (an image is computed for each)
 sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenMP
+
+    //RG:
+    printf("fnum=%d\n",fnum);
+    cout << "Calling init()...\n";
+
 	init(sp,fmin,fmax,sep);
+
+    //RG:
+    cout << "DONE with init()";
+
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "imaging.cpp"	
+
+    //RG:
+    cout << "DONE with imaging.cpp";
+    
 }
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 }

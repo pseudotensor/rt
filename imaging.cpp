@@ -1,5 +1,9 @@
 for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
-	int kk,
+
+        //RG:
+        printf("[imaging.cpp] ix=%d\n",ix);
+
+        int kk,
 		iiy=ix % (nxy+1),                                      //find geodesic coordinates along x and y directions
 		iix=(int)ix/(snxy+1);
 	for(kk=kmin;kk<=kmax;kk+=kstep){                           //cycle over chosen frequencies
@@ -10,10 +14,14 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 			 b=sqrt(xg*xg+yg*yg),                              //impact parameter
 			 beta=atan2(yg,xg);                                //polar angle in picture plane
 		//new geodesic integration for each ray
+        //cout << "[imaging.cpp] before geoint.cpp" << endl;
 		#include "geoint.cpp"
+        //cout << "[imaging.cpp] after geoint.cpp" << endl;
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
 		//new radiative transfer is solved for each ray
+        cout << "[imaging.cpp] before solvetrans.cpp" << endl;
 		#include "solvetrans.cpp"
+        cout << "[imaging.cpp] after solvetrans.cpp" << endl;
 		
 		(*ausin)[iix][iiy][kk][0]=II[0];                       //total intensity I
 		(*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]); //linearly polarized intensity Q
@@ -78,11 +86,16 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 	(*params)[13]=rate*year/Msun;
 
 	stringstream sstr;                                                             //prepare to write images into "shotimag" files
-	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"f"<<floor(sftab[kk][0])<<"fn"<<fnum<<"_"<<nxy;
-	string stra = sstr.str();
+
+    sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"f"<<floor(sftab[kk][0])<<"fn"<<fnum<<"_"<<nxy;
+    std::string stra = sstr.str();
 
 	ofstream faire ((dir+"shotimag"+stra+".dat").c_str(), ios::out|ios::binary);   //write into binary output file
-	faire.write(reinterpret_cast<char *>(params), 20*sizeof(double));              //write params - fixed size variable
+    //std::string IO_IMAGE_OUTPUT_HEADER="no";
+    //if (IO_IMAGE_OUTPUT_HEADER!="no"){
+    faire.write(reinterpret_cast<char *>(params), 20*sizeof(double));              //write params - fixed size variable
+    //}
+
 	faire.write(reinterpret_cast<char *>(intab), 5*(nxy+1)*(nxy+1)*sizeof(doub));  //write image
 	faire.close();
 }

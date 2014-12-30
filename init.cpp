@@ -1,4 +1,4 @@
-int init(int sp, int fmin, int fmax, int sep) {
+int init(int sp, int fmin, int fmax, int sep) { //RG: sep is never used here... remove!
 	int m, k, j, n, i,
 		xrn,           //radial index at the boundary of convergence
 		nt,            //theta index
@@ -31,7 +31,14 @@ doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild
 
 a=atab[sp]; asq=a*a;                 //define spin value for chosen fluid simulation
 ncut=ncuttab[sp];                    //define radial index at the point, where the fluid simulation is barely converged
+
+// RG:
+ cout << "Fluid dump file dir: "+adir+astr[sp]+fieldstr+"\n";
+
 string fdir=adir+astr[sp]+fieldstr;  //location of fluid simulation dumps
+cout << "location of fluid simulation dumps"+fdir+"\n";
+
+//RG:    vvvvvvv HARDWIRE-WARNING, should be a parameter
 mintim=1-0.00005*dtimdf*fdiff;       //minimum and maximum proper time at infinity, when the simulation is still evolved together with light ray propagation
 maxtim=1+0.00005*dtimdf*fdiff;
 
@@ -39,7 +46,13 @@ maxtim=1+0.00005*dtimdf*fdiff;
 if(!inited){
     //single record of fluid simulation dump files consists of: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi 
 	
+  // RG:
+  cout << "dir="+dir+"\n,astr[sp]="+astr[sp]+"\n,xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
+
 	//reading mean density & temperature radial profiles
+    //RG:
+    cout << "location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
+
 	ifstream faire ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
 	for(k=0;k<rlen;k++)
 		for(i=0;i<dd;i++)
@@ -73,6 +86,8 @@ if(!inited){
 	rmin=xx[0][0];//minimum radius (inside the event horizon)
 
     //reading emissivities jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
+    cout << "READING in lookup???.dat files from dir="+dir+"\n";
+
 	ifstream fI ((dir+"lookupjIy.dat").c_str(), ios::in);
 	ifstream fQ ((dir+"lookupjQy.dat").c_str(), ios::in);
 	ifstream fV ((dir+"lookupjVy.dat").c_str(), ios::in);
@@ -186,7 +201,7 @@ ez = gsl_odeiv_evolve_alloc(2);
 cz = gsl_odeiv_control_standard_new(0.0, acc, 1.0, 0.0);
 sz = gsl_odeiv_step_alloc (Tz, 2);
 
-//setting up the first step of integration inwards from ther outer boundary
+//setting up the first step of integration inwards from the outer boundary
 IT[0]=Tstab[ndd-1];
 IT[1]=IT[0];
 stNt=0;
@@ -392,6 +407,8 @@ for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
         uext[np][nt][2]=B[3];
     };
 };
-printf("\n");
+
+printf("\nExiting [init.cpp]\n");
+
 return(0);
 }

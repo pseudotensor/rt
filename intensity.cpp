@@ -1,4 +1,8 @@
 for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
+
+    //RG:
+    printf("[intensity.cpp] ix=%d\n",ix);
+
 	int kk,
 		iiy=ix %(snxy+1),                                      //find geodesic coordinates along x and y directions
 		iix=(int)ix/(snxy+1);
@@ -33,7 +37,7 @@ for(kk=kmin;kk<=kmax;kk++){                                    //initialize arra
 	for(ix=0;ix<=snxy-3;ix+=2)                                 //2D integration loop over picture plane
 		for(iy=0;iy<=snxy-3;iy+=2)
 			for(il=0;il<5;il++)                                //for each kind of intensity
-				//2nd order accuracy of the integrator - works best
+				//2nd order accuracy of the integrator - works best RG: What does best mean? In what way?
 				in[kk][il]+=((*ausin)[ix][iy][kk][il] + (*ausin)[ix][2 + iy][kk][il] + 4*(*ausin)[1 +ix][iy][kk][il] + 4*(*ausin)[1 + ix][2 + iy][kk][il] + (*ausin)[2 +ix][iy][kk][il] +
 				4*((*ausin)[ix][1 + iy][kk][il] + 4*(*ausin)[1 + ix][1 +iy][kk][il] + (*ausin)[2 + ix][1 + iy][kk][il]) + (*ausin)[2 + ix][2 +iy][kk][il])*hei*hei/9.;
 	for(ix=0;ix<=snxy-1;ix++)                                  //integration over x boundary - 1-st order
@@ -55,9 +59,9 @@ for(kk=kmin;kk<=kmax;kk++){                                    //initialize arra
 doub xisq,                                                               //\chi^2
 	 dof=7.;                                                             //degrees of freedom
      //compute chi^2 
-xisq=pow((doub)(totin[4]-tofit[4][1])/dFnu[4],(doub)2.)+pow((doub)(totin[5]-tofit[5][1])/dFnu[5],(doub)2.)+pow((doub)(totin[6]-tofit[6][1])/dFnu[6],(doub)2.)+
-	 pow((doub)(totin[7]-tofit[7][1])/dFnu[7],(doub)2.)+pow((doub)(totin[8]-tofit[8][1])/dFnu[8],(doub)2.)+pow((doub)(totin[9]-tofit[9][1])/dFnu[9],(doub)2.)+
-	 pow((doub)(totin[10]-tofit[10][1])/dFnu[10],(doub)2.);
+xisq=pow((doub)(totin[4]-tofit[4][1])/dFnu[4],2)+pow((doub)(totin[5]-tofit[5][1])/dFnu[5],2)+pow((doub)(totin[6]-tofit[6][1])/dFnu[6],2)+
+	 pow((doub)(totin[7]-tofit[7][1])/dFnu[7],2)+pow((doub)(totin[8]-tofit[8][1])/dFnu[8],2)+pow((doub)(totin[9]-tofit[9][1])/dFnu[9],2)+
+	 pow((doub)(totin[10]-tofit[10][1])/dFnu[10],2);
 xisq/=dof;//compute reduced \chi^2
 
 if(iswrite){

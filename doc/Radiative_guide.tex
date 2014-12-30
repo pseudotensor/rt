@@ -7,12 +7,15 @@
 \documentclass{emulateapj}
 %\usepackage{latexsym}
 %\usepackage[english]{babel}
+\usepackage{color}
 \usepackage{graphicx}
 %\usepackage{psfig}
 %\usepackage{html}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \newcommand{\mat}{\textit{Mathematica 9 }}
+\newcommand{\rg}[1]{\color{blue}\textit{Roman G.:} #1\color{black}}
+
 
 \shorttitle{ASTRORAY}
 \shortauthors{R. V. Shcherbakov}
@@ -26,133 +29,357 @@
 \author{Roman V. Shcherbakov}
 \affil{Department of Astronomy, University of Maryland, College Park, MD 20742-2421, USA \\Hubble Fellow}
 \email{shcher@gmail.com}
+\author{Documentation coedited by Roman Gold}
+\affil{Department of Physics, University of Maryland, College Park, MD 20742-2421, USA \\JSI Scientist, Postoctoral research Associate}
+\email{gold@umd.edu}
+
 
 %\date{\today}
 \setcounter{page}{1}
 
 
 \begin{abstract}
-Version 1.0 of the code is publicly released.
-The code is provided under the terms of GNU Public License v. 3.0.
-No technical support is provided.
+This manuscript provides a documentation for the {\tt ASTRO\_RAY}
+code. {\tt ASTRO\_RAY} is a GR, ray-tracing and polarized radiative
+transfer code for thermal synchrotron radiation.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Version 1.0 of the code is publicly released.  The code is provided
+under the terms of GNU Public License v. 3.0.  No technical support is
+provided.
 \end{abstract}
 %\keywords{radiative transfer --- polarization --- magnetic fields}
 
 %\maketitle
 
+
 \section{General ideas}
-The technique and the application of the code are described in \citet{Shcherbakov:2011inter} (later SH11) and \citet{Shcherbakov:2012appl} (later SPM12), respectively.
-The code performs radiative transfer on top of three-dimensional general relativistic magneto hydrodynamic (3D GRMHD) simulations such as the ones described in
-\citet{Penna:2010dj,Tchekhovskoy:2011qp,McKinney2012,Narayan:2012dw}. Radiation is not expected to significantly alter the dynamical quantities of the
-so-called radiatively inefficient accretion flows (RIAFs) \citep{Narayan:1998re,Quataert:2001op}. Therefore, one can perform the numerical simulations
-without cooling and then perform the radiative transfer in the post-processing.
 
-The radiative transfer of polarized cyclo-synchrotron is performed. Version 1.0 only handles thermal distribution of electrons at the moment, 
-but non-thermal particles can be readily introduced.
-The general radiative transfer equation in plain geometry is given by formula (17) in SH11, where emissivities $\varepsilon_{I,Q,V}$, absorptivities $\alpha_{I,Q,V}$, and rotativities
-$\rho_{Q,V}$ are given by formulas (21)-(25). Note, that the expression (20) for emissivities is valid for any particle distribution, while the expressions (22) and (23)
-for absorptivities and rotativities are only valid for thermal particles. Non-thermal rotativities are computed in \citet{Huang:2011de}. The correspondent \mat script
-can be found at \url{http://astroman.org/Faraday_conversion/}.
+\rg{GLOBAL TODO:
+\begin{itemize}
+  \item conistent code name: {\tt ASTRO\_RAY\_main} vs {\tt
+    transfer\_quad}
+\end{itemize}
+}
 
-The proper extension of radiative transfer to GR is described in SH11. We switch from the Stokes vector ${\bf S}$ to the vector of photon occupation numbers ${\bf N}$ (eq. (55) in SH11).
-Radiative transfer is conducted along the geodesic paths of massless particles via the technique called "ray tracing". This technique is best applied,
-when the emission/absorption/rotation coefficients depend only on the local dynamical properties of the medium and not on the local properties of radiation field.
-Ray tracing starts with solving for the photon geodesics from the picture plane/telescope/observer's plane in the direction of the black hole (BH).
-The geodesics either fall onto the BH or get deflected. After geodesics are computed, the evolution equations on Stokes occupation numbers are solved from the end points
-on the geodesics back to the observer's plane. The resultant polarized intensities on the plane are transformed into an image.
-Integrated over the observer's angle intensities yield observed fluxes \citep{Rybicki1979}. The code can be readily extended to include Compton scattering.
+
+The technique and the application of the code are described in
+\citet{Shcherbakov:2011inter} (later SH11) and
+\citet{Shcherbakov:2012appl} (later SPM12), respectively.  The code
+performs radiative transfer on top of three-dimensional general
+relativistic magneto hydrodynamic (3D GRMHD) simulations such as the
+ones described in
+\citet{Penna:2010dj,Tchekhovskoy:2011qp,McKinney2012,Narayan:2012dw}. Radiation
+is not expected to significantly alter the dynamical quantities of the
+so-called radiatively inefficient accretion flows (RIAFs)
+\citep{Narayan:1998re,Quataert:2001op}. Therefore, one can perform the
+numerical simulations without cooling and then perform the radiative
+transfer in the post-processing.
+
+The radiative transfer of polarized cyclo-synchrotron is
+performed. Version 1.0 only handles thermal distribution of electrons
+at the moment, but non-thermal particles can be readily introduced.
+The general radiative transfer equation in plain geometry is given by
+formula (17) in SH11, where emissivities $\varepsilon_{I,Q,V}$,
+absorptivities $\alpha_{I,Q,V}$, and rotativities $\rho_{Q,V}$ are
+given by formulas (21)-(25). Note, that the expression (20) for
+emissivities is valid for any particle distribution, while the
+expressions (22) and (23) for absorptivities and rotativities are only
+valid for thermal particles. Non-thermal rotativities are computed in
+\citet{Huang:2011de}. The correspondent \mat script can be found at
+\url{http://astroman.org/Faraday_conversion/}.
+
+The proper extension of radiative transfer to GR is described in
+SH11. We switch from the Stokes vector ${\bf S}$ to the vector of
+photon occupation numbers ${\bf N}$ (eq. (55) in SH11).  Radiative
+transfer is conducted along the geodesic paths of massless particles
+via the technique called "ray tracing". This technique is best
+applied, when the emission/absorption/rotation coefficients depend
+only on the local dynamical properties of the medium and not on the
+local properties of radiation field.  Ray tracing starts with solving
+for the photon geodesics from the picture plane/telescope/observer's
+plane in the direction of the black hole (BH).  The geodesics either
+fall onto the BH or get deflected. After geodesics are computed, the
+evolution equations on Stokes occupation numbers are solved from the
+end points on the geodesics back to the observer's plane. The
+resultant polarized intensities on the plane are transformed into an
+image.  Integrated over the observer's angle intensities yield
+observed fluxes \citep{Rybicki1979}. The code can be readily extended
+to include Compton scattering.
 
 %\subsection{Extension to large radius}
 
 \section{Compilation and Basic Usage}
-\subsection{Compilation}
-The code can be successfully compiled in GNU compiler "gcc", Intel Compiler "icc", and (with minor modifications) in Microsoft Visual Studio ("icl")
-The recommended software versions to ensure compilation and fast execution are: Visual Studio 2010, "gcc" version 4.6 or higher, "icc" version 11.0 or higher.
+\subsection{{\bf Compiling} the code}
+\paragraph{{\tt UBUNTU}}
 
-When submitting a job with \textit{QSUB} on a supercomputer such as Deepthought at UMD or Nautilus at NICS
-the environment variable $PBS\_ARRAYID$ is read. It corresponds to the index of a batch job.
-Remember that some systems have a low limit on the number of concurrent jobs.
-The correspondent environment variable is $LSB\_JOBINDEX$ on \textit{BSUB} system. The variable name should be double-checked on any supercomputer of interest.
-Whenever a code is run on a regular computer, the environment variable $PBS\_ARRAYID$ needs to be defined.
+\begin{enumerate}
+
+  \item Either get gcc (free), e.g.~via 
+    \begin{verbatim}
+      sudo apt-get install gcc
+    \end{verbatim}
+    or intel compiler (not free anymore).
+
+  \item Install openMP, e.g.~by
+    \begin{verbatim}
+      sudo apt-get install openmp 
+    \end{verbatim}
+
+  \item In summary, compile the code by issuing
+    \begin{verbatim}
+      make -B
+    \end{verbatim}
+
+\end{enumerate}
+
+
+The code can be successfully compiled in GNU compiler "gcc", Intel
+Compiler "icc", and (with minor modifications) in Microsoft Visual
+Studio ("icl") The recommended software versions to ensure compilation
+and fast execution are: Visual Studio 2010, "gcc" version 4.6 or
+higher, "icc" version 11.0 or higher.
+
+\subsubsection{\rg{Machine specific issues}}
+\paragraph{\rg{\tt bh01}}
+\rg{On {\tt bh01} (as of Oct 13th 2014) icc-compilation does not work,
+  use gcc for now.}
+
+
+\subsection{{\bf Running} the code}
+We first provide a short description of how to run the code in the
+form of a minimal example, before expanding on additional issues, such
+as different modes of operation, parallelization, machine-specific
+issues, Supercomputers, etc.
+
+\subsubsection{Job submission: qsub,bsub,etc.}
+\rg{Improve organization: Lots of machine specific things here...}
+
+When submitting a job with \textit{QSUB} on a supercomputer such as
+Deepthought at UMD or Nautilus at NICS the environment variable
+$PBS\_ARRAYID$ is read. It corresponds to the index of a batch job.
+Remember that some systems have a low limit on the number of
+concurrent jobs.  The correspondent environment variable is
+$LSB\_JOBINDEX$ on \textit{BSUB} system. The variable name should be
+double-checked on any supercomputer of interest.  
+
+\subsubsection{{\bf Minimal example}: \\
+  Local/personal machine: Usage without qsub}
+
+Whenever a code is run on a regular computer, the environment variable
+$PBS\_ARRAYID$ needs to be defined. \rg{WIP: To what value? At any
+  rate, in this case the user should not have to take care of this,
+  this should be done automatically by the code.}
+
+\begin{enumerate}
+  \item File/Folder structure
+    \rg{Insert sub-Sec.~\ref{sec:dirs-files} here.}
+  \item Set environment variables {\tt PSB\_ARRAYID=\rg{??}} or {\tt
+    LSB\_JOBINDEX=\rg{??}}
+  \item Run the code:
+      %% transfer_quad A B C D
+\begin{verbatim}
+./ASTRORAY_main [SPIN] [#SNAPSHOTS] C [MODE]
+\end{verbatim}
+    where [SPIN] is the dimensionless spin parameter of the Kerr BH
+    spacetime and [\#SNAPSHOTS] is the number of simulation snapshots
+    over which the radiative transfer is performed,
+    \rg{...WIP...FIXME: sp=atoi(argv[1])-1;??}. The meaning of the
+    command-line parameter {\tt C} C=mco=floor(Bpo+0.001) and
+    [\#SNAPSHOTS]? depends on the chosen {\tt [MODE]} of
+    operation. \rg{For \textit{sear=1 C=Bpo}. At least for \textit{[MODE]=1 C} stands for a predefined case label, see \textit{m\_quick.cpp}. C is also used as the
+      heating constant. Are these the same quantities (in general)? If
+      not change it to avoid confusion.}
+
+    As a simple example: The following line launches the code in mode
+    {\tt sear=1} using case 14 (see \textit{m\_quick.cpp} for details):
+\begin{verbatim}
+./ASTRORAY_main 0.9375 1 14 1
+\end{verbatim}
+    This will quickly compute a spectrum for given sp, heat, rhonor,
+    th \rg{[WIP: describe]} from one simulation snapshot (fast-light
+    approximation). If unmodified the code is set up to read GRMHD
+    data files from the {\tt thickdisk7} model \rg{(snapshot 12424 or
+      22424?)}. \rg{Once we have Avery's analytical model in, we could
+      use it in the default setup, as it is even easier}. See later
+    sections for details regarding different operational modes.)
+\end{enumerate}
+\rg{Why does the user have to provide the spin value here \emph{and}
+  in {\tt win\_lin\_Jon.c}? Is this for parameter searches (assuming
+  GRMHD model has fixed spin and vary spin only for ray-tracing? If
+  this is redundant, it serves no purpose other than potentially
+  causing inconsistencies and therefore should be avoided. Maybe I am
+  missing something...}
 
 \section{Setting up and running the code on Nautilus}
+\rg{Reorganize... Improve flow...}
 \subsection{Prerequisites/Tricks}
 \begin{enumerate}
-\item{If one cannot login through Nautilus, then login through Kraken. They have a shared file system.}
-\item{Nautilus often does not like it, when one logs in from a laptop and drops a connection after 1min of inactivity.
-To avoid that add "export TMOUT=86400" in ".bash\_profile" file in home directory.}
-\item{For compilation load intel/12.1.233 module with a command "module load intel/12.1.233". This compiler produces the fastest code - about $0.5\%$ faster than GCC 4.6.3.
-Make sure no other intel or GCC compiler (apart from default GCC 4.3.4) is loaded by executing command "module list" and scanning its output.
-For automatic dealing with modules add  "module unload intel/11.1.038" and "module load intel/12.1.233" lines to \textit{.modules} file in the home directory, then relogin to Nautilus.}
-\item{Check the size/file count quotas for home directory. They are typically found in documentation. Exceeding the disk space of all home directories brings Nautilus down.}
+\item{If one cannot login through Nautilus, then login through
+  Kraken. They have a shared file system.}
+\item{Nautilus often does not like it, when one logs in from a laptop
+  and drops a connection after 1min of inactivity.  To avoid that add
+  "export TMOUT=86400" in ".bash\_profile" file in home directory.}
+\item{For compilation load intel/12.1.233 module with a command
+  "module load intel/12.1.233". This compiler produces the fastest
+  code - about $0.5\%$ faster than GCC 4.6.3.  Make sure no other
+  intel or GCC compiler (apart from default GCC 4.3.4) is loaded by
+  executing command "module list" and scanning its output.  For
+  automatic dealing with modules add "module unload intel/11.1.038"
+  and "module load intel/12.1.233" lines to \textit{.modules} file in
+  the home directory, then relogin to Nautilus.}
+\item{Check the size/file count quotas for home directory. They are
+  typically found in documentation. Exceeding the disk space of all
+  home directories brings Nautilus down.}
 \end{enumerate}
 \subsection{Directories and Files}
+\label{sec:dirs-files}
 \begin{enumerate}
-\item{Create directory with any name (I use name \textit{rt}) for radiative transfer code in home directory (\textit{/nics/d/home/USERNAME/} on Nautilus).
-Create directory with any name (I use name \textit{analysis}) for analysis in either the home directory or (better) in a work directory (\textit{/lustre/medusa/USERNAME/} on Nautilus).
-Make sure the variable ${\bf dir}$ in \textit{win\_lin\_Jon.c} points at analysis directory.}
-\item{Copy the code w/ all files into \textit{$\sim$/rt/}. Copy $5$ files with radiative transfer coefficients for thermal plasma to \textit{analysis/} folder.}
-\item{Create a directory \textit{analysis/SIMULATION/}, where \textit{SIMULATION} is a name of a particular GRMHD simulation of interest, i.e. "thickdisk7".
-Add this name as a part of ${\bf astr}$ array in \textit{win\_lin\_Jon.c} file, add a correspondent spin value into ${\bf atab}$ array.
-One may need to correspondingly increase the sizes of those array. Make sure the values of ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$ correspond to radial,
-poloidal, and toroidal resolutions, respectively. The code will not complain about a problem, but a correspondent \mat script will.}
-\item{Copy \textit{dxdxp.dat} and \textit{TsmapSIMULATION.dat} files into \textit{analysis/SIMULATION/} directory. If one doesn't have the files,
-then one needs to generate them (see below).}
-\item{Make sure that ALL \textit{fieldlineXXXX.bin} files of interest exist in (or linked to) ${\bf adir}/SIMULATION/{\bf fieldstr}$ directory.
-Those variables are defined in \textit{win\_lin\_Jon.c} file. One may need to change ${\bf adir}$ and ${\bf fieldstr}$ variables to point to the correct location.}
-\item{If one needs to compile with "gcc" and not with "icc", then copy \textit{$\sim$/rt/Makefile\_gcc} into \textit{$\sim$/rt/Makefile}.}
-\item{Compile the code with "make -B" command from \textit{$\sim$/rt/} directory. It should take under 30 seconds.}
-\item{Make sure that every directory in the tree and every file has a group read permission.}
+\item{Create directory with any name (I use name \textit{rt}) for
+  radiative transfer code in home directory
+  (\textit{/nics/d/home/USERNAME/} on Nautilus).  Create directory
+  with any name (I use name \textit{analysis}) for analysis in either
+  the home directory or (better) in a work directory
+  (\textit{/lustre/medusa/USERNAME/} on Nautilus).  Make sure the
+  variable ${\bf dir}$ in \textit{win\_lin\_Jon.c} points at analysis
+  directory.}
+\item{Copy the code w/ all files into \textit{$\sim$/rt/}. Copy $5$
+  files with radiative transfer coefficients for thermal plasma to
+  \textit{analysis/} folder.}
+\item{Create a directory \textit{analysis/SIMULATION/}, where
+  \textit{SIMULATION} is a name of a particular GRMHD simulation of
+  interest, i.e. "thickdisk7".  Add this name as a part of ${\bf
+    astr}$ array in \textit{win\_lin\_Jon.c} file, add a correspondent
+  spin value into ${\bf atab}$ array.  One may need to correspondingly
+  increase the sizes of those array. Make sure the values of ${\bf
+    rlen}$, ${\bf thlen}$, and ${\bf phlen}$ correspond to radial,
+  poloidal, and toroidal resolutions, respectively. The code will not
+  complain about a problem, but a correspondent \mat script will.}
+\item{Copy \textit{dxdxp.dat} and \textit{TsmapSIMULATION.dat} files
+  into \textit{analysis/SIMULATION/} directory. If one doesn't have
+  the files, then one needs to generate them (see below).}
+\item{Make sure that ALL \textit{fieldlineXXXX.bin} files of interest
+  exist in (or linked to) ${\bf adir}/SIMULATION/{\bf fieldstr}$
+  directory.  Those variables are defined in \textit{win\_lin\_Jon.c}
+  file. One may need to change ${\bf adir}$ and ${\bf fieldstr}$
+  variables to point to the correct location.}
+\item{If one needs to compile with "gcc" and not with "icc", then copy
+  \textit{$\sim$/rt/Makefile\_gcc} into \textit{$\sim$/rt/Makefile}.}
+\item{Compile the code with "make -B" command from \textit{$\sim$/rt/}
+  directory. It should take under 30 seconds.}
+\item{Make sure that every directory in the tree and every file has a
+  group read permission.}
 \end{enumerate}
 \subsection{Job submission and execution}
 \begin{enumerate}
-\item{Each supercomputer has its job submission system (BSUB/QSUB/other) and its own features/bugs. Always submit jobs through the submission system and not directly.
-One cannot directly copy the submission files from one system to another. Always RTFM first. Erroneous submission may bring supercomputer down.}
-\item{The examples of QSUB scripts for Nautilus are in \textit{linux\_Nautilus} in GIT repository. The examples of BSUB scripts are in \textit{linux\_Odyssey} in GIT repository.}
-\item{Set ${\bf nthreads}$ in \textit{win\_lin\_Jon.c} to the maximum number of OpenMP threads the system supports /or/ on shared system machines set it to a smaller number,
- for which the code runs efficiently. ${\bf nthreads}=16$ is typically a safe bet.}
-\item{Make sure the number of CPUs in the batch job file is equal to ${\bf nthreads}$ as ${\bf ncpus}=16(={\bf nthreads})$.}
-\item{Make sure there is enough memory in the system. The code needs about $2*{\bf fdiff}*(fieldline size)+4$~GB of shared RAM, where the size of \textit{fieldlineXXXX.bin} file is used.}
-\item{Translate the memory requirement into a line in the job submission file.}
-\item{For each change in "c" or "cpp" files run "make -B". Always check that \textit{$\sim$/rt/transfer\_quad} executable has a later modification time than any other code file.}
-\item{For QSUB system take care of the batch variable by submitting as "qsub -t H G SCRIPTNAME", where $\bf H$ is the first index for $PBS\_ARRAYID$ and $\bf G$ is the last index.
-For provided Nautilus scripts the submission lines are the last (commented) lines of the scripts.}
-\item{For a quick test one might submit \textit{quall2.csh} as "qsub -t 30-30 quall2.csh". A quick test typically starts running immediately after submission and }
-\item{Make sure to not exceed the suggested system I/O bandwidth. Limit the number of concurrent jobs with heavy I/O (especially in \textit{m\_sear} mode).
-Too much I/O will slow down the supercomputer and may bring it down.}
-\item{For some time after submission keep checking the job status with, e.g. "showq -n". If the job starts running or disappears, then check the outputs.}
-\item{First outputs to check are the "error" and "output" files in \textit{$\sim$/rt/} directory. Communication errors typically can be ignored, segmentation faults cannot.
-If one didn't modify the code, then a segmentation fault means that some input files are missing/have wrong names/are in wrong places.
-Other type of mistakes are typically caught on a debug stage.}
-\item{If the code actually works (the "error" and "output" files have zero sizes for at least a couple of minutes), then check the output in \textit{analysis/} folder.
-\textit{m\_quick} mode generates first output within a minute, while \textit{m\_sear} mode generates first output after 1hr. Read the first output files to check that they look ok
-and make sure the code doesn't need to be restarted. That saves tons of one's time and computational time.}
+\item{Each supercomputer has its job submission system
+  (BSUB/QSUB/other) and its own features/bugs. Always submit jobs
+  through the submission system and not directly.  One cannot directly
+  copy the submission files from one system to another. Always RTFM
+  first. Erroneous submission may bring supercomputer down.}
+\item{The examples of QSUB scripts for Nautilus are in
+  \textit{linux\_Nautilus} in GIT repository. The examples of BSUB
+  scripts are in \textit{linux\_Odyssey} in GIT repository.}
+\item{Set ${\bf nthreads}$ in \textit{win\_lin\_Jon.c} to the maximum
+  number of OpenMP threads the system supports /or/ on shared system
+  machines set it to a smaller number, for which the code runs
+  efficiently. ${\bf nthreads}=16$ is typically a safe bet.}
+\item{Make sure the number of CPUs in the batch job file is equal to
+  ${\bf nthreads}$ as ${\bf ncpus}=16(={\bf nthreads})$.}
+\item{Make sure there is enough memory in the system. The code needs
+  about $2*{\bf fdiff}*(fieldline size)+4$~GB of shared RAM, where the
+  size of \textit{fieldlineXXXX.bin} file is used.}
+\item{Translate the memory requirement into a line in the job
+  submission file.}
+\item{For each change in "c" or "cpp" files run "make -B". Always
+  check that \textit{$\sim$/rt/transfer\_quad} executable has a later
+  modification time than any other code file. \rg{This hint is out of
+    place. Statement is machine independent.}}
+\item{For QSUB system take care of the batch variable by submitting as
+  "qsub -t H G SCRIPTNAME", where $\bf H$ is the first index for
+  $PBS\_ARRAYID$ and $\bf G$ is the last index.  For provided Nautilus
+  scripts the submission lines are the last (commented) lines of the
+  scripts.}
+\item{For a quick test one might submit \textit{quall2.csh} as "qsub
+  -t 30-30 quall2.csh". A quick test typically starts running
+  immediately after submission and }
+\item{Make sure to not exceed the suggested system I/O
+  bandwidth. Limit the number of concurrent jobs with heavy I/O
+  (especially in \textit{m\_sear} mode).  Too much I/O will slow down
+  the supercomputer and may bring it down.}
+\item{For some time after submission keep checking the job status
+  with, e.g. "showq -n". If the job starts running or disappears, then
+  check the outputs.}
+\item{First outputs to check are the "error" and "output" files in
+  \textit{$\sim$/rt/} directory. Communication errors \rg{what is
+    that?} often are benign and can typically be ignored.
+  Segmentation faults can occur when some input files are missing/have
+  wrong names/are in wrong places.  Other types of mistakes are
+  typically caught on a debug stage \rg{I don't understand what this means}.}
+\item{If the code actually works (the "error" and "output" files have
+  zero sizes for at least a couple of minutes), then check the output
+  in \textit{analysis/} folder.  \textit{m\_quick} mode generates
+  first output within a minute, while \textit{m\_sear} mode generates
+  first output after 1hr. Make sure to check the output files early on
+  to see whether the code is working as intended.}
 \end{enumerate}
 
 \subsection{Other}
 \begin{enumerate}
-\item{Define ${\bf rgrav}$ in \textit{transfer\_quad.cpp} and the proportionality coefficient for the final flux in \textit{intensity.cpp} to correspond to the physical problem at hand.
-Make sure ${\bf rgrav}$ is self-consistently used as either $M$ or $2M$. At present ${\bf rgrav}=2GM/c^2$.}
-\item{Copy one of the late-time \textit{fieldlineXXXX.bin} files on a laptop/desktop. Copy \textit{gdump.bin} file from ${\bf adir}+ SIMULATION +{\bf fieldstr}$ to laptop/desktop.}
-\item{Run a \mat script on those files to create \textit{dxdxp.dat} file. Run a series of \mat tests to see that we understand the structure of \textit{fieldlineXXXX.bin} file and
-that everything is consistent.}
-\item{Run radiative transfer code in \textit{m\_ts} mode by first creating a correspondent batch job. The output is a file of average temperature/density profiles
-\textit{analysis/SIMULATION/TsmapSIMULATIONx.dat}.}
-\item{Rename that file into \textit{analysis/SIMULATION/TsmapSIMULATION.dat} file. This extra step is implemented to avoid accidentally overwriting the file of averaged profiles.}
-\item{Figure out the frequencies, for which we want to compute the radiative transfer. Figure out the fluxes at these frequencies. Enter everything into ${\bf sftab}$ variable in
-\textit{transfer\_quad.cpp}. While a set of frequencies is obligatory, the fluxes are not obligatory unless a model-fitting routine is invoked.}
-\item{Come up with a fiducial set of parameters $\bf rhonor$, $\bf heat$, $\bf th$ and run radiative transfer code in \textit{m\_quick} mode. One needs to set $\bf fdiff=0$ and
-define $\bf thlimit$ and $\bf isBcut$ variables. Also set ${\bf fmin}$, ${\bf fmax}$, and ${\bf ind}$ to some values. Recompile the code each time the parameters are changed.}
-\item{Run \mat script to plot the lightcurve and perform any other analysis one needs.}
-\item{Try to manually change three parameters for a quick computation in order to produce a spectrum, which resembles the observed spectrum.}
-\item{Define the $\chi^2$ computation and a set of residuals.  Run the code in \textit{m\_sear} mode and find a local minimum. Recompile the code after any parameters were changed.
-A simplified version of \textit{m\_sear} is implemented at present: it might not find a global minimum, especially if the polarized quantities are fitted for.
-A full version would include running \textit{m\_sear} for a set of fixed inclination angles and searching in space of $\bf rhonor$ and $\bf heat$ only.
-It is recommended that ${\bf ind}=21$ is set for this step.}
-\item{Run the code in \textit{m\_imag} mode and create image files. Run the correspondent \mat script to visualize the images.}
-\item{Run the code in \textit{m\_quick} for maximum $\bf ind$, run correspondent \mat script and enjoy the full variable lightcurve.}
-\item{Run the code in \textit{m\_imag} for maximum $\bf ind$, run correspondent \mat script to create all images. Use, e.g. \textit{JPGvideo} program to make movies.
-Upload movies to Youtube.}
+\item{Define ${\bf rgrav}$ in \textit{transfer\_quad.cpp} and the
+  proportionality coefficient for the final flux in
+  \textit{intensity.cpp} to correspond to the physical problem at
+  hand.  Make sure ${\bf rgrav}$ is self-consistently used as either
+  $M$ or $2M$. At present ${\bf rgrav}=2GM/c^2$.}
+\item{Copy one of the late-time \textit{fieldlineXXXX.bin} files on a
+  laptop/desktop. Copy \textit{gdump.bin} file from ${\bf adir}+
+  SIMULATION +{\bf fieldstr}$ to laptop/desktop.}
+\item{Run a \mat script on those files to create \textit{dxdxp.dat}
+  file. Run a series of \mat tests to see that we understand the
+  structure of \textit{fieldlineXXXX.bin} file and that everything is
+  consistent.}
+\item{Run radiative transfer code in \textit{m\_ts} mode by first
+  creating a correspondent batch job. The output is a file of average
+  temperature/density profiles
+  \textit{analysis/SIMULATION/TsmapSIMULATIONx.dat}.}
+\item{Rename that file into
+  \textit{analysis/SIMULATION/TsmapSIMULATION.dat} file. This extra
+  step is implemented to avoid accidentally overwriting the file of
+  averaged profiles.}
+\item{Figure out the frequencies, for which we want to compute the
+  radiative transfer. Figure out the fluxes at these
+  frequencies. Enter everything into ${\bf sftab}$ variable in
+  \textit{transfer\_quad.cpp}. While a set of frequencies is
+  obligatory, the fluxes are not obligatory unless a model-fitting
+  routine is invoked.}
+\item{Come up with a fiducial set of parameters $\bf rhonor$, $\bf
+  heat$, $\bf th$ and run radiative transfer code in \textit{m\_quick}
+  mode. Inside \textit{m\_quick.cpp} (under inside the specific
+  \textit{case}), one needs to set $\bf fdiff=0$, ${\bf fmin}$, ${\bf
+    fmax}$ and ${\bf ind}$ to their desired values. Also the variables
+  $\bf thlimit$ and $\bf isBcut$ need to be defined. Recompile the
+  code each time the parameters are changed.}
+\item{Run \mat script to plot the lightcurve and perform any other
+  analysis one needs.}
+\item{Try to manually change three parameters for a quick computation
+  in order to produce a spectrum, which resembles the observed
+  spectrum.}
+\item{Define the $\chi^2$ computation and a set of residuals.  Run the
+  code in \textit{m\_sear} mode and find a local minimum. Recompile
+  the code after any parameters were changed.  A simplified version of
+  \textit{m\_sear} is implemented at present: it might not find a
+  global minimum, especially if the polarized quantities are fitted
+  for.  A full version would include running \textit{m\_sear} for a
+  set of fixed inclination angles and searching in space of $\bf
+  rhonor$ and $\bf heat$ only.  It is recommended that ${\bf ind}=21$
+  is set for this step.}
+\item{Run the code in \textit{m\_imag} mode and create image
+  files. Run the correspondent \mat script to visualize the images.}
+\item{Run the code in \textit{m\_quick} for maximum $\bf ind$, run
+  correspondent \mat script and enjoy the full variable lightcurve.}
+\item{Run the code in \textit{m\_imag} for maximum $\bf ind$, run
+  correspondent \mat script to create all images. Use,
+  e.g. \textit{JPGvideo} program to make movies.  Upload movies to
+  Youtube.}
 \end{enumerate}
 
 \section{Inputs}
@@ -166,6 +393,9 @@ Thus, start reading the file from the position
 \begin{equation}
 p=filesize-rlen*thlen*phlen*11*4.
 \end{equation}
+
+\rg{What is meant here? Should the user do that or is this a
+  description of what the code is doing?}
 
 The velocity of matter approaches the speed of light near the event horizon. Therefore, as the photons propagate within the flow, the flow itself has enough time to change.
 The information about the flow at that later time is stored in a \textit{fieldlineYYYY.bin} file with a different $YYYY>XXXX$ number. The emissivity etc.
@@ -188,61 +418,128 @@ That latter dependence is highly sophisticated and hard to invert, which makes u
 and the transformation matrices.
 
 \subsection{Average density and temperature profiles}
-The numerical simulations output the internal energy density at each point. However, those are the electrons, which radiate.
-The electron temperature $T_e$ is expected to be much lower than the proton temperature $T_p$ close to the BH \citep{Narayan:1995kj}.
-The Coulomb collisions or the plasma processes might not be strong enough to equilibrate the temperatures, and the two-temperature flow arises.
-Electrons can be cooler, because they can cool \citep{Drappeau:2012dq}, because their heat capacity is much higher at relativistic temperatures \citep{Shcherbakov:2010cond},
-because viscosity is expected to mainly heat the protons \citep{Narayan:1995kj,Sharma_heating:2007}.
+The numerical simulations output the internal energy density at each
+point. However, those are the electrons, which radiate.  The electron
+temperature $T_e$ is expected to be much lower than the proton
+temperature $T_p$ close to the BH \citep{Narayan:1995kj}.  The Coulomb
+collisions or the plasma processes might not be strong enough to
+equilibrate the temperatures, and the two-temperature flow arises.
+Electrons can be cooler, because they can cool
+\citep{Drappeau:2012dq}, because their heat capacity is much higher at
+relativistic temperatures \citep{Shcherbakov:2010cond}, because
+viscosity is expected to mainly heat the protons
+\citep{Narayan:1995kj,Sharma_heating:2007}.
 
-It is not really possible to compute the temperature of electrons from the first principles, or prove that the distribution is thermal.
-Some researchers set the electron temperature to be a constant fraction of proton temperature $T_p/T_e=\rm const$ \citep{Moscibrodzka:2009,Dexter:2010lk}.
-However, I employ a more sophisticated technique. I follow \citet{Sharma_heating:2007} and compute $T_e$ starting from the outer simulation boundary
-some $10^5r_{\rm g}$ away from the center. Such computation includes the Coulomb collisions, relativistic heat capacity of electrons,
-redistribution of viscous energy dissipation between species $Q_e/Q_i=C(T_e/T_i)^{0.5}$, where $C$ is a constant.
-The code computes correspondence of $T_e$ on $u$ in the equatorial plane over the averaged profiles of density and temperature.
-Then it draws $T_e$ from that correspondence to $u$ at any point of the simulation (see section 4.2 of SPM12).
-Those averaged radial profiles of density and temperature are created by \textit{m\_ts} routine (see below) and stored in \textit{TsmapNAME.dat} text file,
-where \textit{NAME} is the simulation name.
+It is computationally prohibitive to compute the temperature and
+distribution of electrons from first principles. Instead, the electron
+temperature is set to be a constant fraction of proton temperature
+$T_p/T_e=\rm const$ in previous studies
+\citep{Moscibrodzka:2009,Dexter:2010lk}.  However, here a more
+sophisticated technique is employed. I follow
+\citet{Sharma_heating:2007} and compute $T_e$ starting from the outer
+simulation boundary some $10^5r_{\rm g}$ away from the center. Such
+computation includes the Coulomb collisions, relativistic heat
+capacity of electrons, redistribution of viscous energy dissipation
+between species $Q_e/Q_i=C(T_e/T_i)^{0.5}$ \rg{Where does this come
+  from? What assumptions have been made? Ref?}, where $C$ is a
+constant.  The code computes correspondence of $T_e$ on $u$ \rg{Do we
+  mean contributions of $T_e$ to $u$?} in the equatorial plane over
+the averaged profiles of density and temperature.  Then it draws $T_e$
+from that correspondence to $u$ at any point of the simulation (see
+section 4.2 of SPM12).  Those averaged radial profiles of density and
+temperature are created by \textit{m\_ts} routine (see below) and
+stored in \textit{TsmapNAME.dat} text file, where \textit{NAME} is the
+simulation name.
 
 \subsection{Cyclo-synchrotron emissivities and rotativities}
-A crucial part of GR polarized radiative transfer is the correct absorptivities/emissivities/rotativities.
-Those are computed by a separate \mat script. Those coefficients are typically function of three parameters:
-electron temperature $\theta_e=k_b T_e/(m_e c^2)$ (or the whole particle distribution), angle between the magnetic field line and the direction of ${\bf k}$ vector
-$\theta_{kB}$, and the ratio of cyclotron frequency to observed frequency $\nu_B/\nu$. The assumed momentum distribution of particles is isotropic.
-However, the number of parameters can be reduced in certain approximations down to two for emissivity/absorptivity, and down to one for rotativities
-(Faraday rotation and conversion) (see SPM12). The relevant text files are two-parametric \textit{lookupjIy.dat} file for total emissivity,
-\textit{lookupjQy.dat} file for linearly polarized emissivity, \textit{lookupjVy.dat} for circularly polarized emissivity, \textit{lookupjQa.dat}
-for Faraday conversion coefficient, and \textit{lookupjVa.dat} for Faraday rotation coefficient. It is redundant to have two dimensions for rotativities,
-but this is done for the sake of uniformity.
+A crucial part of GR polarized radiative transfer is the correct
+absorptivities/emissivities/rotativities.  Those are computed by a
+separate \mat script. Those coefficients are typically function of
+three parameters: electron temperature $\theta_e=k_b T_e/(m_e c^2)$
+(or the whole particle distribution), angle between the magnetic field
+line and the direction of ${\bf k}$ vector $\theta_{kB}$, and the
+ratio of cyclotron frequency to observed frequency $\nu_B/\nu$. The
+assumed momentum distribution of particles is isotropic.  However, the
+number of parameters can be reduced in certain approximations down to
+two for emissivity/absorptivity, and down to one for rotativities
+(Faraday rotation and conversion) (see SPM12). The relevant text files
+are two-parametric \textit{lookupjIy.dat} file for total emissivity,
+\textit{lookupjQy.dat} file for linearly polarized emissivity,
+\textit{lookupjVy.dat} for circularly polarized emissivity,
+\textit{lookupjQa.dat} for Faraday conversion coefficient, and
+\textit{lookupjVa.dat} for Faraday rotation coefficient. It is
+redundant to have two dimensions for rotativities, but this is done
+for the sake of uniformity.
 
 \section{Modes of operation}
 \subsection{Usage}
-The usage is \textit{transfer\_quad A B C D} with defined $PBS\_ARRAYID$.
-The parameter $A$ chooses a spin of the flow or chooses one of the predefined models. $A-1$ is the index in ${\bf atab}$, ${\bf astr}$, and ${\bf ncuttab}$ arrays defined in
-$\textit{win\_lin\_NAME.c}$ files. The fourth parameter $D$ chooses the operation mode (the mode is sometimes chosen in \textit{transfed\_quad} routine itself for debugging purposes).
-Parameter $B$ means the number of separate points of time, over which the computation of image/intensity etc. are performed in all modes except \textit{m\_surf}.
-It coincides with the number of simulation snapshots for ${\bf fdiff}=0$. In mode \textit{m\_surf} the parameter $B$ switched between surfing different pairs of parameters:
-$B=1 => {\bf tth}~and~{\bf rhonor}$, $B=2 => {\bf rhonor}~and~{\bf heat}$, $B=3 => {\bf heat}~and~{\bf tth}$.
-Parameter $C$ means different things for different $D$.
+The usage is \textit{transfer\_quad A B C D} with defined
+$PBS\_ARRAYID$ \rg{or JOB\_ARRAY\_ID or so}.  The parameter $A$ chooses
+a spin of the flow or chooses one of the predefined models. $A-1$ is
+the index in ${\bf atab}$, ${\bf astr}$, and ${\bf ncuttab}$ arrays
+defined in $\textit{win\_lin\_NAME.c}$ files. The fourth parameter $D$
+chooses the operation mode (the mode is sometimes chosen in
+\textit{transfer\_quad} routine itself for debugging purposes).
 
-The radiative transfer code has seven modes of operation at present. They serve the tasks of computing the auxiliary quantities,
-computing the spectrum for a single set of flow parameters, exploring the full parameters space, searching for a local minimum of $\chi^2/dof$ in the parameter space,
-thoroughly surfing the region of parameter space, creating a flow image, performing convergence studies.
-The flow parameters are the spin $a_*$, the inclination angle $\theta$, the accretion rate $\dot{M}$, the heating constant $C$ or the ratio of temperatures $T_i/T_e$ at certain radius.
-For each set of parameters we compute the spectrum/image at several times correspondent to times of simulation snapshots with numbers from ${\bf fmin}$ to 
-${\bf fmax}$ with a step ${\bf sep}$. For example, ${\bf fmin}=6950$, ${\bf fmax}=9950$, and ${\bf sep}=150$ were used in \citet{Shcherbakov:2012appl} 
-to compute the spectrum at $21$ points of time. Parameter ${\bf fdiff}$ determines in which range of times $\Delta t$ around the simulation snapshot times $t_0$ 
-the simulation is taken to evolve as the rays propagate. For example, ${\bf fdiff}=60$ means that snapshots \textit{fieldlineXXXX.bin} with numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ 
-are employed to compute the spectrum at a time correspondent to $XXXX_0$. The value ${\bf fdiff}=0$ corresponds to "fast light propagation", i.e. the simulation is not evolved 
-as the light propagates along geodesics. In such case at each time the spectrum/image is simulated for a single simulation snapshot. Large values of ${\bf fdiff}$ 
-may not work because of memory limitations. Some time ago all simulated spectra used to be computed based on single snapshots/averaged model.
-The routines for such computations were called \textit{s\_name}. Now the routines are called \textit{m\_name} to indicate
-the computations are always performed on multiple snapshots/at multiple points of time.
-The range of frequencies for the radiative transfer can be chosen in any routine with variables ${\bf kmin}$ and ${\bf kmax}$.
+Parameter $B$ means the number of separate points of time, over which
+the computation of image/intensity etc. are performed in all modes
+except \textit{m\_surf}.  
 
-The "main" function is contained in \textit{transfer\_quad} file, whose primary goal is to read the
-command line parameters and decide on the mode of operation. That file also defines global variables,
-and a couple of core functions, which are to be discussed below.
+\rg{Do we mean?: Parameter $B$ denotes the number of snapshots for
+  which one wants to compute an image/light curve etc. Be aware that
+  an exceptional meaning to Parameter $B$ applies to the mode
+  \textit{m\_surf}. }
+
+It coincides with the number of simulation snapshots for ${\bf
+  fdiff}=0$. 
+
+In mode \textit{m\_surf} the parameter $B$ switched between surfing
+different pairs of parameters: 
+
+\rg{Not clear at all. Do we mean?: In mode \textit{m\_surf}, different
+  parameters need to be set depending on the value of parameter $B$: }
+
+$B=1 => {\bf tth}~and~{\bf rhonor}$, $B=2 => {\bf rhonor}~and~{\bf
+  heat}$, $B=3 => {\bf heat}~and~{\bf tth}$.  Parameter $C$ means
+different things for different $D$.
+
+The radiative transfer code has seven modes of operation at present
+\rg{Let's briefly list the names here!}. They serve the tasks of
+computing the auxiliary quantities, computing the spectrum for a
+single set of flow parameters, exploring the full parameter space,
+searching for a local minimum of $\chi^2/dof$ in the parameter space,
+thoroughly surfing the region of parameter space, creating a flow
+image, performing convergence studies.  The flow parameters are the
+spin $a_*$, the inclination angle $\theta$, the accretion rate
+$\dot{M}$, the heating constant $C$ or the ratio of temperatures
+$T_i/T_e$ at certain radius.  For each set of parameters we compute
+the spectrum/image at several times correspondent to times of
+simulation snapshots with numbers from ${\bf fmin}$ to ${\bf fmax}$
+with a step ${\bf sep}$. For example, ${\bf fmin}=6950$, ${\bf
+  fmax}=9950$, and ${\bf sep}=150$ were used in
+\citet{Shcherbakov:2012appl} to compute the spectrum at $21$ points of
+time. Parameter ${\bf fdiff}$ determines in which range of times
+$\Delta t$ around the simulation snapshot times $t_0$ the simulation
+is taken to evolve as the rays propagate. For example, ${\bf
+  fdiff}=60$ means that snapshots \textit{fieldlineXXXX.bin} with
+numbers from $XXXX_0-fdiff$ to $XXXX_0+fdiff$ are employed to compute
+the spectrum at a time correspondent to $XXXX_0$. The value ${\bf
+  fdiff}=0$ corresponds to "fast light propagation", i.e. the
+simulation is not evolved as the light propagates along geodesics. In
+such case at each time the spectrum/image is simulated for a single
+simulation snapshot. Large values of ${\bf fdiff}$ may not work
+because of memory limitations. Some time ago all simulated spectra
+used to be computed based on single snapshots/averaged model.  The
+routines for such computations were called \textit{s\_name}. Now the
+routines are called \textit{m\_name} to indicate the computations are
+always performed on multiple snapshots/at multiple points of time.
+The range of frequencies for the radiative transfer can be chosen in
+any routine with variables ${\bf kmin}$ and ${\bf kmax}$.
+
+The "main" function is contained in \textit{transfer\_quad} file,
+whose primary goal is to read the command line parameters and decide
+on the mode of operation. That file also defines global variables, and
+a couple of core functions, which are to be discussed below.
 
 \subsection{\textit{m\_space}}
 This routine allows for a given spin ${\bf sp}\sim a_*$ and inclination angle ${\bf th}=\theta$ to surf the parameter space of heating constant ${\bf heat}=C$.
@@ -255,56 +552,92 @@ Looking at ${\bf rhonor}$ values near the minimum allows to immediately estimate
 Search for the best combination of parameters and the estimate of the confidence interval are done by a separate \mat  scripts.
 
 \subsection{\textit{m\_quick}}
-A simple computation of a spectrum for a single set of parameters ${\bf sp}$, ${\bf th}$, ${\bf rhonor}$, ${\bf heat}$, ${\bf fdiff}$ within the range from
-${\bf fmin}$ to ${\bf fmax}$. The result is written into \textit{quickaSTRING.dat} file.
-The routine is convenient to use for debugging the code.
+A simple computation of a spectrum for a single set of parameters
+${\bf sp}$, ${\bf th}$, ${\bf rhonor}$, ${\bf heat}$, ${\bf fdiff}$
+within the range from ${\bf fmin}$ to ${\bf fmax}$. The result is
+written into \textit{quickaSTRING.dat} file.  The routine is
+convenient to use for debugging the code.
 
 \subsection{\textit{m\_conv}}
-A range of convergence tests/tests on sensitivity to auxiliary flow parameters is conducted by this routine.
-The descriptions and ideas behind such tests can be found in the Table 3 and the Appendix of \citet{Shcherbakov:2012appl}.
-The sample spectrum is computed first similar to \textit{m\_quick} routine. Then one parameter is changed and the spectrum is recomputed.
-Then the change in reduced chi-squared, $\chi^2_H/dof$ defined by formula (A1), is computed the quantify the changes in the spectrum.
-In the present version tests (1) and (2) explores the number of geodesics given by ${\bf snxy}^2$ to compute the spectrum.
-Tests (3) and (4) check how far from the BH the radiative transfer should start on geodesics, which go through the horizon.
-Tests (5) and (6) test the size of the emitting region.
-Tests (7) to (9) explore the changes in the slopes of extensions of quantities to large radius (changes in magnetic field slope
-might not be consistently implemented at present).
-Tests (10) and (11) explore the number of spectra computed over a long period of time to represent the true mean spectrum
-over that period of time.
-Tests (12) to (14) explore for how long one needs to have the simulation evolve simultaneously with the propagation of light rays.
-Tests (15) to (38) explore the sensitivity to small changes in main parameters ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$.
-These latter tests are useful to figure out the test steps in ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$
-to use in minimization routines.
+A range of convergence tests/tests on sensitivity to auxiliary flow
+parameters is conducted by this routine.  The descriptions and ideas
+behind such tests can be found in the Table 3 and the Appendix of
+\citet{Shcherbakov:2012appl}.  The sample spectrum is computed first
+similar to \textit{m\_quick} routine. Then one parameter is changed
+and the spectrum is recomputed.  Then the change in reduced
+chi-squared, $\chi^2_H/dof$ defined by formula (A1), is computed the
+quantify the changes in the spectrum.  In the present version tests
+(1) and (2) explores the number of geodesics given by ${\bf snxy}^2$
+to compute the spectrum.  Tests (3) and (4) check how far from the BH
+the radiative transfer should start on geodesics, which go through the
+horizon.  Tests (5) and (6) test the size of the emitting region.
+Tests (7) to (9) explore the changes in the slopes of extensions of
+quantities to large radius (changes in magnetic field slope might not
+be consistently implemented at present).  Tests (10) and (11) explore
+the number of spectra computed over a long period of time to represent
+the true mean spectrum over that period of time.  Tests (12) to (14)
+explore for how long one needs to have the simulation evolve
+simultaneously with the propagation of light rays.  Tests (15) to (38)
+explore the sensitivity to small changes in main parameters ${\bf
+  heat}$, ${\bf rhonor}$, and ${\bf th}$.  These latter tests are
+useful to figure out the test steps in ${\bf heat}$, ${\bf rhonor}$,
+and ${\bf th}$ to use in minimization routines.
 
 \subsection{\textit{m\_surf}}
-Explores the rectangular grid in any two out of three parameters ${\bf heat}$, ${\bf rhonor}$, and ${\bf th}$.
-Computation is useful to show the contours of $\Delta\chi^2$ and illustrate the confidence intervals.
+Explores the rectangular grid in any two out of three parameters ${\bf
+  heat}$, ${\bf rhonor}$, and ${\bf th}$.  Computation is useful to
+show the contours of $\Delta\chi^2$ and illustrate the confidence
+intervals.
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{\textit{m\_imag}}
-This routine is very similar to \textit{m\_quick}. However, instead of computing the spectrum, we compute
-the image (2D table) of Stokes parameters in the picture plane. A separate \mat  routine is used to draw the actual images.
-The same routine can technically compute the image and the spectrum.
-However, the resolution is higher for an image, which makes the calculation slower.
-Thus, I use \textit{m\_quick} to quickly compute the spectra over many frequencies and \textit{m\_imag} to compute
-the images over a few frequencies.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This routine is very similar to \textit{m\_quick}. However, instead of
+computing the spectrum, we compute the image (2D table) of Stokes
+parameters in the picture plane \rg{in a file named
+  e.g.~\textit{shotimag93.75th235f22fn7033\_201.dat}}. A separate \mat
+routine is used to draw the actual images \rg{Expand: Script name,
+  explain, ...}.  The same routine can technically compute the image
+and the spectrum.  However, the resolution is higher for an image,
+which makes the calculation slower.  Thus, I use \textit{m\_quick} to
+quickly compute the spectra over many frequencies and \textit{m\_imag}
+to compute the images over a few frequencies.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{\textit{m\_sear}}
-This routine searches for a local minimum with the help of a steepest descent method.
-First, I set up some initial conditions, which does not have to be provide a fit.
-Then I explore the initial conditions, where one of the parameters is changed, i.e., ${\bf heat}$ changed to ${\bf heat}(1+{\bf dheat})$
-etc. The steepest descent methods searches for a local minimum until the algorithm converges (as given by
-${\bf ddh}$, ${\bf ddr}$ and ${\bf dth}$ variables), or until $20$ iterations are performed.
-The algorithm is known to be stuck in a limit cycle at low ${\bf heat}$ values, thus the limit on the number of
-iterations is important.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This routine searches for a local minimum with the help of a steepest
+descent method.  First, I set up some initial conditions, which does
+not have to be provide a fit.  Then I explore the initial conditions,
+where one of the parameters is changed, i.e., ${\bf heat}$ changed to
+${\bf heat}(1+{\bf dheat})$ etc. The steepest descent methods searches
+for a local minimum until the algorithm converges (as given by ${\bf
+  ddh}$, ${\bf ddr}$ and ${\bf dth}$ variables), or until $20$
+iterations are performed.  The algorithm is known to be stuck in a
+limit cycle at low ${\bf heat}$ values, thus the limit on the number
+of iterations is important.
 
 \subsection{\textit{m\_ts}}
-This routine reads multiple simulation snapshots and finds the average of density and internal energy density
-around the equatorial plane in $\theta$, over all $\phi$, for each radius $r$.
-The resultant profiles are sorted to be homogeneous, which is needed to define a single-valued $Te(u)$ function.
-The sorted radial profile is written into \textit{TsmapxSTRING.dat} file.
+This routine reads multiple simulation snapshots and finds the average
+of density and internal energy density around the equatorial plane in
+$\theta$, over all $\phi$, for each radius $r$.  The resultant
+profiles are sorted to be homogeneous, which is needed to define a
+single-valued $Te(u)$ function.  The sorted radial profile is written
+into \textit{TsmapxSTRING.dat} file.
 
 \section{Core routines}
-In this section we describe the routines and functions, which define and perform the computations.
-All equations are derived in separate \mat  scripts, which are to be shared as well.
+First let's take a look at a call graph, see Fig.~\ref{fig:callgraph}
+(generated by \textit{Doxygen} \textit{Graphviz} and \textit{dot}.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{figure}
+\includegraphics[width=0.48\textwidth]{callgraph.png}
+\caption{\label{fig:callgraph}High-level call graph for the
+  \textit{ASTRORAY} code illustrating the general code structure. The graph has been generated using \textit{Doxygen, Graphviz} and \textit{dot}}
+\end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In this section we describe the routines and functions, which define
+and perform the computations.  All equations are derived in separate
+\mat scripts, which are to be shared as well.
 \subsection{\textit{init}}
 \subsection{\textit{intensity}}
 Performs the computation of intensity along a pre-computed set of geodesics.
@@ -330,35 +663,75 @@ The evolution equations on proton and electron temperatures. The equations are s
 
 
 \section{Supporting MATHEMATICA 8 scripts}
-A lot of scripts are to be grouped into a single structured file \textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT.
-It consists of variety of scripts, which compute auxiliary quantities, derive some parts of ASTRORAY code to be directly copied into C++, and check GRMHD code.
-{\textbf Please, run "Cell->Delete all output" in \mat before committing the file to GIT.}
-The data processing and QPO computations are stored in separate \mat scripts to be shared later.
+A lot of scripts are to be grouped into a single structured file
+\textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT.  It
+consists of variety of scripts, which compute auxiliary quantities,
+derive some parts of ASTRORAY code to be directly copied into C++, and
+check GRMHD code.  {\textbf Please, run "Cell$\rightarrow$Delete all
+  output" in \mat before committing the file to GIT.}  The data
+processing and QPO computations are stored in separate \mat scripts to
+be shared later.
 \subsection{\textit{check\_GRMHD\_code.nb}}
 \subsubsection{Emis functions}
-The script "Computing emissivities/rotativities" does what its title says. The precise relativistic thermal electron distribution is used in all computations.
-It is easy to explicitly change the distribution to compute emissivities. However, if a new distribution is non-thermal,
-then the absorptivities need to be computed separately, stored as another set of tables and read by the code.
+The script "Computing emissivities/rotativities" does what its title
+says. The precise relativistic thermal electron distribution is used
+in all computations.  It is easy to explicitly change the distribution
+to compute emissivities. However, if a new distribution is
+non-thermal, then the absorptivities need to be computed separately,
+stored as another set of tables and read by the code.
 
-The Faraday rotation and conversion for thermal distribution is computed in my paper \citep{Shcherbakov:2008fa}.
-It is somewhat harder to compute Faraday rotation and conversion for non-thermal particle distribution.
-One needs to follow my other paper \citet{Huang:2011de}. The code from that paper is available online.
+The Faraday rotation and conversion for thermal distribution is
+computed in my paper \citep{Shcherbakov:2008fa}.  It is somewhat
+harder to compute Faraday rotation and conversion for non-thermal
+particle distribution.  One needs to follow my other paper
+\citet{Huang:2011de}. The code from that paper is available online.
 
-A perfect future particle distribution is the relativistic Lorentzian distribution \citep{Shcherbakov:2009po}
+A perfect future particle distribution is the relativistic Lorentzian
+distribution \citep{Shcherbakov:2009po}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{equation}
 f(p)\propto\left(1+\frac{\sqrt{1+p^2}-1}{\kappa T}\right)^{-\kappa+1}.
-\end{equation} In the limit $\kappa->\infty$ the distribution becomes the thermal distribution with temperature $T=k_B T_e/(m_e c^2)$.
-For small $\kappa$ the distribution is the power-law with a flexible amount of low-energy particles, controlled by the parameter $T$.
-Thus, a single distribution can be used everywhere! One does not have to artificially merge the thermal and non-thermal distributions and increase the number of free parameters.
+\end{equation} 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In the limit $\kappa\rightarrow\infty$ the distribution becomes the
+thermal distribution with temperature $T=k_B T_e/(m_e c^2)$.  For
+small $\kappa$ the distribution is the power-law with a flexible
+amount of low-energy particles, controlled by the parameter $T$.
+Thus, a single distribution can be used everywhere! One does not have
+to artificially merge the thermal and non-thermal distributions and
+increase the number of free parameters.
 
 \subsubsection{Evalpointzero functions}
-A particularly useful script is "Checking gdump/fieldline, making dxdxp -> for Jon's jet simulations with QPOs (i.e. thickdisk7)".
-This script reads \textit{gdump.bin} and a single \textit{fieldlineXXXX.bin} files from a specified place on disk.
-The script performs a number of tests to ensure the format of each file is properly decoded and that the encoded data are correctly understood.
-Then the script computes \textit{dxdxp.dat} file, which is required for the ASTRORAY to work.
+A particularly useful script is "Checking gdump/fieldline, making
+dxdxp $\rightarrow$ for Jon's jet simulations with QPOs
+(i.e. thickdisk7)".  This script reads \textit{gdump.bin} and a single
+\textit{fieldlineXXXX.bin} files from a specified place on disk.  The
+script performs a number of tests to ensure the format of each file is
+properly decoded and that the encoded data are correctly understood.
+Then the script computes \textit{dxdxp.dat} file, which is required
+for the ASTRORAY to work.
 
-The script in "Limiting the polar region" checks how bad the polar region looks: I make various ContourPlots.
+The script in "Limiting the polar region" checks how bad the polar
+region looks: I make various ContourPlots.
 
+
+\section{Wishlist / Additional things}
+If debugging turn off optimizations. Turning it off allows you to
+trace failures down. In fact, some errors (say a Segmentation fault)
+may only occur with optimization turned on. Without you may get
+additional info.
+
+\rg{Explain:}
+\begin{verbatim}
+xaccur=3e-3,  //1. absolute accuracy of geodesics computation
+xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration     
+\end{verbatim}
+
+\rg{\textit{Bpo} ``often'' means the magnetic field. The meaning of
+variables should not change if at all possible. Makes code really
+cumbersome to read.}
+
+\newpage %% This was needed at some point to avoid the text from being cut and bib to be colored like \rg{}
 
 \bibliographystyle{apj}
 \bibliography{BBL/refs_rev1}

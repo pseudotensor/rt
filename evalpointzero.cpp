@@ -478,6 +478,9 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 if(1-fabs(costh)<thlimit)            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	Ttot=minT;
 double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+//RG:
+if (magn!=magn) cout << "ERROR:[evalpointzero.cpp] B-FIELD IS NAN\n"; exit(1);
+
 if(isBcut)                           //set temperature to zero in high magnetization region
 	if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) // boundary is in accordance with McKinney et al. (2012)
 		Ttot=minT;
@@ -508,7 +511,7 @@ if((Ta<=Tz) && (Tz<=Tb)){
 		};
 	};
 } else {
-	printf("Temperature lookup error \n Exiting");
+  printf("Temperature lookup error \nTa=%e,Tb=%e,Tz=%e,Ttot=%e,maxT=%e,magn=%e\n...Exiting...",Ta,Tb,Tz,Ttot,maxT,magn);
 	exit(-1);
 };
 Ta=ts[ia];
@@ -579,6 +582,33 @@ rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log
 aIc=jIc/Bnu;
 aQc=jQc/Bnu;
 aVc=jVc/Bnu;
+
+ // else if (absorption=="powerlaw_approximate"){ // Sazonov (1969) expressions, see eq(52) Huang & Shcherbakov 2011
+ //   // general absorption coefficients eqs(7) Sazonov (1969):
+ //   // eta_I = Im(alpha^{22}+alpha^{11})/nu
+ //   // eta_Q = Im(alpha^{11}-alpha^{22})/nu
+ //   // eta_V = 2Re(alpha^{12})/nu
+ //   cout << "absorption=powerlaw_approximate unavailable for now :-(...better die...";
+ //   double b=2.5; //powerlaw index in distribution function f~n^-(b+1) -> N~n^(-b)
+ //   double gamma_min=1.;
+ //   double omega=2.*PI*nu;
+ //   double Omega_0=ee Bn/me/cc; // cyclotron frequency = eB/m_e c
+
+ //   /* WIP: CHECK EQS */
+ //   //aIc=?;
+ //   // WHERE IS THE EQUATION FOR alpha_I in Huang & Shcherbakov (2011) or Sazonov (1969) ?
+ //   // Take approximate expression for alpha_N =? alpha_I from Avery's PhD thesis see eqn (5.47)
+ //   aIc=sqrt(3.)/24./cc* /*WIP-> f*omega_P**2 */ *omega /*<-WIP*/ *pow(3.*Omega_0/omega*sinkb,(b+2)/2.); // see eqn (5.47) Broderick PhD thesis (2004) assume plasma frequency ~ nu
+ //   aQc=3.1e-4*(b+2)*tgamma((3.*b+2)/12.)*tgamma((3.*b+10)/12.)*(b-1.)/pow(gamma_min,1.-b)*pow(3.*Omega_0/omega*sinkb,(b+2)/2.)/nu; // Gamma fct: tgamma() needs cmath
+ //   aVc=4.1e-4*(b+3)/(b+1)*tgamma((3.*b+7)/12.)*tgamma((3.*b+11)/12.)*(b-1.)/pow(gamma_min,1.-b)*coskb/sinkb*pow(3.*Omega_0/omega*sinkb,(b+3)/2.)/nu; // Gamma fct: tgamma() needs cmath;
+
+ //   exit(1) 
+ // }
+ // else{
+ //   cout << "YOU SHOULD MAKE A CHOICE FOR ABSORPTION IN evalpointzero.cpp . Choices are absorption=\"thermal\" or absorption=\"powerlaw_approximate\"";
+ //   exit(1)
+ // }
+
 
 Be1=B[1]*e1xx[1]+B[2]*e1xx[2]+B[3]*e1xx[3];                        //scalar product of B.e1
 Be2=B[1]*e2xx[1]+B[2]*e2xx[2]+B[3]*e2xx[3];                        //scalar product of B.e2
