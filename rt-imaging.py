@@ -44,6 +44,7 @@ from pylab import *
 from scipy import *
 from scipy.constants import *
 from scipy import fftpack
+import matplotlib.ticker as ticker
 
 angle_unit="arcsec" # "rad"
 zeropadding_factor=4 
@@ -57,8 +58,9 @@ rg = G*M/c**2
 d_SagA = 8.3e3*pc
 
 rad2microarcsec = 360/(2*pi)*3600*1e6
-image_size = 8.15 * (2*rg)/d_SagA * rad2microarcsec
-image_size_rad = 8.15 * (2*rg)/d_SagA
+image_size_astroray = 12.2 # @230Ghz
+image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
+image_size_rad = image_size_astroray * (2*rg)/d_SagA
 
 shadow_schwarzschild = sqrt(27)*2*rg # diameter
 shadow_maximally_spinning = 9./2.*2*rg # diameter
@@ -76,6 +78,13 @@ try:
     colormap = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu]
 except:
     colormap = [cm.hot,cm.hot,cm.hot,cm.hot]
+
+def fmt(x, pos):
+    '''Customized formatter. Credit goes to the answer in:
+    http://stackoverflow.com/questions/25983218/scientific-notation-colorbar-in-matplotlib'''
+    a, b = '{:.0e}'.format(x).split('e')
+    b = int(b)
+    return r'${}\times 10^{{{}}}$'.format(a, b)
 
 ## READ-IN ##
 fp = open(filename,"rb")
@@ -97,9 +106,11 @@ figure(5) # visibility #
 I_FFT = fftpack.fft2(data[:,:,0],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor])
 I_FFT = fftpack.fftshift(I_FFT) # low frequencies in center of image
 
-# FIXME: dim-less image length 1 or 2 ?
-# {230.86, 12.2} half-size of the square in a picture plane for each frequency
-# 12.2 what units \muarcsec?
+# find the mag and phase -- shift to put 0 wavenumber at the center
+F_mag = abs(I_FFT)
+F_phase = angle(I_FFT)
+# EVPA_FFT_PHASE = angle(mbreve) + 90./pi ## Michael: EVPA
+
 pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
 if angle_unit=="rad":
     pixeldim = image_size_rad/nxy
@@ -123,8 +134,7 @@ uv_maximally_spinning = 150.*1.4/(shadow_maximally_spinning/2 /d_SagA * rad2micr
 
 FFT_FREQ = fftfreq(shape(I_FFT)[0],d=uvspacing)*freq_unit
 
-I_PSD = np.abs(I_FFT)**2
-pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(I_FFT))
+pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(I_FFT)) # ,cmap=cm.hot)
 #imshow(log10(I_PSD))
 colorbar()
 clim(0,None)
@@ -134,9 +144,10 @@ gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,f
 gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
 
 figure(6) ## Polarization fraction PF = \sqrt{Q^2+U^2}/I ##
-pcolormesh(X,Y,sqrt(data[:,:,1]**2+data[:,:,2]**2)/data[:,:,0])
+PF = sqrt(data[:,:,1]**2+data[:,:,2]**2)/data[:,:,0]
+pcolormesh(X,Y,PF)
 # imshow(sqrt(data[:,:,1]**2+data[:,:,2]**2)/data[:,:,0])
-axis((-40,40,-40,40))
+axis((-50,50,-50,50))
 
 gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/2./d_SagA * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
 gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
@@ -147,19 +158,70 @@ colorbar()
 title(r"$\sqrt{Q^2+U^2}/I$")
 savefig(filename_out.replace(".png","_PF.png"))
 
-## PLOT ##
+figure(2)
+#zeropadding_factor=1
+#PF_uv = fftpack.fft2(PF,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor])
+PF_uv = fftpack.fft2(PF)
+PF_uv = fftpack.fftshift(PF_uv) # low frequencies in center of image
+pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(PF_uv)) # looks weird, but inverse transform looks good
+colorbar()
+axis((-7,7,-7,7))
+clim(0,10) # WIP: huge outlier somewhere
+gca().set(title=r"$\tilde{m}$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+
+
+#gca().set(title=r"$(\breve{m})$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+
+
+################
+## IQUV-PLOTS ##
+
+fig_image_plane = figure(0)
+fig_image_plane.subplots_adjust(wspace = 0.35)
 for plot in range(len(titles)):
-    figure(plot)
+
+    ## image plane ##
+    fig_image_plane.add_subplot(221+plot)
+    #subplot(221+plot)
     pcolormesh(X,Y,data[:,:,plot],cmap=colormap[plot])
-    colorbar()
-    clim(limits[plot])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+    #clim(limits[plot])
     gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/2./d_SagA * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
     gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
-    gca().set(xlabel=r"$\mu arcsec$",ylabel=r"$\mu arcsec$")
-    axis((-40,40,-40,40))
+    if plot in [2,3]:
+        gca().set(xlabel=r"$\mu arcsec$")
+    if plot in [0,2]:
+        gca().set(ylabel=r"$\mu arcsec$")
+    gca().axis((-50,50,-50,50))
     title(titles[plot])
-    manager.window.wm_geometry(fig_pos[plot]) # [WIP: need to understand the arg syntax]
-    savefig(filename_out.replace(".png","_"+titles[plot]+".png"))
+
+savefig(filename_out.replace(".png","_IQUV_image_plane.png"))
+
+fig_uv_plane = figure(1)
+fig_uv_plane.subplots_adjust(wspace = 0.35)
+
+for plot in range(len(titles)):
+    ## uv plane ##
+    fig_uv_plane.add_subplot(221+plot)
+    pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormap[plot])
+    #colorbar()
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+    #clim(limits[plot])
+
+    gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
+    gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+
+    if plot in [2,3]:
+        gca().set(xlabel=r"u $(G\lambda)$")
+    if plot in [0,2]:
+        gca().set(ylabel=r"v $(G\lambda)$")
+    axis((-7,7,-7,7))
+    title(titles[plot])
+
+savefig(filename_out.replace(".png","_IQUV_uv_plane.png"))
+
+#manager.window.wm_geometry(fig_pos[plot]) # [WIP: need to understand the arg syntax]
+savefig(filename_out.replace(".png","_"+titles[plot]+".png"))
 
 ######## DONE ###
 print "="*8
