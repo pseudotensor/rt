@@ -72,7 +72,9 @@ filename = sys.argv[1] # should point to shotimage*.dat file
 #filename_out = string.join(filename.split(".")[:-1])+".png" # FIXME: removes dot in filename
 filename_out = filename.replace(".dat",".png")
 
-limits = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)]
+limits_colors = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)]
+limits_xy = [-50,50,-50,50]
+limits_uv = [-10,10,-10,10]
 
 try:
     colormap = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu]
@@ -84,7 +86,8 @@ def fmt(x, pos):
     http://stackoverflow.com/questions/25983218/scientific-notation-colorbar-in-matplotlib'''
     a, b = '{:.0e}'.format(x).split('e')
     b = int(b)
-    return r'${}\times 10^{{{}}}$'.format(a, b)
+    return r'${}\times 10^{{{}}}$'.format(a,b) # how to save the white space between a and \times ?
+    #return r'${}\times 10^{{{}}}$'.format(a,b)
 
 ## READ-IN ##
 fp = open(filename,"rb")
@@ -100,7 +103,7 @@ titles = ["I","Q","U","V"]
 #titles = ["I"]
 
 ########################
-figure(5) # visibility #
+#figure(5) # visibility #
 ########################
 
 I_FFT = fftpack.fft2(data[:,:,0],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor])
@@ -132,25 +135,34 @@ uvspacing = image_size_rad/nxy
 uv_schwarzschild = 150.*1.4/(shadow_schwarzschild/2 /d_SagA * rad2microarcsec)
 uv_maximally_spinning = 150.*1.4/(shadow_maximally_spinning/2 /d_SagA * rad2microarcsec)
 
+def plot_horizons(domain):
+    if string.lower(domain)=="xy":
+        gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/2./d_SagA * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
+        gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+    elif string.lower(domain)=="uv":
+        gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
+        gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+    # return ""
+
+
 FFT_FREQ = fftfreq(shape(I_FFT)[0],d=uvspacing)*freq_unit
 
-pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(I_FFT)) # ,cmap=cm.hot)
+#pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(I_FFT)) # ,cmap=cm.hot)
 #imshow(log10(I_PSD))
-colorbar()
-clim(0,None)
-axis((-7,7,-7,7))
-gca().set(xlabel="$G\lambda$",ylabel="$G\lambda$")
-gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
-gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+#colorbar()
+#clim(0,None)
+# axis(limits_uv)
+# plot_horizons("uv")
+# gca().set(xlabel="$G\lambda$",ylabel="$G\lambda$",title="I")
+# savefig(filename_out.replace(".png","_PF_uv.png"))
+
 
 figure(6) ## Polarization fraction PF = \sqrt{Q^2+U^2}/I ##
 PF = sqrt(data[:,:,1]**2+data[:,:,2]**2)/data[:,:,0]
 pcolormesh(X,Y,PF)
 # imshow(sqrt(data[:,:,1]**2+data[:,:,2]**2)/data[:,:,0])
-axis((-50,50,-50,50))
-
-gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/2./d_SagA * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
-gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+plot_horizons("xy")
+axis(limits_xy)
 
 xlabel(r"$\mu arcsec$");ylabel(r"$\mu arcsec$")
 #xlabel(r"$rad$");ylabel(r"$rad$")
@@ -160,18 +172,50 @@ savefig(filename_out.replace(".png","_PF.png"))
 
 figure(2)
 #zeropadding_factor=1
-#PF_uv = fftpack.fft2(PF,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor])
-PF_uv = fftpack.fft2(PF)
+PF_uv = fftpack.fft2(PF,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor])
 PF_uv = fftpack.fftshift(PF_uv) # low frequencies in center of image
 pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(PF_uv)) # looks weird, but inverse transform looks good
+plot_horizons("uv")
 colorbar()
-axis((-7,7,-7,7))
+axis(limits_uv)
 clim(0,10) # WIP: huge outlier somewhere
-gca().set(title=r"$\tilde{m}$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+gca().set(title=r"$\tilde{m}\equiv FFT(\sqrt{Q^2+U^2}/I)$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+savefig(filename_out.replace(".png","_PF_uv.png"))
+
+I_xy = data[:,:,0]
+Q_xy = data[:,:,1]
+U_xy = data[:,:,2]
+V_xy = data[:,:,3]
+
+I_uv = fftpack.fftshift(fftpack.fft2(I_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
+Q_uv = fftpack.fftshift(fftpack.fft2(Q_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
+U_uv = fftpack.fftshift(fftpack.fft2(U_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
+V_uv = fftpack.fftshift(fftpack.fft2(V_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
+
+figure(3)
+pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),sqrt(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv)) #,cmap=colormap[plot])
+colorbar()
+plot_horizons("uv")
+gca().set(title=r"$\breve{m}\equiv \sqrt{\|FFT(Q)\|^2+\|FFT(U)\|^2}/\|I\|$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+axis(limits_uv)
+savefig(filename_out.replace(".png","_sqrtQ2U2overI_uv.png"))
 
 
-#gca().set(title=r"$(\breve{m})$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+figure(4)
+pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),sqrt(abs(Q_uv)**2+abs(U_uv)**2)) #,cmap=colormap[plot])
+colorbar()
+plot_horizons("uv")
+gca().set(title=r"$\breve{\mathrm{P}}\equiv \sqrt{\|FFT(Q)\|^2+\|FFT(U)\|^2}$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+axis(limits_uv)
+savefig(filename_out.replace(".png","_sqrtQ2U2_uv.png"))
 
+figure(7)
+pcolormesh(X,Y,sqrt(abs(Q_xy)**2+abs(U_xy)**2)) #,cmap=colormap[plot])
+colorbar(format=ticker.FuncFormatter(fmt))
+plot_horizons("xy")
+gca().set(title=r"$\mathrm{P}\equiv \sqrt{\|Q\|^2+\|U\|^2}$",xlabel="x $(arcsec)$",ylabel="y $(arcsec)$")
+axis(limits_xy)
+savefig(filename_out.replace(".png","_sqrtQ2U2_xy.png"))
 
 ################
 ## IQUV-PLOTS ##
@@ -185,14 +229,13 @@ for plot in range(len(titles)):
     #subplot(221+plot)
     pcolormesh(X,Y,data[:,:,plot],cmap=colormap[plot])
     colorbar(format=ticker.FuncFormatter(fmt),pad=0)
-    #clim(limits[plot])
-    gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/2./d_SagA * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
-    gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+    #clim(limits_colors[plot])
+    plot_horizons("xy")
     if plot in [2,3]:
         gca().set(xlabel=r"$\mu arcsec$")
     if plot in [0,2]:
         gca().set(ylabel=r"$\mu arcsec$")
-    gca().axis((-50,50,-50,50))
+    gca().axis(limits_xy)
     title(titles[plot])
 
 savefig(filename_out.replace(".png","_IQUV_image_plane.png"))
@@ -206,22 +249,21 @@ for plot in range(len(titles)):
     pcolormesh(unique(FFT_FREQ),unique(FFT_FREQ),abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormap[plot])
     #colorbar()
     colorbar(format=ticker.FuncFormatter(fmt),pad=0)
-    #clim(limits[plot])
+    #clim(limits_colors[plot])
 
-    gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
-    gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
+    plot_horizons("uv")
 
     if plot in [2,3]:
         gca().set(xlabel=r"u $(G\lambda)$")
     if plot in [0,2]:
         gca().set(ylabel=r"v $(G\lambda)$")
-    axis((-7,7,-7,7))
+    axis(limits_uv)
     title(titles[plot])
 
 savefig(filename_out.replace(".png","_IQUV_uv_plane.png"))
 
 #manager.window.wm_geometry(fig_pos[plot]) # [WIP: need to understand the arg syntax]
-savefig(filename_out.replace(".png","_"+titles[plot]+".png"))
+#savefig(filename_out.replace(".png","_"+titles[plot]+".png"))
 
 ######## DONE ###
 print "="*8
