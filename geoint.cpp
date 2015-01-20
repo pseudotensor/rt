@@ -5,14 +5,14 @@ doub tpast,                //time at a previous step
 	 der[12],              //auxiliary array of derivates, invoked by ODE solver
 	 txx,                  //auxiliary affine parameter for sinh conversion (see below)
 	 lam[maxco],           //affine parameter along geodesic
-	 coox[12][maxco];      //coordinates, tangential vector, and perpendicular parallel-tranpsported vector in each point along geodesic
+	 coox[12][maxco];      //coordinates, tangential vector, and perpendicular parallel-transported vector in each point along geodesic
 gsl_odeiv_step *s;         //auxiliary ODE variables from GSL (GNU Scientific Library)
 gsl_odeiv_control *c; 
 gsl_odeiv_evolve *e;
 
 int currth = omp_get_thread_num(); //OpenMP thread ID => geodesic number
 const gsl_odeiv_step_type * T;     //ODE solver type
-T = gsl_odeiv_step_rk2;            //use Runge-Kutte 2-nd order
+T = gsl_odeiv_step_rk2;            //use Runge-Kutta 2-nd order
 s = gsl_odeiv_step_alloc (T, 12);  //initialize with 12 variables
 c = gsl_odeiv_control_standard_new(0.0, accur, 1.0, 0.0);//relative accuracy "accur"
 e = gsl_odeiv_evolve_alloc (12);

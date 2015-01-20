@@ -31,10 +31,6 @@ doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild
 
 a=atab[sp]; asq=a*a;                 //define spin value for chosen fluid simulation
 ncut=ncuttab[sp];                    //define radial index at the point, where the fluid simulation is barely converged
-
-// RG:
- cout << "Fluid dump file dir: "+adir+astr[sp]+fieldstr+"\n";
-
 string fdir=adir+astr[sp]+fieldstr;  //location of fluid simulation dumps
 cout << "location of fluid simulation dumps"+fdir+"\n";
 
@@ -46,9 +42,7 @@ maxtim=1+0.00005*dtimdf*fdiff;
 if(!inited){
     //single record of fluid simulation dump files consists of: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi 
 	
-  // RG:
   cout << "dir="+dir+"\n,astr[sp]="+astr[sp]+"\n,xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
-
 	//reading mean density & temperature radial profiles
     //RG:
     cout << "location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";

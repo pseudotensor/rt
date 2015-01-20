@@ -70,21 +70,19 @@ using namespace std;
 const doub PI = 4.0*atan(1.0);
 
 const int  ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
-	       sflen=14,          //number of frequencies of interest for flux calculations
-	       flen=4,            //number of frequencies of interest for images
+           sflen=14,          //number of frequencies of interest for flux calculations
+           flen=4,            //number of frequencies of interest for images
 	       thn=50,            //number of polar angle values to search for 
 	       dd=3,              //record size of average temperature & density file
 	       wdd=11,            //record size of fluid simulations dump file
-	       maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
-	       maxco=3000,        //maximum number of points on a geodesic
+  maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
+  maxco=3000,        //maximum number of points on a geodesic
 	       maxst=12000,       //maximum number of points for radial temperature profile
-//RG:default
 	       nWlen=120,         //number of frequencies for which propagation coefficients are computed
-//RG:powerlaw
 //	       nWlen=60,         //number of frequencies for which propagation coefficients are computed
 	       Tlen=100,          //number of temperatures for which propagation coefficients are computed
-           nxy=99,//201,           //actual image resolution in picture plane for imaging (points along a side)
-           snxy=99; //301;          //maximum resolution in picture plane for flux calculations
+  nxy=299 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=299 /*301*/;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A*
 	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
@@ -105,18 +103,24 @@ const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//mi
 		   lnWmin=log(nWmin), lnWmax=log(nWmax), lTminr=log(Tminr), lTmin=log(Tmin), lTmax=log(Tmax);//logarithms
 
 //half-size of the square in a picture plane for each frequency - for flux and image calculations
+// RG: frequencies are: 8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857., 1500., 3000., 5000. GHz?
+// RG: {{frequency1, half-screen-size@frequency1?}, {frequency2, half-screen-size@frequency2?}, ...}
 const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 
 //half-size of the square in a picture plane for each frequency - for image calculations
 //const doub freqtab[flen][2]={{43., 45.}, {87., 30.}, {230.86, 12.2}, {690., 7.}};
 
 //polarized spectrum of Sgr A*, each array element is (frequency, Fnu, LP, EVPA, CP)
+// Fnu:  flux at frequency nu
+// LP:   linear polarization fraction at frequency nu
+// EVPA: Electric vector position angle
+// CP:   circular polarization fraction at frequency nu 
 const doub tofit[sflen][5]={{8.450, 0.683, 0., 0., -0.2500}, {14.90, 0.871, 0., 0., -0.6200}, {22.50, 0.979, 0.1900, 131.0, 0.}, {43.00, 1.135, 0.5500, 94.25, 0.}, {87.73, 1.841, 1.420, -4., 0.}, 
-                 {102.0, 1.908, 0., 0., 0.}, {145.0, 2.275, 0., 0., 0.}, {230.9, 2.637, 7.398, 111.5, -1.200}, {349.0, 3.181, 6.499, 146.9, -1.500}, {674.0, 3.286, 0., 0., 0.}, {857.0, 2.867, 0., 0., 0.}, 
-                 {1500., 1., 0., 0., 0.}, {3000., 1., 0., 0., 0.}, {5000., 1., 0., 0., 0.}};
+                  {102.0, 1.908, 0., 0., 0.}, {145.0, 2.275, 0., 0., 0.}, {230.9, 2.637, 7.398, 111.5, -1.200}, {349.0, 3.181, 6.499, 146.9, -1.500}, {674.0, 3.286, 0., 0., 0.}, {857.0, 2.867, 0., 0., 0.}, 
+                  {1500., 1., 0., 0., 0.}, {3000., 1., 0., 0., 0.}, {5000., 1., 0., 0., 0.}};
 
 //measurement errors of mean fluxes, CP fractions, LP fractions, and EVPAs
-const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0., 0., 0.}, //no measurements at highest frequencies
+ const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0., 0., 0.}, //no measurements at highest frequencies
            dCP=0.30, //at 230GHz and 345GHz
 		   dLP[3]={0.50, 0.658, 0.605}, //at 87GHz, 230GHz, and 345GHz
 		   dEVPA[3]={11.,5.4,2.21};     //at 87GHz, 230GHz, and 345GHz
@@ -126,6 +130,11 @@ bool iswrite=true,                                      //whether to write outpu
 	 echeck1=false, echeck2=false, echeck3=false,       //markers for testing (see init.cpp)
 	 isBcut=false,                                      //whether to set temperature to zero in certain region close to the BH near polar axis (see evalpointzero.cpp)
 	 isBred=false;                                      //whether to reduce temperature in regions of high magnetization (see evalpointzero.cpp)
+doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
+doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
+doub trace_theta_slice_angle; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
+doub trace_r_slice_width=1.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
+doub trace_r_slice; // used to trace geodesics arising from a thin slice in the r direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 string fif="";                                          //any modifier for output file name
 clock_t start;                                          //timing variable
 int fnum,              //fluid simulation dump file number
@@ -146,7 +155,7 @@ doub Bpo,              //third command line argument, often magnetic field stren
 	 fact=1.,          //relative size of integration region, good for tests
 	 ans,              //execution time. Too boring to define locally in each place
 	 a, asq,           //BH spin and its square
-	 th,               //BH spin inclination angle
+	 th,               //BH spin inclination angle // RG: Do we mean latitude/inclination angle w.r.t. BH spin?!
 	 heat,             //electron temperature parameter, determines normalization
 	 rhonor,           //density normalization
 	 accur,            //relative accuracy of geodesic integration
@@ -158,7 +167,7 @@ doub Bpo,              //third command line argument, often magnetic field stren
 	 dphi=0.,          //phi offset to test different phi viewing angles
      TpTe, Te6,        //proton to electron temperature ratio and electron temperature at 6M
 	 ts[maxst], te[maxst], tp[maxst], //for computing radial proton and electron temperature profiles
-	 rcut,             //radial up to which fluid simulation converged
+	 rcut,             //radius up to which fluid simulation converged // RG: converged->relaxed to steady state?
 	 rhopo, rhocon,    //density extension power-law slope and density at rcut
 	 Upo, Ucon,        //temperature extension power-law slope and temperature at rcut
 	 Bnor,             //magnetic field conversion factor from code units to Gauss
@@ -176,7 +185,8 @@ float uext[phlen][thlen][5],       //quantities on the spherical fluid simulatio
 	  dxdxp[ndd][thlen][4][4],     //coordinate transformation smatrix
 	  coord[ndd][thlen][2];        //coordinate matrix
 typedef float (*uuarr)[phlen][thlen][rlen][wdd]; //type for fluid simulations dump files
-              uuarr uu[200];                     //130 dumps fit in 64GB memory for Jon's simulations from 2012
+
+      uuarr uu[200];                     //130 dumps fit in 64GB memory for Jon's simulations from 2012
 
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;//geodesic object
      poinx ppy[nthreads]; //define 1 geodesic object per OpenMP thread
@@ -237,10 +247,6 @@ int main(int argc, char* argv[]) {
 	mco=floor(Bpo+0.001);//second and third command line arguments are used differently by subroutines
 	sear=atoi(argv[4]);  //fourth command line argument - type of computation
 //sear=0;//setting a particular type of computation for testing
-
-    //RG: 
-    cout << "CHOOSE MODE: sear=" << argv[4] << "\n";
-
     switch (sear){
 	    case 0: //surf the entire parameter space searching for the best fit to polarized spectrum
 	        #include "m_space.cpp"

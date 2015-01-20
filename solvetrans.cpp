@@ -21,8 +21,6 @@ llog=ppy[currth].llmax;                    //maximum log-parameter
 hh=sstep;                                  //initial step (step is always negative)
 
 while (llog > ppy[currth].llmin-1.3*sstep) {//main radiative transfer loop
-  //RG:
-  printf("[solvetrans] stNx=%d,sstep=%e\n",stNx,sstep);
 	stNx++;                                 //increase count of points on each geodesic
 	ittot++;                                //increase global count of points
     if(hh<sstep)                            //limit step size

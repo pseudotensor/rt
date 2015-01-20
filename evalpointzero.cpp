@@ -57,10 +57,10 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
      fr,               //full redshift/Doppler shift
 	 nufr,             //frequency in LFCRF taking redshift into account
 	 nW,               //effectively a ratio of observed to cyclotron frequency with some convenient factor
-	 jIc,aIc,          //thermal emissivity and absoprtivity in total intensity
-	 jQc,aQc,          //thermal emissivity and absoprtivity in linearly polarized intensity (\sqrt(U^2+Q^2))
-     jVc,aVc,          //thermal emissivity and absoprtivity in circularly polarized intensity
-	 xjIc,xaIc,        //approximation to thermal emissivity and absoprtivity in total intensity
+	 jIc,aIc,          //thermal emissivity and absorptivity in total intensity
+	 jQc,aQc,          //thermal emissivity and absorptivity in linearly polarized intensity (\sqrt(U^2+Q^2))
+     jVc,aVc,          //thermal emissivity and absorptivity in circularly polarized intensity
+	 xjIc,xaIc,        //approximation to thermal emissivity and absorptivity in total intensity
 	 rVc,rQc,          //Faraday rotation and conversion coefficients
 	 xIc,xQc,xVc,      //dimensionless emissivities computed from the look-up tables
 	 XX,               //convenient quantity over which the lookup is conducted for rotativities
@@ -475,17 +475,53 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 }
 ///////////////////////
 //block of modifications of fluid simulation quantities
+double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+
+int limit_temperature=0;
+if (limit_temperature) {
 if(1-fabs(costh)<thlimit)            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	Ttot=minT;
-double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
-//RG:
-if (magn!=magn) cout << "ERROR:[evalpointzero.cpp] B-FIELD IS NAN\n"; exit(1);
-
 if(isBcut)                           //set temperature to zero in high magnetization region
 	if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) // boundary is in accordance with McKinney et al. (2012)
 		Ttot=minT;
 if(isBred)                           //temperature reduction in high magnetization regions
 	Ttot*=exp(-magn/10.);
+ }
+
+int zero_out_rho=1;
+if (zero_out_rho) {
+  if(1-fabs(costh)<thlimit){            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
+	rho=0.;
+    //cout << "Zero out rho due to thlimit...\n";
+  }
+//double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+if(isBcut)                           //set temperature to zero in high magnetization region
+  if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) {// boundary is in accordance with McKinney et al. (2012)
+		rho=0.;
+        //cout << "Zero out rho due isBcut...\n";}
+  }
+ if(isBred){                           //temperature reduction in high magnetization regions
+   //rho*=exp(-magn/10.);
+   printf("[evalpointzero.cpp]: magn=%e,magn_cap=%e\n",magn,magn_cap);
+	rho*=exp(-magn/magn_cap);
+    //cout << "Zero out rho due isBred...\n";
+ }
+ }
+
+int theta_slices=0;
+if (theta_slices) {
+  if ( costh<=cos(trace_theta_slice_angle-trace_theta_slice_width/2.) or costh>=cos(trace_theta_slice_angle+trace_theta_slice_width/2.) ) {
+      rho=0.;
+    }
+ }
+
+int r_slices=1;
+if (r_slices) {
+  if ( rr<=trace_r_slice-trace_r_slice_width/0.5 or rr>=trace_r_slice+trace_r_slice_width/0.5 ) {
+      rho=0.;
+    }
+ }
+
 ///////////////////////
 
 
@@ -511,7 +547,7 @@ if((Ta<=Tz) && (Tz<=Tb)){
 		};
 	};
 } else {
-  printf("Temperature lookup error \nTa=%e,Tb=%e,Tz=%e,Ttot=%e,maxT=%e,magn=%e\n...Exiting...",Ta,Tb,Tz,Ttot,maxT,magn);
+	printf("Temperature lookup error \n Exiting");
 	exit(-1);
 };
 Ta=ts[ia];
@@ -579,6 +615,9 @@ rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/
 rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log(1.+0.035*XX));
 
 //physical absorptivities
+// char absorption=="thermal"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
+// if (absorption=="thermal"){
+
 aIc=jIc/Bnu;
 aQc=jQc/Bnu;
 aVc=jVc/Bnu;

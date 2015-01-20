@@ -72,18 +72,18 @@ ind=(fmax-fmin)/sep+1;                           //number of fluid simulation sn
 
 
 //RG: 
-cout << "CYCLE OVER SNAPSHOTS\n";
+//cout << "CYCLE OVER SNAPSHOTS\n";
 
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation snapshots - computing average spectrum
 
     //RG: 
-    cout << "CALLING init()...\n";
+    //cout << "CALLING init()...\n";
 
 	init(sp,fmin,fmax,sep);
 
     //RG: 
-    cout << "include intensity.cpp\n";
+    //cout << "include intensity.cpp\n";
 
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "intensity.cpp"

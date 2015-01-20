@@ -4,8 +4,7 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-  //xsnxy=101,  //5. number of points N along one side in the picture plane for N x N intensity grid
-	 xsnxy=99,  //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xsnxy=9,  //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=1e-2,   //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
 	 xIint=1e-10,  //8. initial intensity along each ray for radiative transfer
@@ -21,6 +20,12 @@ string qadd="";    //output filename modifier, helps to distinguish cases
 
 accur=xaccur;      //assigning values to global variables, which control radiative transfer
 accurr=xaccurr;
+fact=xfact;
+ss=xss;
+
+kmin=2;kmax=10;    //define a set of frequencies from "sftab" table
+kstep=2;           //step in an array of frequencies
+
 cas=atoi(descr);   //batch job ID = selection of model spin, snapshot IDs, density, heating constant, viewing angle + auxiliary parameters
 start=clock(); 
 iswrite=true;      //write results to disk
@@ -39,7 +44,18 @@ switch (cas){      //selection of a model (only few examples are shown)
 	case 37: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=2.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 2*PI/3
 	case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
     //RG:
- case 112: fmin=6200;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+      //case 112: fmin=6100;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.0;fdiff=0;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+      //case 112: fmin=6100;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.0;fdiff=0;isBcut=false;isBred=true;break;//changing azimuthal camera angle - 4*PI/3
+      //case 112: fmin=6100;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.0;fdiff=0;isBcut=true;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+      //case 112: fmin=6100;fmax=6230;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992;th=1.745/*2.4840*/;dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+   case 112: fmin=6100;fmax=6200;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992; th=0.5; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+
+      // RG: USE THESE FILES FOR VARYING PARAMETERS (MOVIES, ETC) AND KEEP [m_imag.cpp] TIDY
+      //#include "vary_theta_slices.cpp"
+      //#include "vary_r_slices.cpp"
+      //#include "vary_magn.cpp"
+      //#include "vary_thlimit.cpp"
+
 };
 printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 
@@ -48,23 +64,17 @@ printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 ind=fmax-fmin;                 //set a number of fluid simulation snapshots (an image is computed for each)
 sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 
+//RG: catch fmin=fmax
+if (sep==0) sep=1;
+
 for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenMP
-
-    //RG:
-    printf("fnum=%d\n",fnum);
-    cout << "Calling init()...\n";
-
-	init(sp,fmin,fmax,sep);
-
-    //RG:
-    cout << "DONE with init()";
-
+  
+  //RG:
+  printf("[m_imag.cpp]: fnum=%d,sep=%d\n",fnum,sep);
+  
+  init(sp,fmin,fmax,sep); //RG: sep not used in init()... remove!
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "imaging.cpp"	
-
-    //RG:
-    cout << "DONE with imaging.cpp";
-    
 }
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 }

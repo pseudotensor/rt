@@ -33,8 +33,6 @@ xfline>>off>>off>>off>>off>>off>>off;
 xfline>>off>>off>>off;
 xfline.close();
 
- cout << "RG:YO1\n";
-
 if((rlen!=nx1)||(thlen!=nx2)||(phlen!=nx3)){                          //check that the grid dimensions specified in "win_lin..." agrees with that found in simulation snapshots
 	printf("Errors in dimensions \n Exiting ");
 	exit(-1);

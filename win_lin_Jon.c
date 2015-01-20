@@ -5,7 +5,7 @@
 //POWERLAW
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
 //THERMAL
-const string dir="/home/rgold/rt-laptop/thermal/", adir="/home/rgold/rt-laptop/thermal/", fieldstr="/dumps/", xstr="/";
+const string dir="/home/rgold/rt/thermal/", adir="/home/rgold/rt/thermal/", fieldstr="/dumps/", xstr="/";
 const int nthreads=24;// 8;//Orange
 const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX
 const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,
