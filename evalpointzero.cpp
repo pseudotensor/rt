@@ -502,7 +502,6 @@ if(isBcut)                           //set temperature to zero in high magnetiza
   }
  if(isBred){                           //temperature reduction in high magnetization regions
    //rho*=exp(-magn/10.);
-   printf("[evalpointzero.cpp]: magn=%e,magn_cap=%e\n",magn,magn_cap);
 	rho*=exp(-magn/magn_cap);
     //cout << "Zero out rho due isBred...\n";
  }
@@ -510,18 +509,17 @@ if(isBcut)                           //set temperature to zero in high magnetiza
 
 int theta_slices=0;
 if (theta_slices) {
-  if ( costh<=cos(trace_theta_slice_angle-trace_theta_slice_width/2.) or costh>=cos(trace_theta_slice_angle+trace_theta_slice_width/2.) ) {
+  if ( costh>=cos(trace_theta_slice_angle-trace_theta_slice_width/2.) or costh<=cos(trace_theta_slice_angle+trace_theta_slice_width/2.) ) {
       rho=0.;
     }
  }
 
-int r_slices=1;
+int r_slices=0;
 if (r_slices) {
   if ( rr<=trace_r_slice-trace_r_slice_width/0.5 or rr>=trace_r_slice+trace_r_slice_width/0.5 ) {
       rho=0.;
     }
  }
-
 ///////////////////////
 
 

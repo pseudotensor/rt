@@ -87,24 +87,6 @@ shadow_maximally_spinning = 9./2.*2*rg # diameter
 filename = sys.argv[1] # should point to shotimage*.dat file
 filename_out = filename.replace(".dat",".png")
 
-limits_colors_xy = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)]
-limits_colors_uv = [(0,2.4),(0,0.1),(0,0.15),(0,0.045)]
-limits_xy = [-50,50,-50,50]
-limits_uv = [-10,10,-10,10]
-
-try:
-    colormaps = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu_r]
-except:
-    colormaps = [cm.hot,cm.hot,cm.hot,cm.hot]
-
-def fmt(x, pos):
-    '''Customized formatter. Credit goes to the answer in:
-    http://stackoverflow.com/questions/25983218/scientific-notation-colorbar-in-matplotlib'''
-    a, b = '{:.1e}'.format(x).split('e')
-    b = int(b)
-    return r'${}\times 10^{{{}}}$'.format(a,b) # how to save the white space between a and \times ?
-    #return r'${}\times 10^{{{}}}$'.format(a,b)
-
 ## READ-IN ##
 fp = open(filename,"rb")
 header = fromfile(fp,count=20)
@@ -116,11 +98,44 @@ data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)
 # circularly polarized intensity V
 fp.close()
 
+
+rr = 1+( float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0]) -100)/5.
+# th = pi*float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])/100.
+
+# title_vary_string = " at $r="+str(rr)+"M$"
+# title_vary_string = " at $\Theta="+str(th)+"$"
+# title_vary_string = ""
+
+limits_colors_xy = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)]
+limits_colors_4panel_xy = [(0,4e-4),(0,None),(None,None),(0,3e-1)]
+limits_colors_uv = [(0,2.4),(0,0.1),(0,0.15),(0,0.045)]
+limits_colors_4panel_uv = [(0,2.4),(0,2),(-90,90),(0,2)]
+
+limits_xy = [-50,50,-50,50]
+limits_uv = [-10,10,-10,10]
+
+try:
+    colormaps = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu_r]
+    colormaps_4panel = [cm.gnuplot2,cm.PuOr,cm.RdBu_r,cm.hot]
+except:
+    colormaps = [cm.hot,cm.hot,cm.hot,cm.hot]
+    colormaps_4panel = [cm.hot,cm.hot,cm.hot,cm.hot]
+
+def fmt(x, pos):
+    '''Customized formatter. Credit goes to the answer in:
+    http://stackoverflow.com/questions/25983218/scientific-notation-colorbar-in-matplotlib'''
+    a, b = '{:.1e}'.format(x).split('e')
+    b = int(b)
+    return r'${}\times 10^{{{}}}$'.format(a,b) # how to save the white space between a and \times ?
+    #return r'${}\times 10^{{{}}}$'.format(a,b)
+
 # control figure placement on screen 
 manager = get_current_fig_manager()
 fig_pos=["+0+0","+500+0","+0+500","+500+500","+250+250"] # Need to understand syntax better...
 titles = ["I","Q","U","V"]
-#titles = ["I"]
+titles_4panel_xy = [r"$\rm I$",r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$",r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$",r"$\rm m_{CP}\equiv \|V\|/I$"]
+#titles_4panel_xy = ["","","",""]
+titles_4panel_uv = [r"$\tilde{\rm I}$",r"$\breve{\rm m}\equiv \sqrt{\|\tilde{Q}\|^2+\|\tilde{U}\|^2}/\|\tilde{I}\|$",r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) * 90./\pi$",r"$\breve{\rm CP\equiv \|\tilde{V}\|/\|\tilde{I}\|}$"]
 
 pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
 if angle_unit=="rad":
@@ -178,9 +193,9 @@ v_no_zeropadding = unique(fftfreq(shape(PF_uv)[1],d=uvspacing)*freq_unit)
 # find the mag and phase
 I_mag = abs(I_uv)
 I_phase = angle(I_uv)
-EVPA_FFT_PHASE = angle(P_uv/I_uv) * 90./pi ## Michael: EVPA
-#EVPA_FFT_PHASE = angle(PF_uv) +*? 90./pi ## Michael: EVPA
-#EVPA_FFT_PHASE = angle(mbreve) +*? 90./pi ## Michael: EVPA
+EVPA_uv = angle(P_uv/I_uv) * 90./pi ## Michael: EVPA
+#EVPA_uv = angle(PF_uv) +*? 90./pi ## Michael: EVPA
+#EVPA_uv = angle(mbreve) +*? 90./pi ## Michael: EVPA
 
 
 ## PRODUCE ARTIFICIAL RING DATA IN uv SPACE ##
@@ -199,107 +214,107 @@ for i in range(shape(u_no_zeropadding)[0]):
 ## PLOTS ##
 ###########
 
-figure(9)
-pcolormesh(u,v,abs(P_uv)/abs(I_uv))
-#pcolormesh(u,v,log10(abs(P_uv)/abs(I_uv)),cmap=colormaps[3])
-colorbar(format=ticker.FuncFormatter(fmt))
-clim(-2,2)
-plot_horizons("uv")
-axis(limits_uv)
-gca().set(title=r"$\|\tilde{P}\|/\|\tilde{I}\|$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
-savefig(filename_out.replace(".png","_absPtilde_over_absItilde_uv.png"))
+# figure(9)
+# pcolormesh(u,v,abs(P_uv)/abs(I_uv))
+# #pcolormesh(u,v,log10(abs(P_uv)/abs(I_uv)),cmap=colormaps[3])
+# colorbar(format=ticker.FuncFormatter(fmt))
+# clim(-2,2)
+# plot_horizons("uv")
+# axis(limits_uv)
+# gca().set(title=r"$\|\tilde{P}\|/\|\tilde{I}\|$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+# savefig(filename_out.replace(".png","_absPtilde_over_absItilde_uv.png"))
 
 
-figure(8)
-pcolormesh(u,v,EVPA_FFT_PHASE,cmap=colormaps[3])
-colorbar()
-plot_horizons("uv")
-axis(limits_uv)
-gca().set(title=r"$EVPA \equiv phase(\tilde{P}/\tilde{I})+90/\pi$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
-savefig(filename_out.replace(".png","_EVPA_uv.png"))
+# figure(8)
+# pcolormesh(u,v,EVPA_uv,cmap=colormaps[3])
+# colorbar()
+# plot_horizons("uv")
+# axis(limits_uv)
+# gca().set(title=r"$EVPA \equiv phase(\tilde{P}/\tilde{I})\times 90/\pi$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+# savefig(filename_out.replace(".png","_EVPA_uv.png"))
 
 
-figure(6) ## Polarization fraction PF = \sqrt{Q^2+U^2}/I ##
-pcolormesh(X,Y,sqrt(Q_xy**2+U_xy**2)/I_xy)
-plot_horizons("xy")
-axis(limits_xy)
+# figure(6) ## Polarization fraction PF = \sqrt{Q^2+U^2}/I ##
+# pcolormesh(X,Y,sqrt(Q_xy**2+U_xy**2)/I_xy)
+# plot_horizons("xy")
+# axis(limits_xy)
 
-xlabel(r"$\mu arcsec$");ylabel(r"$\mu arcsec$")
-colorbar()
-title(r"$\sqrt{Q^2+U^2}/I$")
-savefig(filename_out.replace(".png","_PF_xy.png"))
+# xlabel(r"$\mu arcsec$");ylabel(r"$\mu arcsec$")
+# colorbar()
+# title(r"$\sqrt{Q^2+U^2}/I$")
+# savefig(filename_out.replace(".png","_PF_xy.png"))
 
-figure(2)
-## PF_xy data does not asymptote to zero nicely
-## -> zeropadding no good here, need larger image 
-pcolormesh(u_no_zeropadding,v_no_zeropadding,log10(abs(PF_uv))) # looks weird, but inverse transform looks good
-plot_horizons("uv")
-colorbar(format=ticker.FuncFormatter(fmt))
-axis(limits_uv)
-#clim(0,10) # WIP: huge outlier somewhere
-gca().set(title=r"$\tilde{m}\equiv FFT(\sqrt{Q^2+U^2}/I)$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
-savefig(filename_out.replace(".png","_PF_uv.png"))
-
-
-figure(3)
-
-# FPolTab = 
-#   Flatten[ParallelTable[{u, v, 
-#      Abs[(FTelementFast[dataP[[2]], {u*10^9, v*10^9}] + 
-#          I*FTelementFast[dataP[[3]], {u*10^9, v*10^9}])/
-#        FTelementFast[dataP[[1]], {u*10^9, v*10^9}]]}, {u, -10, 10, 
-#      0.5}, {v, -10, 10, 0.5}], 1];
-
-pcolormesh(u,v,(abs((Q_uv+1j*U_uv)/I_uv)),cmap=colormaps[0])
-titlestring = r"$\breve{m}\equiv \|(\tilde{Q}+i\tilde{U})/\tilde{I}\|$"
-
-#pcolormesh(u,v,log10(sqrt(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv))) #,cmap=colormaps[plot])
-#titlestring = r"$\breve{m}\equiv \sqrt{\|FFT(Q)\|^2+\|FFT(U)\|^2}/\|FFT(I)\|$"
-colorbar(format=ticker.FuncFormatter(fmt))
-clim(0,2)
-plot_horizons("uv")
-gca().set(title=titlestring,xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
-axis(limits_uv)
-savefig(filename_out.replace(".png","_sqrtQ2U2overI_uv.png"))
+# figure(2)
+# ## PF_xy data does not asymptote to zero nicely
+# ## -> zeropadding no good here, need larger image 
+# pcolormesh(u_no_zeropadding,v_no_zeropadding,log10(abs(PF_uv))) # looks weird, but inverse transform looks good
+# plot_horizons("uv")
+# colorbar(format=ticker.FuncFormatter(fmt))
+# axis(limits_uv)
+# #clim(0,10) # WIP: huge outlier somewhere
+# gca().set(title=r"$\tilde{m}\equiv FFT(\sqrt{Q^2+U^2}/I)$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+# savefig(filename_out.replace(".png","_PF_uv.png"))
 
 
-figure(4)
-pcolormesh(u,v,sqrt(abs(Q_uv)**2+abs(U_uv)**2)) # ,cmap=colormaps[3])
-colorbar()
-plot_horizons("uv")
-gca().set(title=r"$\breve{\mathrm{P}}\equiv \sqrt{\|\tilde{Q}\|^2+\|\tilde{U}\|^2}$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
-axis(limits_uv)
-savefig(filename_out.replace(".png","_sqrtQ2U2_uv.png"))
+# figure(3)
 
-figure(7)
-pcolormesh(X,Y,sqrt(abs(Q_xy)**2+abs(U_xy)**2)) #,cmap=colormaps[plot])
-colorbar(format=ticker.FuncFormatter(fmt))
-plot_horizons("xy")
-gca().set(title=r"$\mathrm{P}\equiv \sqrt{\|Q\|^2+\|U\|^2}$",xlabel="x $(\mu arcsec)$",ylabel="y $(\mu arcsec)$")
-axis(limits_xy)
-savefig(filename_out.replace(".png","_sqrtQ2U2_xy.png"))
+# # FPolTab = 
+# #   Flatten[ParallelTable[{u, v, 
+# #      Abs[(FTelementFast[dataP[[2]], {u*10^9, v*10^9}] + 
+# #          I*FTelementFast[dataP[[3]], {u*10^9, v*10^9}])/
+# #        FTelementFast[dataP[[1]], {u*10^9, v*10^9}]]}, {u, -10, 10, 
+# #      0.5}, {v, -10, 10, 0.5}], 1];
+
+# pcolormesh(u,v,(abs((Q_uv+1j*U_uv)/I_uv)),cmap=colormaps[0])
+# titlestring = r"$\breve{m}\equiv \|(\tilde{Q}+i\tilde{U})/\tilde{I}\|$"
+
+# #pcolormesh(u,v,log10(sqrt(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv))) #,cmap=colormaps[plot])
+# #titlestring = r"$\breve{m}\equiv \sqrt{\|FFT(Q)\|^2+\|FFT(U)\|^2}/\|FFT(I)\|$"
+# colorbar(format=ticker.FuncFormatter(fmt))
+# clim(0,2)
+# plot_horizons("uv")
+# gca().set(title=titlestring,xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+# axis(limits_uv)
+# savefig(filename_out.replace(".png","_sqrtQ2U2overI_uv.png"))
+
+
+# figure(4)
+# pcolormesh(u,v,sqrt(abs(Q_uv)**2+abs(U_uv)**2)) # ,cmap=colormaps[3])
+# colorbar()
+# plot_horizons("uv")
+# gca().set(title=r"$\breve{\mathrm{P}}\equiv \sqrt{\|\tilde{Q}\|^2+\|\tilde{U}\|^2}$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+# axis(limits_uv)
+# savefig(filename_out.replace(".png","_sqrtQ2U2_uv.png"))
+
+# figure(7)
+# pcolormesh(X,Y,sqrt(abs(Q_xy)**2+abs(U_xy)**2)) #,cmap=colormaps[plot])
+# colorbar(format=ticker.FuncFormatter(fmt))
+# plot_horizons("xy")
+# gca().set(title=r"$\mathrm{P}\equiv \sqrt{\|Q\|^2+\|U\|^2}$",xlabel="x $(\mu arcsec)$",ylabel="y $(\mu arcsec)$")
+# axis(limits_xy)
+# savefig(filename_out.replace(".png","_sqrtQ2U2_xy.png"))
 
 ################
 ## IQUV-PLOTS ##
 
-fig_image_plane = figure(0)
-fig_image_plane.subplots_adjust(wspace = 0.35)
+fig_xy = figure(0)
+fig_xy.subplots_adjust(wspace = 0.35)
 for plot in range(len(titles)):
 
     ## image plane ##
-    fig_image_plane.add_subplot(221+plot)
+    fig_xy.add_subplot(221+plot)
     pcolormesh(X,Y,data[:,:,plot],cmap=colormaps[plot])
     colorbar(format=ticker.FuncFormatter(fmt),pad=0)
     clim(limits_colors_xy[plot])
     plot_horizons("xy")
     if plot in [2,3]:
-        gca().set(xlabel=r"$\mu arcsec$")
+        gca().set(xlabel=r"$x\, \mu arcsec$")
     if plot in [0,2]:
-        gca().set(ylabel=r"$\mu arcsec$")
+        gca().set(ylabel=r"$y\,\mu arcsec$")
     gca().axis(limits_xy)
-    title(titles[plot])
+    title(titles[plot]+" at r="+str(rr)+"M")
 
-savefig(filename_out.replace(".png","_IQUV_image_plane.png"))
+savefig(filename_out.replace(".png","_IQUV_xy.png"))
 
 fig_uv_plane = figure(1)
 fig_uv_plane.subplots_adjust(wspace = 0.35)
@@ -320,9 +335,74 @@ for plot in range(len(titles)):
     if plot in [0,2]:
         gca().set(ylabel=r"v $(G\lambda)$")
     axis(limits_uv)
-    title(titles[plot])
+    title(titles[plot]+" at r="+str(rr)+"M")
 
-savefig(filename_out.replace(".png","_IQUV_uv_plane.png"))
+savefig(filename_out.replace(".png","_IQUV_uv.png"))
+
+#########################
+
+fig_xy_4panel = figure(8)
+fig_xy_4panel.subplots_adjust(wspace = 0.35)
+
+## WIP ##
+#? EVPA_xy = angle((Q_xy+1j*U_xy)/I_xy)
+EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
+#? EVPA_xy = ifftshift(ifft2(EVPA_uv))
+
+for plot in range(len(titles)):
+
+    ## image plane ##
+    fig_xy_4panel.add_subplot(221+plot)
+    pcolormesh(X,Y,[data[:,:,plot],sqrt(abs(Q_xy)**2+abs(U_xy)**2)/I_xy,EVPA_xy,abs(V_xy)/I_xy][plot],cmap=colormaps_4panel[plot])
+    #pcolormesh(X,Y,[data[:,:,plot],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot],cmap=colormaps[plot])
+    if plot==2:
+        colorbar()
+    else:
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+    clim(limits_colors_4panel_xy[plot])
+    plot_horizons("xy")
+    if plot in [2,3]:
+        gca().set(xlabel=r"$x\,\mu arcsec$")
+    if plot in [0,2]:
+        gca().set(ylabel=r"$y\,\mu arcsec$")
+    gca().axis(limits_xy)
+    title(titles_4panel_xy[plot]+" at r="+str(rr)+"M")
+
+savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
+
+#########################
+
+fig_uv_4panel = figure(5)
+fig_uv_4panel.subplots_adjust(wspace = 0.35)
+
+for plot in range(len(titles)):
+    ## uv plane ##
+    fig_uv_4panel.add_subplot(221+plot)
+#    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot]),cmap=colormaps_4panel[plot])
+    pcolormesh(u,v,[abs(I_uv),(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv),EVPA_uv,abs(V_uv)/abs(I_uv)][plot],cmap=colormaps_4panel[plot])
+    #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot])
+    #colorbar()
+    if plot==2:
+        colorbar()
+    else:
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+
+    clim(limits_colors_4panel_uv[plot])
+
+    plot_horizons("uv")
+
+    if plot in [2,3]:
+        gca().set(xlabel=r"u $(G\lambda)$")
+    if plot in [0,2]:
+        gca().set(ylabel=r"v $(G\lambda)$")
+    axis(limits_uv)
+    #title("...WIP... r="+str(rr)+"M")
+    title(titles_4panel_uv[plot]+" at r="+str(rr)+"M")
+
+savefig(filename_out.replace(".png","_4panel_uv.png"))
+
+#########################
+
 
 #manager.window.wm_geometry(fig_pos[plot]) # [WIP: need to understand the arg syntax]
 #savefig(filename_out.replace(".png","_"+titles[plot]+".png"))

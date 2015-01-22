@@ -133,7 +133,7 @@ bool iswrite=true,                                      //whether to write outpu
 doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
 doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 doub trace_theta_slice_angle; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
-doub trace_r_slice_width=1.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
+doub trace_r_slice_width=2.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 doub trace_r_slice; // used to trace geodesics arising from a thin slice in the r direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 string fif="";                                          //any modifier for output file name
 clock_t start;                                          //timing variable
