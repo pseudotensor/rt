@@ -7,7 +7,7 @@
 #module load python ## LOAD PYTHON LIBRARIES
 
 ## POOR-MAN's PARALELLIZATION
-export NR_OF_PROC=4 ## 4: dell-xps13 | 16: STAMPEDE
+export NR_OF_PROC=24 ## 4: dell-xps13 | 16: STAMPEDE
 export ITER_START=$1
 export ITER_END=$2
 TIMESTEPS_PER_CORE=$((($ITER_END-$ITER_START)/$NR_OF_PROC))
@@ -30,7 +30,7 @@ for i in `seq $ITER_START 1 $ITER_END`; do
         # VISUALIZE, SEND TO BACKGROUND, TIME IT (NO ";" AT END OF LINE!)
 	# /usr/bin/time -f "RHO ITER=$i TOOK %e SECS" python ~/py/carpio-plot.py disk_binary.par ABE-bbh-output/rho_b.xy.asc i $i floor 4 2>&1 |grep "ITER" & 
 	# /usr/bin/time -f "B^2/RHO ITER=$i TOOK %e SECS" python ~/py/b2-over-rho.py $i f 64 png 2>&1 | grep "ITER" &
-	/usr/bin/time -f "SNAPSHOT $i TOOK %e SECS" python rt-imaging.py shotimag93.75th140f230fn6100_299_$i.dat &
+	/usr/bin/time -f "SNAPSHOT $i TOOK %e SECS" python rt-imaging.py shotimag93.75th140f230fn6$i\_299.dat &
     fi
 
     # WHEN RUNNING OUT OF PROCESSORS WAIT FOR BACKGROUND JOBS TO FINISH
