@@ -131,6 +131,7 @@ bool iswrite=true,                                      //whether to write outpu
 	 isBcut=false,                                      //whether to set temperature to zero in certain region close to the BH near polar axis (see evalpointzero.cpp)
 	 isBred=false;                                      //whether to reduce temperature in regions of high magnetization (see evalpointzero.cpp)
 doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
+doub magn_floor=0.; //used to lighten-up the jet and turn off the disk (see [evalpointzero.cpp])
 doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 doub trace_theta_slice_angle; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 doub trace_r_slice_width=2.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]

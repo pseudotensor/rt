@@ -7,7 +7,7 @@
 #module load python ## LOAD PYTHON LIBRARIES
 
 ## POOR-MAN's PARALELLIZATION
-export NR_OF_PROC=24 ## 4: dell-xps13 | 16: STAMPEDE
+export NR_OF_PROC=24 ## 4: dell-xps13 |16: STAMPEDE |24: bh01
 export ITER_START=$1
 export ITER_END=$2
 TIMESTEPS_PER_CORE=$((($ITER_END-$ITER_START)/$NR_OF_PROC))
@@ -21,22 +21,23 @@ TIMESTEPS_PER_CORE=$((($ITER_END-$ITER_START)/$NR_OF_PROC))
 
 ## LOOP OVER DESIRED TIME STEPS ##
 for i in `seq $ITER_START 1 $ITER_END`; do
+  for case in `seq 100 1 199`;do 
 
     #filename=echo "rho_xy`seq -f "%04g" $i $i`.png"
-    filename=`echo "b2-over-rho-"\`seq -f "%04g" $i $i\`".png"`
-    if [ -f $filename ]; then 
-	echo "SKIPPING ALREADY EXISTING FILE AT ITER "$i
-    else
+    #filename=`echo "b2-over-rho-"\`seq -f "%04g" $i $i\`".png"`
+    #if [ -f $filename ]; then 
+	#echo "SKIPPING ALREADY EXISTING FILE AT ITER "$i
+    #else
         # VISUALIZE, SEND TO BACKGROUND, TIME IT (NO ";" AT END OF LINE!)
-	# /usr/bin/time -f "RHO ITER=$i TOOK %e SECS" python ~/py/carpio-plot.py disk_binary.par ABE-bbh-output/rho_b.xy.asc i $i floor 4 2>&1 |grep "ITER" & 
-	# /usr/bin/time -f "B^2/RHO ITER=$i TOOK %e SECS" python ~/py/b2-over-rho.py $i f 64 png 2>&1 | grep "ITER" &
-	/usr/bin/time -f "SNAPSHOT $i TOOK %e SECS" python rt-imaging.py shotimag93.75th140f230fn6$i\_299.dat &
-    fi
+	/usr/bin/time -f "SNAPSHOT $i CASE $case TOOK %e SECS" python ~/rt/rt-imaging.py shotimag93.75th140f230fn$i\_299_$case\.dat & # vary t # vary r # vary theta # vary magn_cap # vary magn_floor
+    #fi
 
     # WHEN RUNNING OUT OF PROCESSORS WAIT FOR BACKGROUND JOBS TO FINISH
     if [[ $(( ($i-$ITER_START)%$NR_OF_PROC )) -eq $(($NR_OF_PROC-1)) ]];then wait;fi
 
-done
+  done #
+done ##
+######
 
 wait # ... UNTIL RETURN THE CMD LINE PROMPT
 echo "|== DONE ==|"

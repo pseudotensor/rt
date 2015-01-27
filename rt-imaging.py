@@ -18,7 +18,10 @@
 
 import matplotlib 
 #matplotlib.use("wx")
-#matplotlib.use("Agg") # produces png without X
+try:
+    __IPYTHON__ ## ARE WE RUNNING FROM IPYTHON?
+except:
+    matplotlib.use("Agg") # produces png without X
 
 import pylab,string,scipy
 from pylab import *
@@ -62,6 +65,38 @@ Haystackvec = array([1492460, -4457299, 4296835])/Lambda
 # {0.874554, 0., -0.484929}
 ####################################################
 
+################
+## USER SPECS ##
+
+if "vary" in sys.argv: # use that for movies where parameter varies (adds current parameter value to plot titles)
+    VARY = string.lower(sys.argv[sys.argv.index("vary")+1])
+else:
+    VARY="" # can be "","magn_cap","theta","r"
+
+SCATTERING = "ON"
+if SCATTERING == "ON":
+    try:
+        from scipy import ndimage
+    except:
+        pass
+
+# help(ndimage.filters)
+# FUNCTIONS
+#     convolve(input, weights, output=None, mode='reflect', cval=0.0, origin=0)
+#         Multi-dimensional convolution.
+        
+#         The array is convolved with the given kernel.
+
+# see for Gaussian and other Kernels:
+# http://nbviewer.ipython.org/github/agile-geoscience/notebooks/blob/master/Filtering_horizons.ipynb
+# http://nbviewer.ipython.org/github/mroberts3000/GpuComputing/blob/master/IPython/GaussianBlur.ipynb
+
+# DETECT EDGE OF SHADOW SIMILAR TO DIMITRIOS USING:
+# ndimage.gaussian_gradient_magnitude
+
+# great image detection tutorial:
+# http://pythonvision.org/basic-tutorial/
+# http://scipy-lectures.github.io/advanced/image_processing/
 
 angle_unit="arcsec" # "rad"
 # This is used for enhancing smoother uv data at large scales: Warning not good for mtilde because the xy-data don't seem to decay to zero for large xy. Zeropadding then introducing strong artefacts.
@@ -71,6 +106,7 @@ pc = scipy.constants.parsec # SI
 G = scipy.constants.G # SI
 c = scipy.constants.c # SI
 
+#t_rg =  # time in secs assuming Sgr A* 
 Msun = 2e30 # SI
 M = 4.3e6 * Msun # SAG A*
 rg = G*M/c**2
@@ -81,6 +117,8 @@ image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
 image_size_rad = image_size_astroray * (2*rg)/d_SagA
 shadow_schwarzschild = sqrt(27)*2*rg # diameter
 shadow_maximally_spinning = 9./2.*2*rg # diameter
+#######################################################
+
 
 ## SETTINGS ##
 #nxy = 201 # image resolution (nxy+1)x(nxy+1) see ASTRO_RAY_main.cpp
@@ -99,28 +137,72 @@ data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)
 fp.close()
 
 try:
-    rr = 1+( float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0]) -100)/5.
-    th = pi*(float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])-100)/100.
+    if VARY=="r":
+        rr = 1+( float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0]) -100)/5.
+        title_vary_string = " at $r="+str(rr)+"M$"
+    elif VARY=="t":
+        t = ( float(filename_out.split("_")[0].split('fn')[1])-6100 )*4. *rg/c /60.
+        title_vary_string = " at $t="+str(int(round(t,0)))+"min$"
+    elif VARY=="theta":
+        th = pi*(float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])-100)/100.
+        title_vary_string = " at $\Theta="+str(around(th/pi,1))+"\pi$"
+    elif VARY=="magn_cap":
+        magn_cap = 1.+(float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])-100)/10.
+        title_vary_string = r" at $b^2/\rho <"+str(around(magn_cap,1))+"$"
+    elif VARY=="magn_floor":
+        magn_floor = (float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])-100)/100.
+        title_vary_string = r" at $b^2/\rho >"+str(around(magn_floor,2))+"$"
+    else:
+        print "DID NOT UNDERSTAND WHAT PARAMETER YOU ARE VARYING. DISABLE INFO."
+        VARY,title_vary_string="",""
 
-    title_vary_string = " at $r="+str(rr)+"M$"
-    #title_vary_string = " at $\Theta="+str(around(th/pi,1))+"\pi$"
 except:
     title_vary_string = ""
 
-limits_colors_xy = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)]
-limits_colors_4panel_xy = [(0,4e-4),(0,None),(None,None),(0,3e-1)]
-limits_colors_uv = [(0,2.4),(0,0.1),(0,0.15),(0,0.045)]
-limits_colors_4panel_uv = [(0,1.0),(0,1.0),(-90,90),(0,1.0)]
+
+#limits_colors_xy = [(0,4e-4),(-1e-4,1e-4),(-1e-4,1e-4),(-5e-5,5e-5)] ## IQUV_xy
+limits_colors_xy = [(0,2e-4),(-2e-5,2e-5),(-2e-5,2e-5),(-8e-6,8e-6)]
+limits_colors_4panel_xy = [(0,4e-5),(0,8e-1),(-90.,90.),(0,1e-1)]
+limits_colors_uv = [(0,1),(0,0.1),(0,0.15),(0,0.03)]
+limits_colors_4panel_uv = [(0,1.8e-1),(0,1.0),(-90,90),(0,1.0)]
 
 limits_xy = [-50,50,-50,50]
 limits_uv = [-10,10,-10,10]
 
-try:
-    colormaps = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu_r]
-    colormaps_4panel = [cm.gnuplot2,cm.jet,cm.RdBu_r,cm.hot]
+try: 
+    # TRY cm.cubehelix (incremental)
+    # Green, D. A., 2011, `A colour scheme for the display of 
+    # astronomical intensity images', 
+    # Bulletin of the Astronomical Society of India, 39, 289.
+    # (2011BASI...39..289G at ADS.) 
+    # Please cite this paper if you use `cubehelix' in any publications.
+    ####################################################################
+    # For diverging colormaps see:
+    # http://dx.doi.org/10.1007/978-3-642-10520-3_9
+    # and notice issue of shifted, diverging colormap
+    # http://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib
+
+    #colormaps = [cm.gnuplot2,cm.PuOr,cm.bwr,cm.RdBu_r]
+    colormaps = [cm.gnuplot2,cm.PuOr,cm.PuOr,cm.PuOr]
+    colormaps_4panel = [cm.cubehelix,cm.jet,cm.RdBu_r,cm.hot]
 except:
     colormaps = [cm.hot,cm.hot,cm.hot,cm.hot]
     colormaps_4panel = [cm.hot,cm.hot,cm.hot,cm.hot]
+
+# CREDIT to Joe Kington's answer in:
+# http://stackoverflow.com/questions/20144529/shifted-colorbar-matplotlib
+ 
+class MidpointNormalize(Normalize):
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+# USAGE: imshow(data, norm=MidpointNormalize(midpoint=0), cmap=plt.cm.seismic)
 
 def fmt(x, pos):
     '''Customized formatter. Credit goes to the answer in:
@@ -134,16 +216,17 @@ def fmt(x, pos):
 manager = get_current_fig_manager()
 fig_pos=["+0+0","+500+0","+0+500","+500+500","+250+250"] # Need to understand syntax better...
 titles = ["I","Q","U","V"]
-titles_4panel_xy = [r"$\rm I$",r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$",r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$",r"$\rm m_{CP}\equiv \|V\|/I$"]
+titles_4panel_xy = [r"$\rm PF\equiv \sqrt{\|Q\|^2+\|U\|^2}$",r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$",r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$",r"$\rm m_{CP}\equiv \|V\|/I$"]
 #titles_4panel_xy = ["","","",""]
 #titles_4panel_uv = [r"$\tilde{\rm I}$",r"$\breve{\rm m}\equiv \sqrt{\|\tilde{Q}\|^2+\|\tilde{U}\|^2}/\|\tilde{I}\|$",r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$",r"$\breve{\rm CP}\equiv \|\tilde{V}\|/\|\tilde{I}\|$"]
-titles_4panel_uv = [r"$\tilde{\rm I}$",r"$\breve{\rm m}\equiv \|\tilde{Q}+i\tilde{U}\|/\|\tilde{I}\|$",r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$",r"$\breve{\rm CP}\equiv \|\tilde{V}\|/\|\tilde{I}\|$"]
+titles_4panel_uv = [r"$\breve{\rm PF}\equiv \|\tilde{Q}+i\tilde{U}\|$",r"$\breve{\rm m}\equiv \|\tilde{Q}+i\tilde{U}\|/\|\tilde{I}\|$",r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$",r"$\breve{\rm CP}\equiv \|\tilde{V}\|/\|\tilde{I}\|$"]
 
 pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
 if angle_unit=="rad":
     pixeldim = image_size_rad/nxy
 
 X = pixeldim*arange(-round(nxy/2),round(nxy/2)+1)
+#X = pixeldim*arange(-round(nxy/2),round(nxy/2))
 Y = X[:]
 
 freq_unit=1e-9 # uv plane scale
@@ -171,6 +254,45 @@ def plot_horizons(domain):
 # PROCESSING #
 ##############
 
+if string.lower(SCATTERING)=="on" or string.lower(SCATTERING)=="yes":
+    # r_fresnel = # 300 km [Goodman & Narayan 1989]
+    # fresnel_kernel = exp(1j*(r/(2.*r_fresnel))**2.)
+
+    # WIP: Find an appropriate value for 1.3mm SagA*
+    # sigma_in_microarcsec = 5.
+    # See these references in Fish et al 1409.4690:
+    # Bower et al (2006): 1.039 x 0.64 marcsec
+    # Shen  et al (2005): 1.41  x 0.75 marcsec
+    # @1.3mm point source is blurred to 22muarcsec
+    # http://www.cfa.harvard.edu/sma/events/smaConf/posters/images/Doeleman_SMA10_talk.pdf (slide 11 on piercing scattering screen).
+    # http://adsabs.harvard.edu/abs/2009A&A...496...77F (Figure 1)
+    # http://astro.berkeley.edu/~gbower/ps/sgravlba2.pdf (section on scattering)
+    # FWHM(lambda=1cm) = 1mas
+    sigma_in_microarcsec = 7.4 # FWHM = 2.3*sigma
+    sigma = sigma_in_microarcsec / (image_size/nxy) # 10. # pixel units for ndimage.gaussian_filter
+
+    #XY_2D = meshgrid(X,Y) # shape=(2, nxy, nxy)
+    # "kernel = exp(-(X**2+Y**2)/2./sigma)" ## Gaussian
+    #kernel = exp(-(XY_2D[0]**2+XY_2D[1]**2)/2./sigma) ## Gaussian
+
+###########################
+# http://nbviewer.ipython.org/github/agile-geoscience/notebooks/blob/master/Filtering_horizons.ipynb
+    # import scipy.signal
+    # new_output = scipy.signal.convolve2d(noisy_horizon, kernel)
+    # plt.imshow(new_output, aspect=0.5, vmin=vmin, vmax=vmax)
+############################
+
+    for CHANNEL in range(shape(data)[-1]):
+        # Or does gaussian_filter only return the kernel?
+        data[:,:,CHANNEL] = ndimage.gaussian_filter(data[:,:,CHANNEL],sigma=sigma) ## sigma is in pixel units
+    # I_xy = ndimage.gaussian_filter(I_xy,sigma=sigma)
+    # Q_xy = ndimage.gaussian_filter(Q_xy,sigma=sigma)
+    # U_xy = ndimage.gaussian_filter(U_xy,sigma=sigma)
+    # V_xy = ndimage.gaussian_filter(V_xy,sigma=sigma)
+    #    CHANNEL *= kernel
+    #    CHANNEL *= fresnel_kernel
+
+
 I_xy = data[:,:,0]
 Q_xy = data[:,:,1]
 U_xy = data[:,:,2]
@@ -185,6 +307,8 @@ u = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
 v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 
 P_uv = fftpack.fftshift(fftpack.fft2(sqrt(Q_xy**2+U_xy**2),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
+Pbreve_xy = abs(Q_xy+1j*U_xy)
+Pbreve_uv = abs(Q_uv+1j*U_uv)
 #??? mbreve = sqrt(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv)
 PF_uv = fftpack.fftshift(fftpack.fft2(sqrt(abs(Q_xy)**2+abs(U_xy)**2)/I_xy)) # ,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 #??? mbreve = sqrt(abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv)
@@ -305,8 +429,8 @@ for plot in range(len(titles)):
 
     ## image plane ##
     fig_xy.add_subplot(221+plot)
-    pcolormesh(X,Y,data[:,:,plot],cmap=colormaps[plot])
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+    pcolormesh(X,Y,data[:,:,plot],cmap=colormaps[plot],norm=[None,MidpointNormalize(midpoint=0)][plot>=1])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_xy[plot][0],limits_colors_xy[plot][1],5)])
     clim(limits_colors_xy[plot])
     plot_horizons("xy")
     if plot in [2,3]:
@@ -327,7 +451,7 @@ for plot in range(len(titles)):
     pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot]),cmap=[cm.gnuplot2,cm.jet,cm.jet,cm.jet][plot])
     #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot])
     #colorbar()
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_uv[plot][0],limits_colors_uv[plot][1],5)])
     clim(limits_colors_uv[plot])
 
     plot_horizons("uv")
@@ -353,16 +477,17 @@ EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
 #mbreve_xy = sqrt(abs(Q_xy)**2+abs(U_xy)**2)/I_xy
 mbreve_xy = abs(Q_xy+1j*U_xy)/abs(I_xy)
 
-for plot in range(len(titles)):
+#################################
+for plot in range(len(titles)): #
 
     ## image plane ##
     fig_xy_4panel.add_subplot(221+plot)
-    pcolormesh(X,Y,[data[:,:,plot],mbreve_xy,EVPA_xy,abs(V_xy)/I_xy][plot],cmap=colormaps_4panel[plot])
+    pcolormesh(X,Y,[Pbreve_xy,mbreve_xy,EVPA_xy,abs(V_xy)/I_xy][plot],cmap=colormaps_4panel[plot])
     #pcolormesh(X,Y,[data[:,:,plot],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot],cmap=colormaps[plot])
     if plot==2:
-        colorbar()
+        colorbar(ticks=[linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5)])
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5)])
     clim(limits_colors_4panel_xy[plot])
     plot_horizons("xy")
     if plot in [2,3]:
@@ -381,18 +506,21 @@ fig_uv_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
 
 # mbreve_uv = (abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv)
 mbreve_uv = abs(Q_uv+1j*U_uv)/abs(I_uv)
+#large_mbreves = sum((mbreve_uv>=1.) * (sqrt(u**2+v**2)<=5.) ) # WIP: within a circle
+large_mbreves = sum(mbreve_uv[u<=3.,v<=3.]>=1.) # within a square
+print "Fraction of mbreve>1 (within r_uv<3): ",large_mbreves,"/",size(mbreve_uv[u<=3.,v<=3.]),"=",float(large_mbreves) / size(mbreve_uv[u<=3.,v<=3.])
 
 for plot in range(len(titles)):
     ## uv plane ##
     fig_uv_4panel.add_subplot(221+plot)
 #    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot]),cmap=colormaps_4panel[plot])
-    pcolormesh(u,v,[abs(I_uv),mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot],cmap=colormaps_4panel[plot])
+    pcolormesh(u,v,[Pbreve_uv,mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot],cmap=colormaps_4panel[plot])
     #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot])
     #colorbar()
     if plot==2:
-        colorbar()
+        colorbar(ticks=[linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_uv[plot][1],5)])
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5)])
 
     clim(limits_colors_4panel_uv[plot])
 

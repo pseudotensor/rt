@@ -502,8 +502,13 @@ if(isBcut)                           //set temperature to zero in high magnetiza
   }
  if(isBred){                           //temperature reduction in high magnetization regions
    //rho*=exp(-magn/10.);
-	rho*=exp(-magn/magn_cap);
-    //cout << "Zero out rho due isBred...\n";
+   //if (magn_floor != 0) 
+     //rho*=exp(-magn_floor/magn); // Limit disk emission, Lightup jet
+   //else 
+
+   rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
+   // rho*=(1-exp(-magn/magn_cap)); // Limit disk emission => Lightup jet
+   //cout << "Zero out rho due isBred...\n";
  }
  }
 
