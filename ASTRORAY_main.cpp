@@ -79,10 +79,10 @@ const int  ndd=650,           //radial dimension of coordinate/coordinate transf
   maxco=3000,        //maximum number of points on a geodesic
 	       maxst=12000,       //maximum number of points for radial temperature profile
 	       nWlen=120,         //number of frequencies for which propagation coefficients are computed
-//	       nWlen=60,         //number of frequencies for which propagation coefficients are computed
+//  nWlen=60,         //number of frequencies for which propagation coefficients are computed
 	       Tlen=100,          //number of temperatures for which propagation coefficients are computed
-  nxy=299 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=299 /*301*/;          //maximum resolution in picture plane for flux calculations
+  nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A*
 	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
@@ -140,10 +140,16 @@ string fif="";                                          //any modifier for outpu
 clock_t start;                                          //timing variable
 int fnum,              //fluid simulation dump file number
 	cas,               //integer number encoded in LSB_JOBINDEX or PBS_ARRAYID
+
+/*********************************/
+/********* CMD-LINE-ARGS *********/
 	sp,                //first command line argument, typically spin
 	co,                //second command line argument
 	mco,               //third command line argument rounded
 	sear,              //fourth command line argument, choice of computation
+/********* CMD-LINE-ARGS *********/
+/*********************************/
+
 	ncut,              //the last radial grid point, where the simulation is considered converged
 	fdiff=0,           //loading fluid simulation dump files from XXXX-fdiff to XXXX+fdiff to consider simulation evolution as light propagates; fdiff=0 => fast light approximation
 	mintim, maxtim,    //physical times of XXXX-fdiff and XXXX+fdiff dump files
@@ -166,7 +172,7 @@ doub Bpo,              //third command line argument, often magnetic field stren
 	 ss,               // ss=dr/rg above the BH horizon, where we stop integration of a geodesic
 	 fljVc=1., flrQc=1., flrVc=1.,//multiplier to test the behavior of the code for boosted/zeroed V emissivity, Faraday conversion, and Faraday rotation, respectively
 	 dphi=0.,          //phi offset to test different phi viewing angles
-     TpTe, Te6,        //proton to electron temperature ratio and electron temperature at 6M
+  Te_jet, TpTe_jet, TpTe, Te6,        //proton to electron temperature ratio and electron temperature at 6M
 	 ts[maxst], te[maxst], tp[maxst], //for computing radial proton and electron temperature profiles
 	 rcut,             //radius up to which fluid simulation converged // RG: converged->relaxed to steady state?
 	 rhopo, rhocon,    //density extension power-law slope and density at rcut
@@ -175,7 +181,7 @@ doub Bpo,              //third command line argument, often magnetic field stren
 	 rmin,             //inner radius of averaged temperature/density profile (Tsmap*.dat file)
 	 thlimit,          //critical parameter for cutting off polar region. Opening angle = arccos(1-thlimit)
 	 theta[ndd][thlen],//mapping of code coordinates to physical polar angle theta
-	 totin[sflen],  LPo[sflen], CP[sflen], EVPA[sflen], err[sflen],//tofal flux, LP fraction, CP fraction, EVPA, and flux error estimate
+	 totin[sflen],  LPo[sflen], CP[sflen], EVPA[sflen], err[sflen],//total flux, LP fraction, CP fraction, EVPA, and flux error estimate
 	 xtotin[sflen],xLPo[sflen],xCP[sflen],xEVPA[sflen],            //another set of same quantities
      jI[Tlen+1][nWlen+1], jQ[Tlen+1][nWlen+1], jV[Tlen+1][nWlen+1],//emissivities tables
 	 rQ[2*Tlen+1], rV[2*Tlen+1],                                   //Faraday conversion and rotation tables
@@ -212,11 +218,12 @@ int main(int argc, char* argv[]) {
 	int n1;
     
     for(n1=0;n1<2*fdiff+1;n1++)
-
+      {
       //RG
       printf("[ASTRORAY_main.cpp] n1=%d\n",n1);
 
 		uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd];//allocating memory for fluid simulation files
+      }
     typedef doub (*ausar)[snxy+1][snxy+1][sflen][5]; 
     ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen][5];//allocating memory for radiative transfer results
     int w,          //thread number for testing
@@ -242,11 +249,18 @@ int main(int argc, char* argv[]) {
 		printf("Check that 4 numbers are supplied as command line arguments + array ID environment variable is defined\n Exiting\n");
 		exit(1);
 	}
-    sp=atoi(argv[1])-1;  //first command line argument - spin ID
-	co=atoi(argv[2]);
-	Bpo=atof(argv[3]); 
-	mco=floor(Bpo+0.001);//second and third command line arguments are used differently by subroutines
+
+/*********************************/
+/********* CMD-LINE-ARGS *********/
+    sp=atoi(argv[1])-1;   //first command line argument - spin ID
+	co=atoi(argv[2]);     // argv[4]=6:fmin [m_ts.cpp]
+	Bpo=atof(argv[3]);    // 
+	//mco=floor(Bpo+0.001); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
+	mco=atoi(argv[3]); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
 	sear=atoi(argv[4]);  //fourth command line argument - type of computation
+/********* CMD-LINE-ARGS *********/
+/*********************************/
+
 //sear=0;//setting a particular type of computation for testing
     switch (sear){
 	    case 0: //surf the entire parameter space searching for the best fit to polarized spectrum

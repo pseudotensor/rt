@@ -1,4 +1,9 @@
-   case 100: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_floor=0.09*cas-8;break;//changing azimuthal camera angle - 4*PI/3
+// 6231 6235 corrupt/missing  // th=0.646
+case 100: fmin=2311;fmax=6000;kmin=7;kmax=7;sp=0;rhonor=136834.; heat=0.25; th=PI/2-0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1;break;//changing azimuthal camera angle - 4*PI/3
+//case 100: fmin=6200;fmax=6200;kmin=2;kmax=8;sp=0;rhonor=136834.; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=0.1;break;//changing azimuthal camera angle - 4*PI/3
+//case 100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;break;//changing azimuthal camera angle - 4*PI/3
+
+// case 100: fmin=6130;fmax=6170;kmin=0;kmax=9;sp=0;rhonor=147780.66084; heat=0.16992; th=PI/2.; dphi=4.*PI/3.;thlimit=0.05;fdiff=30;isBcut=false;isBred=true;magn_cap=4.;break;//changing azimuthal camera angle - 4*PI/3
    case 101: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_floor=0.09*cas-8;break;//changing azimuthal camera angle - 4*PI/3
    case 102: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_floor=0.09*cas-8;break;//changing azimuthal camera angle - 4*PI/3
    case 103: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_floor=0.09*cas-8;break;//changing azimuthal camera angle - 4*PI/3

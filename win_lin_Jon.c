@@ -6,8 +6,14 @@
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
 //THERMAL
 const string dir="/home/rgold/rt/thermal/", adir="/home/rgold/rt/thermal/", fieldstr="/dumps/", xstr="/";
-const int nthreads=24;// 8;//Orange
+const int nthreads=24; // 24: bh01;// 8;//Orange
 const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX
+
+// RG: this is from win_lin_ADAF.c
+/* const int ncuttab[3] = {100, 116, 128}, rlen=272, thlen=128,phlen=256, */
+/* 	 usgsize=69/\*record size in usgdump2d*\/,usgoff=156/\*offset in usgdump2d file*\/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations */
+
+// RG: default
 const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,
 	 usgsize=69/*record size in usgdump2d*/,usgoff=156/*offset in usgdump2d file*/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations
 

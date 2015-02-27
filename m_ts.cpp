@@ -7,7 +7,8 @@ int i, k,
 	thk,
 	phk,
 	fmin=co,              //minimum ID of fluid simulation snapshot = 2nd command line argument
-	fmax=mco,             //maximum ID of fluid simulation snapshot = 3nd command line argument
+    fmax=mco,             //maximum ID of fluid simulation snapshot = 3nd command line argument
+  //fmax=atoi(),             //maximum ID of fluid simulation snapshot = 3nd command line argument
 	sep=1,                //ID difference between consecutive considered fluid simulation snapshots = 1 => each snapshot is considered
 	ind=(fmax-fmin)/sep+1;//total number of snapshots
 doub dx1, off, x1min, tt, //auxiliary quantites read as text (not as binary) from fluid simulation file - check your fluid simulation file format!
@@ -21,20 +22,32 @@ rhonor=1000000.;          //initialize a sample model to avoid problems with uni
 heat=0.5;
 th=1.0;
 fdiff=0;
+//RG: fix consistency?
+//sp=0;
                           
 string fdir=adir+astr[sp]+fieldstr;//directory name for fluid simulation snapshot files
 a=atab[sp];                        //define spin value a and a^2
 asq=a*a;
 stringstream sstr;                
 sstr<<setfill('0')<<setw(4)<<fmin;                                    //build filename of a specific fluid simulation snapshot
+// file does not exist
+cout << "Assuming fluid snapshot is here: fdir="+fdir+"fieldline"+sstr.str()+".bin"<<endl;
+ cout << "sp=" << sp << endl;
 ifstream xfline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in);//read from a fluid simulation snapshot as text
+
+// RG: does not work for thickdisk7
+//xfline>>tt>>nx1>>nx2>>nx3>>x1min>>dx1>>dx1>>dx1;                      //read a number of variables from file including grid dimensions - check how it works for your fluid simulations
+
+// RG: WIP
 xfline>>tt>>nx1>>nx2>>nx3>>x1min>>dx1>>dx1>>dx1;                      //read a number of variables from file including grid dimensions - check how it works for your fluid simulations
+
+
 xfline>>off>>off>>off>>off>>off>>off;
 xfline>>off>>off>>off;
 xfline.close();
 
 if((rlen!=nx1)||(thlen!=nx2)||(phlen!=nx3)){                          //check that the grid dimensions specified in "win_lin..." agrees with that found in simulation snapshots
-	printf("Errors in dimensions \n Exiting ");
+  printf("rlen=%d,nx1=%d,thlen=%d,nx2=%d,phlen=%d,nx3=%d\nErrors in dimensions \n Exiting ",rlen,nx1,thlen,nx2,phlen,nx3);
 	exit(-1);
 };
 
@@ -54,6 +67,7 @@ if(astr[sp].length()<4){                                              //differen
 		for(i=0;i<thlen;i++)
 			theta[k][i]=-cos((*usgread)[i][k][8]);                    //define theta grid (for each radius)
 } else {
+    cout << "Assuming dxdxp.dat is here: "+dir+astr[sp]+xstr<<endl;
 	ifstream dxp((dir+astr[sp]+xstr+"dxdxp.dat").c_str(), ios::in|ios::binary);//read "dxdxp.dat" file, which was pre-generated in Mathematica
 	pbuf=dxp.rdbuf();                                                 //define buffer
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));//read coordinates 2D matrix
@@ -74,6 +88,7 @@ for(rk=0;rk<rlen;rk++){                                               //initiali
 }
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){                                  //cycle over fluid simulation snapshots
+  printf("[m_ts.cpp] fnum=%d\n",fnum);
 	stringstream sstr;
 	sstr<<setfill('0')<<setw(4)<<fnum;
 	ifstream fline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in|ios::binary);//read another fluid simulation snapshots
@@ -86,12 +101,14 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){                                  //cycle ov
 	for(rk=0;rk<rlen;rk++)                                            //for all radii
 		for(thk=thlen/2-3;thk<=thlen/2+3;thk++)                       //for theta angles close to the equatorial plane
 			for(phk=0;phk<phlen;phk++){                               //for all azimuthal angles
-				rho[rk]+=(*uu[0])[phk][thk][rk][0]/7/phlen/ind;       //compute mean density at that radius
-				ts[rk]+=(*uu[0])[phk][thk][rk][1]/7/phlen/ind*mp*cc*cc/3/kb/(*uu[0])[phk][thk][rk][0];//compute mean energy density at that radius
+              rho[rk]+=(*uu[0])[phk][thk][rk][0]/7/phlen/ind;       //compute mean density at that radius
+              ts[rk]+=(*uu[0])[phk][thk][rk][1]/7/phlen/ind*mp*cc*cc/3/kb/(*uu[0])[phk][thk][rk][0];//compute mean energy density at that radius
 			};
 
 //done till here
+// RG: THIS INDEX-BASED HARDWIRING APPEARS TO BE DANGEROUS
 	int nx=37;                                                        //radial point, where instantaneous space-averaged density is computed
+    cout << "[HARDWIRE]: nx="+nx<<endl; //RG:FIXME not reached...
 	doub rx=rad[nx-1];                                                //correspondent radius
 	doub rhoinst=0.;
 

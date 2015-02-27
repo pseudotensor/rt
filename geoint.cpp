@@ -36,7 +36,7 @@ doub bsq=b*b,                  //auxiliary geometric variables based on a, r0, t
 	 rmin2=r0-2.;
 //initial quantities in the picture plane
 doub tin = 0.,                                                                            //initial time t(0)
-	 rin = 0.5*bsq/r0 + r0,                                                               //r(0) - not precisel r0 because of curvature, but assumed b<<r0
+	 rin = 0.5*bsq/r0 + r0,                                                               //r(0) - not precisely r0 because of curvature, but assumed b<<r0
 	 phiin = (-1.*b*(-1.*r0 +b*cosbeta*costh/sinth)/sinth*sinbeta)/r0sq,                  //phi(0)
 	 muin = (-1.*bsq*costh + 2.*r0sq*costh - 2.*b*r0*cosbeta*sinth)/2./r0sq,              //costh(0)=mu(0)
 	 tprin=r0,                                                                            //t'(0)

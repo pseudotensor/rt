@@ -138,6 +138,47 @@ for(i=-fdiff;i<=fdiff;i++) {
 	loaded[ioff]=fx;
 };
 
+/**********************************************************************************************************/
+//RG: MODIFY FLUID DATA HERE?
+/**********************************************************************************************************/
+// single fluid simulation dump files contains: 
+// uu[?]:     [0    1   2     3                4    5    6        7      8    9        10   ]
+//             rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+//for(theta_index=0;theta_index<thlen-1;theta_index++)
+// int theta_bc_cells = 5;
+// //RG: HMM...                        vv
+//  for(theta_index=0;theta_index<thlen-1;theta_index++) // only boundaries
+//    for(phi_index=0;phi_index<phlen;phi_index++)
+// 	  for(r_index=0;r_index<rlen;r_index++)
+// 		for(snapshot_iteration_index=0;snapshot_iteration_index<=2*fdiff;snapshot_iteration_index=0++) {
+
+//           if (theta_index <= theta_bc_cells){
+//             // extrapolate rho,ug,v1,v3,b1,b3 as symmetric (extrapolate as just constant)
+//             // v2,b2 as anti-symmetric (passed through zero at pole, so linear from cell 6 to pole where has value of zero)
+//           }
+//           else if (theta_index > thlen-theta_bc_cells){
+//             // extrapolate rho,ug,v1,v3,b1,b3 as symmetric (extrapolate as just constant)
+//             // v2,b2 as anti-symmetric (passed through zero at pole, so linear from cell 6 to pole where has value of zero)
+//           }
+//           //RG: FIXME: careful about T units (could be in K)
+//           // doub Y_e=0.62; doub mubar=0.62; // solar abundances
+//           // doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
+//           // doub rho_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][0]; // grmhd (HARM) code
+//           // doub u_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][1]; // grmhd (HARM) code
+//           // doub gamma_orig=4./3.; // 13./9.; // u_orig/P+1.;
+//           // //RG:                               vv
+//           // doub u_Te_cap = Y_e*rho_orig/(mubar*mb)*kb*T_e/(gamma_orig-1.); // = n_e kb T_e/(gamma-1) 
+//           // // set u_g=u_Te_cap get T_e the desired isothermal (constant) value, e.g. T_e = 3\times 10^{10}K.;
+//           // //RG:FIXME magn_cap not available at this stage in the code... use cmdline argument directly?
+//           // //RG:FIXME      vvv
+//           // // doub magn     = ???;// see [evalpointzero.cpp]
+//           // // doub magn_cap = 4; // see [evalpointzero.cpp]
+//           // //(*uu[snapshot_iteration_index])[i][theta_index][r_index][0] = u_orig*(1.-exp(-magn/magn_cap)) + u_Te_cap*(exp(-magn/magn_cap));
+//           (*uu[snapshot_iteration_index])[i][theta_index][r_index][0] = u_orig*(1.-exp(-magn/magn_cap)) + u_Te_cap*(exp(-magn/magn_cap));
+//         }
+/**********************************************************************************************************/
+/**********************************************************************************************************/
+
 rcut=xx[ncut-1][0];                                     //define radius up to which the simulation converged
 rhopo=-log(rhoout/rhonor/xx[ncut-1][2])/log(rrmax/rcut);//slope of powerlaw density (extension) profile
 Upo=-log(Tout/xx[ncut-1][1])/log(rrmax/rcut);           //slope of powerlaw temperature (extension) profile

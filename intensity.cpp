@@ -1,7 +1,7 @@
 for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
 
     //RG:
-    printf("[intensity.cpp] ix=%d\n",ix);
+    //printf("[intensity.cpp] ix=%d\n",ix);
 
 	int kk,
 		iiy=ix %(snxy+1),                                      //find geodesic coordinates along x and y directions

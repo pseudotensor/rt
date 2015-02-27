@@ -1,4 +1,6 @@
 {//surf the entire parameter space searching for the best fit to polarized spectrum
+  //doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
+ //RG: TRY TO AVOID: "Radial coordinate on a geodesic rr=0.822507 is out of bounds"
 doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
 	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
@@ -16,8 +18,8 @@ doub step=xstep,   //local variables, which control radiative transfer
 int snxy=xsnxy,    //global variable correspondent to xsnxy
 	ind=co,        //number of snapshots over which to compute mean intensity = 2-nd command line argument
 	oo,            //index of the set of parameters (rhonor,th,heat)
-    fmin=6950,     //minimum ID of fluid simulation snapshot
-	fmax=9950,     //maximum ID of fluid simulation snapshot
+    fmin=6130,     //minimum ID of fluid simulation snapshot
+	fmax=6132,     //maximum ID of fluid simulation snapshot
 	sep=(fmax-fmin)/(ind-1);//ID difference between consecutive considered fluid simulation snapshots
 doub resid[sflen][4], //residuals for \chi^2 minimization algorithm
 	 Jac[sflen][3],   //correspondent Jacobian

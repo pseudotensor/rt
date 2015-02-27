@@ -10,6 +10,8 @@
 export NR_OF_PROC=24 ## 4: dell-xps13 |16: STAMPEDE |24: bh01
 export ITER_START=$1
 export ITER_END=$2
+export CASE_START=$3
+export CASE_END=$4
 TIMESTEPS_PER_CORE=$((($ITER_END-$ITER_START)/$NR_OF_PROC))
 
 # GAP = 0
@@ -21,7 +23,7 @@ TIMESTEPS_PER_CORE=$((($ITER_END-$ITER_START)/$NR_OF_PROC))
 
 ## LOOP OVER DESIRED TIME STEPS ##
 for i in `seq $ITER_START 1 $ITER_END`; do
-  for case in `seq 100 1 199`;do 
+  for case in `seq $CASE_START 1 $CASE_END`;do 
 
     #filename=echo "rho_xy`seq -f "%04g" $i $i`.png"
     #filename=`echo "b2-over-rho-"\`seq -f "%04g" $i $i\`".png"`
@@ -29,7 +31,7 @@ for i in `seq $ITER_START 1 $ITER_END`; do
 	#echo "SKIPPING ALREADY EXISTING FILE AT ITER "$i
     #else
         # VISUALIZE, SEND TO BACKGROUND, TIME IT (NO ";" AT END OF LINE!)
-	/usr/bin/time -f "SNAPSHOT $i CASE $case TOOK %e SECS" python ~/rt/rt-imaging.py shotimag93.75th140f230fn$i\_299_$case\.dat & # vary t # vary r # vary theta # vary magn_cap # vary magn_floor
+	/usr/bin/time -f "SNAPSHOT $i CASE $case TOOK %e SECS" python rt-imaging.py shotimag93.75th140f230fn$i\_299.dat vary t & # vary t # vary r # vary theta # vary magn_cap # vary magn_floor
     #fi
 
     # WHEN RUNNING OUT OF PROCESSORS WAIT FOR BACKGROUND JOBS TO FINISH

@@ -23,8 +23,8 @@ accurr=xaccurr;
 fact=xfact;
 ss=xss;
 
-kmin=2;kmax=10;    //define a set of frequencies from "sftab" table
-kstep=2;           //step in an array of frequencies
+kmin=0;kmax=10;    //define a set of frequencies from "sftab" table
+kstep=1;           //step in an array of frequencies
 
 cas=atoi(descr);   //batch job ID = selection of model spin, snapshot IDs, density, heating constant, viewing angle + auxiliary parameters
 start=clock(); 
@@ -51,7 +51,7 @@ switch (cas){      //selection of a model (only few examples are shown)
       //case 112: fmin=6100;fmax=6200;kmin=0;kmax=0;sp=0;rhonor=147780.66084; heat=0.16992; th=0.5; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
 
       // RG: USE THESE FILES FOR VARYING PARAMETERS (MOVIES, ETC) AND KEEP [m_imag.cpp] TIDY
-      //#include "vary_theta_slices.cpp"
+      //  #include "vary_theta_slices.cpp"
       //#include "vary_r_slices.cpp"
       //#include "vary_magn.cpp"
       //#include "vary_thlimit.cpp"
@@ -59,13 +59,15 @@ switch (cas){      //selection of a model (only few examples are shown)
 };
 printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 
-//RG: WHAT IS THIS? WHY 21?
-//ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
-ind=fmax-fmin;                 //set a number of fluid simulation snapshots (an image is computed for each)
+// average images over [ind] fluid snapshots
+ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
 sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 
 //RG: catch fmin=fmax
 if (sep==0) sep=1;
+
+//RG: WHY NOT JUST...?
+sep=1;
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenMP
   

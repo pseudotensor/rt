@@ -18,8 +18,8 @@ doub rr,               //radius
 doub rest[11],         //single record in a fluid simulation file
 	 rho,              //physical number density
 	 Ttot,             //internal energy density
-	 tet,              //proton temperature
-	 tpt;              //electron temperature
+	 tet,              //proton temperature // RG: typo in comment?? should be electron temperature?
+	 tpt;              //electron temperature // RG: typo in comment? should be proton temperature?
 doub ly[4],            //coordinate vector along the geodesic
 	 kBL[4],           //tangent vector along the geodesic in Boyer-Lindquist (BL) coordinates
 	 e1BL[4],          //perpendicular vector in Boyer-Lindquist coordinates parallel-transported along geodesic
@@ -117,9 +117,15 @@ for(m=0;m<4;m++)                    //perpendicular vector to a geodesic at a gi
 rr=ly[1];                           //current radius
 costh=ly[2];                        //current cos(theta)
 ph=dphi-ly[3];                      //current phi, taking into account azimuthal offset and "different" orientations of phi on a geodesic and phi in numerical simulations - check for every simulation!
-if((fabs(rr)>100000.) || (rr<1.)) {
-	printf("Radial coordinate on a geodesic rr=%f is out of bounds \n Exiting ",rr);
-	exit(-1);
+if((fabs(rr)>100000.) || (rr<1.)) { 
+  //RG: 
+  // (1) So rr<horizon ... No problem (just stop the geodesic!). Shouldn't abort the code
+  // (2) BOUNDARIES SHOULD NOT BE HARDCODED
+  // (3) GIVE USER HINT WHAT TO DO?
+  printf("Radial coordinate on a geodesic rr=%f is out of bounds \n Exiting ",rr);
+  // RG: FIXME: DOES NOT WORK. 
+  // if (rr<1.) rr=rmin;
+  exit(-1);
 };
 
 doub lrz=log(rr);                  //log of radius, since simulation grid is approximately logarithmic
@@ -496,21 +502,29 @@ if (zero_out_rho) {
   }
 //double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
 if(isBcut)                           //set temperature to zero in high magnetization region
-  if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) {// boundary is in accordance with McKinney et al. (2012)
+  //if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) {// boundary is in accordance with McKinney et al. (2012)
+  if(magn>magn_cap) {// full chop case
 		rho=0.;
         //cout << "Zero out rho due isBcut...\n";}
   }
  if(isBred){                           //temperature reduction in high magnetization regions
-   //rho*=exp(-magn/10.);
-   //if (magn_floor != 0) 
-     //rho*=exp(-magn_floor/magn); // Limit disk emission, Lightup jet
-   //else 
 
-   rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
+
+   /*************************************************************/
+   // doub Y_e=0.62; doub mubar=0.62; // solar abundances
+   // doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
+
+   // // single fluid simulation dump files contains: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+   // T_e = T_{e,code}*exp(-magn/magn_cap) + T_{e,choice} (1-exp(-magn/magn_cap));
+   /*************************************************************/
+
+   double rho_jet=0.;
+   rho = rho*exp(-magn/magn_cap) + rho*rho_jet*(1.-exp(-magn/magn_cap));
+   //rho*=exp(-magn/10.);
+   //rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
    // rho*=(1-exp(-magn/magn_cap)); // Limit disk emission => Lightup jet
-   //cout << "Zero out rho due isBred...\n";
- }
- }
+  }
+}
 
 int theta_slices=0;
 if (theta_slices) {
@@ -559,6 +573,46 @@ drman=(Tz-Ta)/(Tb-Ta);              //weight of the closest temperature cell
 tpt=(1-drman)*tp[ia]+drman*tp[ib];  //compute actual proton and electron temperatures
 tet=(1-drman)*te[ia]+drman*te[ib];
 
+
+/***********************************************************************************/
+//RG: ADJUST ELECTRON TEMPERATURE
+/*************************************************************/
+//doub Y_e=0.62; doub mubar=0.62; // solar abundances
+//doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
+
+// Te_jet=35.*me*cc*cc/kb; // SCS: 35.
+// Te_jet=10.*me*cc*cc/kb; // SCS+jet: 10.
+Te_jet=me*cc*cc/kb;
+
+//printf("Te_jet=%e,tet=%e\n",Te_jet,tet);
+
+// single fluid simulation dump files contains: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+//doub rho_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][0]; // grmhd (HARM) code
+//doub u_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][1]; // grmhd (HARM) code
+//doub gamma_orig=4./3.; // 13./9.; // u_orig/P+1.;
+//RG:                               vv
+//doub u_Te_cap = Y_e*rho_orig/(mubar*mb)*kb*T_e/(gamma_orig-1.); // = n_e kb T_e/(gamma-1) 
+// set u_g=u_Te_cap get T_e the desired isothermal (constant) value, e.g. T_e = 3\times 10^{10}K.;
+//(*uu[snapshot_iteration_index])[i][theta_index][r_index][0] = u_orig*(1.-exp(-magn/magn_cap)) + u_Te_cap*(exp(-magn/magn_cap));
+
+// RG: MESS WITH ELECTRON TEMPERATURE
+
+// if (magn > magn_cap) {
+//   //printf("magn=%e,magn_cap=%e",magn,magn_cap);
+//   //printf("minT=%e",minT);
+   // tet = minT; // minT:minimum in temperature table. Tmin is misleading; related to TpTe...
+//   tet = Te_jet;
+//  }
+//tet = minT;
+
+tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
+
+//if (tet>1e11) printf("tet=%e\n",tet);
+/*************************************************************/
+/***********************************************************************************/
+
+
+
 for(m=0;m<4;m++)
 	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF
 		kxx[m]+=yyloKS[m][j]*kupKS[j];
@@ -592,7 +646,7 @@ kbperp=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]-kbpar*kbpar); //norm of the vector pro
 fr=kxx[0];                                              //redshift/Doppler shift
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
 	fr=-fr;
-//	printf("Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...");
+	printf("[evalpointzero.cpp]: Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...");
 };
 
 
