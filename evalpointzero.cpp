@@ -1,5 +1,8 @@
-//main routine for computing light emission/absorption/propagation properties through plasma
-bool sing;             //whether to do the fast light or full evolution of simulation as the light ray propagates
+/**********************************************************************************************/
+/* main routine for computing light emission/absorption/propagation properties through plasma */
+/**********************************************************************************************/
+
+bool sing;             //whether to do the fast light or full evolution of simulation as the light ray propagates //RG:sing->fast_light
 doub rr,               //radius
 	 costh,            //cos(polar angle)
 	 ph,               //azimuthal angle
@@ -148,7 +151,7 @@ if((lrz<=lrb) && (lra<=lrz)){
 		};
 	};
 } else {
-	printf("Array of radial coordinates does not include radius of interest \n Exiting");
+  printf("[evalpointzero.cpp]: Requested radius lrz=%lf coord[%d][0][0]=%lf outside of array of radial coordinates\n...EXITING...\n",lrz,ix,coord[ix][0][0]);
 	exit(-1);
 };
 lra=coord[ia][0][0];               //closest log of radius
@@ -391,7 +394,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	uKS[1]=0.;
 	uKS[2]=0.;
 	uKS[3]=0.;
-	doub expr=fabs((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3])* (uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3]) - iKS[0][0]*(1. + uKS[1]*uKS[1]*iKS[1][1] + 2.*uKS[1]*uKS[3]*iKS[1][3] + uKS[2]*uKS[2]*iKS[2][2] + uKS[3]*uKS[3]*iKS[3][3]));
+	doub expr=fabs((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3])* (uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3]) - iKS[0][0]*(1. + uKS[1]*uKS[1]*iKS[1][1] + 2.*uKS[1]*uKS[3]*iKS[1][3] + uKS[2]*uKS[2]*iKS[2][2] + uKS[3]*uKS[3]*iKS[3][3])); // RG: "excellent" variable name...
 	uKS[0]=-((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3] + sqrt(expr))/iKS[0][0]);
 	u[0]=uKS[0];
 	for(m=0;m<4;m++){
@@ -518,7 +521,7 @@ if(isBcut)                           //set temperature to zero in high magnetiza
    // T_e = T_{e,code}*exp(-magn/magn_cap) + T_{e,choice} (1-exp(-magn/magn_cap));
    /*************************************************************/
 
-   double rho_jet=0.;
+   double rho_jet=1.;
    rho = rho*exp(-magn/magn_cap) + rho*rho_jet*(1.-exp(-magn/magn_cap));
    //rho*=exp(-magn/10.);
    //rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
@@ -580,9 +583,9 @@ tet=(1-drman)*te[ia]+drman*te[ib];
 //doub Y_e=0.62; doub mubar=0.62; // solar abundances
 //doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
 
-// Te_jet=35.*me*cc*cc/kb; // SCS: 35.
-// Te_jet=10.*me*cc*cc/kb; // SCS+jet: 10.
-Te_jet=me*cc*cc/kb;
+Te_jet=35.*me*cc*cc/kb; // SCS: 35.
+//Te_jet=10.*me*cc*cc/kb; // SCS+jet: 10.
+//Te_jet=me*cc*cc/kb;
 
 //printf("Te_jet=%e,tet=%e\n",Te_jet,tet);
 
@@ -614,8 +617,8 @@ tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
 
 
 for(m=0;m<4;m++)
-	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF
-		kxx[m]+=yyloKS[m][j]*kupKS[j];
+	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF //RG: LFCRF=?LocallyFlatComovingReferenceFrame
+      kxx[m]+=yyloKS[m][j]*kupKS[j]; // RG: xx?
 for(m=0;m<4;m++)
 	for(j=0;j<4;j++)                //perpendicular vector in LFCRF
 		e1xx[m]+=yyloKS[m][j]*e1upKS[j];
@@ -643,10 +646,14 @@ e2xx[3]=e1xx[2]*kxx[1] - e1xx[1]*kxx[2];
 kbpar=(kxx[1]*B[1]+kxx[2]*B[2]+kxx[3]*B[3]);            //k.B scalar product
 kbperp=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]-kbpar*kbpar); //norm of the vector product k x B - main parameter for emissivity
 
-fr=kxx[0];                                              //redshift/Doppler shift
+fr=kxx[0];                                              //redshift/Doppler shift // RG: if kxx[0] is the red/Doppler shift then fr is not the frequency...
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
-	fr=-fr;
-	printf("[evalpointzero.cpp]: Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...");
+  fr=-fr; // RG: HMM... MAYBE "BETTER" TO FLOOR THE FREQUENCY...
+	printf("[evalpointzero.cpp]: Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n");
+    printf("(kxx[0],kxx[1],kxx[2],kxx[3]) = (%lf, %lf, %lf, %lf)\n",kxx[0],kxx[1],kxx[2],kxx[3]);
+    printf("yyloKS[1][0]*kupKS[0]=%lf, yyloKS[1][1]*kupKS[1]=%lf, yyloKS[2][1]*kupKS[2]=%lf, yyloKS[3][1]*kupKS[3]=%lf\n",yyloKS[1][0]*kupKS[0],yyloKS[1][1]*kupKS[1],yyloKS[2][1]*kupKS[2],yyloKS[3][1]*kupKS[3]); // RG: xx?
+
+    //exit(1);
 };
 
 

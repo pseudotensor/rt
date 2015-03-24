@@ -70,11 +70,17 @@ using namespace std;
 const doub PI = 4.0*atan(1.0);
 
 const int  ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+//const int  ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
            sflen=14,          //number of frequencies of interest for flux calculations
            flen=4,            //number of frequencies of interest for images
 	       thn=50,            //number of polar angle values to search for 
 	       dd=3,              //record size of average temperature & density file
+
+// THICKDISK7,DIPOLE3DFIDUCIALA,QUADRUPOLE
 	       wdd=11,            //record size of fluid simulations dump file
+// a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
+//	       wdd=11+3,            //record size of fluid simulations dump file
+
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
   maxco=3000,        //maximum number of points on a geodesic
 	       maxst=12000,       //maximum number of points for radial temperature profile

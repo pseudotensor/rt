@@ -334,8 +334,11 @@ V_xy = data[:,:,3]
 
 def w(arr):
     '''Apply blackman window function along both axis of 2d array (removes artefacts due to non-periodic boundaries).'''
-    arr = mlab.apply_window(arr,blackman(shape(arr)[0]),axis=0)
-    out = mlab.apply_window(arr,blackman(shape(arr)[1]),axis=1)
+    try:
+        arr = mlab.apply_window(arr,blackman(shape(arr)[0]),axis=0)
+        out = mlab.apply_window(arr,blackman(shape(arr)[1]),axis=1)
+    except:
+        out = arr
     return out
 
 I_uv = fftpack.fftshift(fftpack.fft2(w(I_xy),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))

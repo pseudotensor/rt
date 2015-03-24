@@ -1,7 +1,11 @@
 {//image of the emitting region
 //calculations are performed with better accuracy compared to other m_xxx.cpp calculations
+
+//RG: DEFAULT:
 doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
-	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
+ 	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
+//RG: 1e-6 too many points requested...
+
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
 	 xsnxy=9,  //5. number of points N along one side in the picture plane for N x N intensity grid
@@ -59,15 +63,16 @@ switch (cas){      //selection of a model (only few examples are shown)
 };
 printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 
-// average images over [ind] fluid snapshots
-ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
-sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
+
+/* SETTING UP MAIN LOOP OVER SNAPSHOTS */
+//ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
+//sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 
 //RG: catch fmin=fmax
 if (sep==0) sep=1;
 
-//RG: WHY NOT JUST...?
-sep=1;
+// WHY NOT JUST USE 
+int fnum_step=10;
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenMP
   

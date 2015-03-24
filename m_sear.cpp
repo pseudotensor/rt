@@ -38,6 +38,11 @@ ss=xss;
 
 //selecting one model to test
 sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
+cas=atoi(descr);
+ switch (cas){
+#include "lightup_jet.cpp"
+ }
+ cout << "fnum:" << fnum << endl;
 
 ind=co;               //number of snapshots = 2nd command line argument
 testN=atoi(descr);    //ID of initial deviation from global defined model = job array ID
@@ -46,8 +51,10 @@ if(isLP87)            //either include or not include in the fit the LP fraction
 	nPeff=nP; 
 else 
 	nPeff=nP-1;
-sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
-printf("testN=%d;  ind=%d\n",testN,ind);
+
+//if (ind<2) sep=2;
+//sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
+if (sep==0) sep=1;
 
 dheat=0.;             //initialize local model (w/ deviation) = global model
 drho=0.;
@@ -108,6 +115,10 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 			heat=inp[oo][0];
 			rhonor=inp[oo][1];
 			th=inp[oo][2];
+            
+            //RG: 
+            printf("sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
+
 			init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
 			#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 			#include "intensity.cpp"

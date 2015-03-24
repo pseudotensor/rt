@@ -64,17 +64,52 @@ if(!inited){
 	pbuf=dxp.rdbuf();
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));
 	dxp.read(reinterpret_cast<char *>(dxdxp), ndd*thlen*4*4*sizeof(float));
+
+    //RG:FIXME TESTING THICKDISK7 dxdxp.dat
+    //ndd=650; thlen=128;
+	// ifstream dxp((dir+astr[sp]+xstr+"dxdxp-thickdisk7.dat").c_str(), ios::in|ios::binary);
+	// pbuf=dxp.rdbuf();
+	// dxp.read(reinterpret_cast<char *>(coord), 650*128*2*sizeof(float));
+	// dxp.read(reinterpret_cast<char *>(dxdxp), 650*128*4*4*sizeof(float));
+
 	dxp.close();
 	
 	//polar angles of a "deformed" grid
 	for(k=0;k<ndd;k++)
+	//for(k=0;k<650;k++)
+
+      //RG: REPORT COORDINATES
+      //printf("[init.cpp]: r[%d]=%e\n",k,exp(coord[k][0][0]));
+
 		for(i=0;i<thlen;i++) {
+
+          //RG: CHECK FOR NAN
+          for(m=0; m<4; m++) {
+            if (dxdxp[k][i][1][m]!=dxdxp[k][i][1][m]) {
+                cout << "[init.cpp]: dxdxp coordinates contain nan. Unwise to continue..." << endl;
+                exit(1);}
+            }
+          if (coord[k][i][1]!=coord[k][i][1]) {
+            cout << "[init.cpp]: Theta coordinates contain nan. Unwise to continue..." << endl;
+            exit(1);}
+
 			theta[k][i]=coord[k][i][1];
 		};
+
 	//radial grid & mean internal energy densities = "temperatures"
 	for(k=0;k<ncut;k++) {
+
+          //RG: CHECK FOR NAN
+          if (coord[k][0][0]!=coord[k][0][0]) {
+            cout << "[init.cpp]: Radial coordinates contain nan. Unwise to continue..." << endl;
+            exit(1);}
+
 		rtab[k]=exp(coord[k][0][0]);
 		Tstab[k]=xx[k][1];
+
+        //RG: REPORT COORDINATES
+        //printf("[init.cpp]: r[%d]=%e\n",k,rtab[k]);
+
 	};
 	maxT=Tstab[0];//maximum internal energy density
 	rmin=xx[0][0];//minimum radius (inside the event horizon)
@@ -127,6 +162,18 @@ for(i=-fdiff;i<=fdiff;i++) {
 	int fsize=pbuf->pubseekoff (0,ios::end),                //file size
 		tosize=wdd*phlen*thlen*rlen*sizeof(float);          //size of binary region
 	pbuf->pubseekpos(fsize-tosize);                         //discarding the text region in the beginning of dump file
+
+    /* RG: TESTING remove header in file */
+	// pbuf->pubseekpos(0);
+    //fline.read(reinterpret_cast<char *>(uu[ioff]), fsize-tosize);// -> 0
+    //char header[156];
+    //FILE *my_fp=fopen("fieldline1000.bin","r");
+    //fscanf(my_fp,156);// -> 0
+    //my_fp.close();
+    //cout << "156 header bytes: " << fline << endl;
+    //exit(1);
+    /***************/
+
 	fline.read(reinterpret_cast<char *>(uu[ioff]), tosize); //reading as binary
     if(fline.good())
 		printf("fieldline %d read\n",fx);
@@ -218,6 +265,25 @@ for(k=0;k<thlen-1;k++)
 			for(m=0;m<4;m++)
 				uspKS[j][i][k]+=dxdxp[nx-1][k][1][m]*usp[j][i][k][m];//radial velocity in KS metric
 			rate+=2./phlen*PI*(rx*rx+ asq*theta[nx-1][k]*theta[nx-1][k+1])*(*uu[j])[i][k][nx-1][0]*uspKS[j][i][k]*(theta[nx-1][k]-theta[nx-1][k+1]);
+
+            //RG: Check for NAN
+            if (isnan(rate)){//!=rate){
+              printf("rate=%e,i=%d,j=%d,k=%d,rhonor=%e,rgrav=%e,fdiff=%d\n",rate,i,j,k,rhonor,rgrav,fdiff); // rate is nan
+              printf("rate=%e,i=%d,j=%d,k=%d,rx=%e,asq=%e,theta[nx-1][%d]=%e\n",rate,i,j,k,rx,asq,k+1,theta[nx-1][k+1]); // rate is nan
+              printf("rate=%e,uu[%d][%d][%d][nx-1][0]=%e,uspKS[j][i][k]=%e\n",rate,j,i,k,(*uu[j])[i][k][nx-1][0],uspKS[j][i][k]); //RG:FIXME uspKS[0][21][1] = -nan !!!
+              printf("rate=%e,dxdxp[nx-1][k][1][0]=%e,usp[j][i][k][0]=%e\n",rate,dxdxp[nx-1][k][1][0],usp[j][i][k][0]); 
+              printf("rate=%e,dxdxp[nx-1][k][1][1]=%e,usp[j][i][k][1]=%e\n",rate,dxdxp[nx-1][k][1][1],usp[j][i][k][1]); //RG:FIXME usp[0][21][1] = -nan !!!
+              printf("rate=%e,dxdxp[nx-1][k][1][2]=%e,usp[j][i][k][2]=%e\n",rate,dxdxp[nx-1][k][1][2],usp[j][i][k][2]); 
+              printf("rate=%e,dxdxp[nx-1][k][1][3]=%e,usp[j][i][k][3]=%e\n",rate,dxdxp[nx-1][k][1][3],usp[j][i][k][3]); 
+              //printf("rate=%e,u0=%lf,uu[0][21][1][nx-1][5]=%lf\n",rate,u0,uu[0][21][1][nx-1][5]); //RG:FIXME uu[0][21][1][nx-1][5] = ???
+              // RG: FIXME: rate -nan due to uu array -> fieldline data ??
+
+              cout << u0 << endl;
+
+              exit(1); /***************************************** EXIT *****************/
+            }
+
+
 		};
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1);//accretion rate in physical units
 

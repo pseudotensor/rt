@@ -5,7 +5,7 @@
 # Roman Gold, started 2015-02-01
 #####################################################
 
-import sys
+import sys,os
 
 import matplotlib 
 #matplotlib.use("wx")
@@ -22,6 +22,8 @@ from scipy import fftpack
 import matplotlib.ticker as ticker
 
 ## USER SPECS ##
+mbreve="yes"
+dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
 m_LP_cap = 0.7
 m_CP_cap = 1.0
@@ -78,6 +80,10 @@ dEVPA_vs_t  = [] # to be filled with single/two opposite points in (u,v) data
 
 FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE]
+
+# SORT IT ACCORDING TO TIME STAMP IN FILENAME
+FILES_1D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0].split('hi')[0]))
+FILES_2D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0]))
 
 for snapshot in FILES_2D:
 
@@ -193,7 +199,11 @@ for snapshot in FILES_2D:
     ###################################################################
 
     # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    t += [(float(filename.split("fn")[1].split('_')[0])-6100.)*4. * (G*M/c**3) /60.]
+    #dt = 4. ## thickdisk7
+    #t_ref = 6100 ## thickdisk7
+    dt = 5. ## a0mad
+    t_ref = 2000
+    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt * (G*M/c**3) /60./60.]
     mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
     mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
     dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
@@ -213,38 +223,42 @@ for jump_removal_iteration in range(5):
 
 if size(FILES_2D)>0:
 
+  if mbreve=="yes":
+      ##########################
+      figure(0,figsize=(12,6)) #
 
-  ##########################
-  figure(0,figsize=(12,6)) #
+      labelstring_mbreve=[
+          r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
+          r"$uv="+str(round(u[u_probe_opposite_index],1))+"G\lambda$"
+          # r"$(u="+str(round(u[u_probe_index],1))+",v="+str(round(v[v_probe_index],1))+")$",
+          # r"$(u="+str(round(u[u_probe_opposite_index],1))+",v="+str(round(v[v_probe_opposite_index],1))+")$"
+          ]
+      plot(t,mbreve_vs_t,"bo-",label=labelstring_mbreve[0])
+      plot(t,mbreve_opposite_vs_t,"r+-",label=labelstring_mbreve[1])
+      legend(loc="upper right",labelspacing=0.1,fontsize=15)
+      title(os.getcwd().split('/')[-1])
+      xlabel(r"$t/h$")
+      ylabel(r"$\breve{m}$")
+      # ylabel(r"$\breve{m}(\|u\|="+str(round(v[v_probe_index],1))+",\|v\|="+str(round(v[v_probe_index],1))+")$")
+      axis((amin(t),amax(t),0,1.1))
+      #axis((t[0],t[-1],0,1.1))
+      tight_layout()
+      savefig("mbreve-vs-t.png")
+      savefig("mbreve-vs-t.pdf")
 
-  labelstring_mbreve=[
-      r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
-      r"$uv="+str(round(u[u_probe_opposite_index],1))+"G\lambda$"
-      # r"$(u="+str(round(u[u_probe_index],1))+",v="+str(round(v[v_probe_index],1))+")$",
-      # r"$(u="+str(round(u[u_probe_opposite_index],1))+",v="+str(round(v[v_probe_opposite_index],1))+")$"
-      ]
-  plot(t,mbreve_vs_t,"bo",label=labelstring_mbreve[0])
-  plot(t,mbreve_opposite_vs_t,"r+",label=labelstring_mbreve[1])
-  legend(loc="upper right",labelspacing=0.1,fontsize=15)
-  xlabel(r"$t/min$")
-  ylabel(r"$\breve{m}$")
-  # ylabel(r"$\breve{m}(\|u\|="+str(round(v[v_probe_index],1))+",\|v\|="+str(round(v[v_probe_index],1))+")$")
-  axis((amin(t),amax(t),0,1.1))
-  #axis((t[0],t[-1],0,1.1))
-  tight_layout()
-  savefig("mbreve-vs-t.png")
 
+  if dEVPA=="yes":
+      ########################
+      figure(1,figsize=(12,6)) #
 
-  ########################
-  figure(1,figsize=(12,6)) #
-
-  # WIP clean 180deg jumps using diff()
-  plot(t,dEVPA_vs_t,"g^")
-  xlabel(r"$t/min$")
-  ylabel(r"$\delta EVPA(\|uv\|="+str(round(v[v_probe_index],1))+"G\lambda)$") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
-  #xlim(t[0],t[-1])
-  tight_layout()
-  savefig("dEVPA-vs-t.png")
+      # WIP clean 180deg jumps using diff()
+      plot(t,dEVPA_vs_t,"g^")
+      xlabel(r"$t/h$")
+      ylabel(r"$\delta EVPA(\|uv\|="+str(round(v[v_probe_index],1))+"G\lambda)$") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
+      #xlim(t[0],t[-1])
+      tight_layout()
+      savefig("dEVPA-vs-t.png")
+      savefig("dEVPA-vs-t.pdf")
 
   if False:
       figure(2)
@@ -284,8 +298,8 @@ if string.lower(SED)=="yes":
         SED_default_filename="/home/rgold/rt/thickdisk7/Te-default/poliresa93.75th130fn6130hi.dat" # WIP
         SED_default=loadtxt(SED_default_filename,usecols=(1,2))
 
-        plot(SED_SCSjet[:,0],SED_SCSjet[:,1],'mx-',label=r"$\rm T_{e,jet}=10m_ec^2,SCS+jet$")
-        plot(SED_default[:,0],SED_default[:,1],'cD-',label=r"$\rm default$")
+        #plot(SED_SCSjet[:,0],SED_SCSjet[:,1],'mx-',label=r"$\rm T_{e,jet}=10m_ec^2,SCS+jet$")
+        #plot(SED_default[:,0],SED_default[:,1],'cD-',label=r"$\rm default$")
 
     except IOError:
         pass
@@ -299,7 +313,7 @@ if string.lower(SED)=="yes":
     def SgrA_SED_FIT(nu):
         return 0.248*nu**0.45 * exp(-(nu/1100.)**2)
 
-    plot(SED_SCS[:,0],SED_SCS[:,1],'bo-',label=r"$\rm T_{e,jet}=35m_ec^2,SCS$")
+    #plot(SED_SCS[:,0],SED_SCS[:,1],'bo-',label=r"$\rm T_{e,jet}=35m_ec^2,SCS$")
     errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
     plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
 
@@ -312,6 +326,8 @@ if string.lower(SED)=="yes":
     xlabel(r"$\nu/Ghz$")
     ylabel(r"$F_\nu/Jy$")
     tight_layout()
+    savefig("SED.png")
+    savefig("SED.pdf")
 
 ##################################
 print "============\n====DONE===="

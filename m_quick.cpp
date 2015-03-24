@@ -30,7 +30,7 @@ ss=xss;
 cas=atoi(descr);   //batch job ID = selection of model spin, snapshot IDs, density, heating constant, viewing angle + auxiliary parameters
 start=clock();
 iswrite=true;      //write results to disk
-kmin=2;kmax=13;    //selection of minimum and maximum frequencies from "sftab" array
+kmin=0;kmax=13;    //selection of minimum and maximum frequencies from "sftab" array
 fmin=6850;fmax=9850;//default minimum and maximum fluid simulation IDs
 sep=50;            //default ID difference between consecutively taken fluid simulation snapshots
 fdiff=30;          //default d(ID) so that light rays propagate as simulation evolves from fnum-fdiff to fnum+fdiff IDs
@@ -55,14 +55,17 @@ switch (cas){      //selection of a model (only few examples are shown)
 	case 11: fmin=6850;fmax=9850;sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_Bp15";Bpo-=0.5;break;             //change magnetic field extension slope - first synchronize with command line arguments!
 	case 12: fmin=10000;fmax=18720;sp=0;rhonor=2.5e+8; heat=0.55;th=1.8407;fdiff=0;break; //fast light approximation // RG: fdifff=0 and fmin!=fmax does not make sense to me...
       // case 112: fmin=7033;fmax=7033;sp=0;rhonor=2.5e+8; heat=0.55;th=1.8407;fdiff=0;break;
- case 112: fmin=6900;fmax=7016;sp=0; rhonor=14802376.9520; heat=0.59894;th=2.356;thlimit=0.1;isBcut=false;fdiff=0;kmin=7;kmax=7;break;
-// RG: I introduce my own cases and use 3 digit cases
+    // case 112: fmin=6900;fmax=7016;sp=0; rhonor=14802376.9520; heat=0.59894;th=2.356;thlimit=0.1;isBcut=false;fdiff=0;kmin=7;kmax=7;break;
+// RG: I introduce my own cases and use 3 digit cases // look below at include commands 
 
 	case 14: sp=0;fmin=12424;fmax=22424;rhonor=14802376.9520; heat=0.59894;th=2.356;thlimit=0.1;isBcut=false;fdiff=0;break;       //introducing non-zero thlimit, setting isBcut and isBred
 	case 35: sp=0;rhonor=261385.84479; heat=0.15572;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//changing viewing angle, almost edge-on
 	case 36: sp=0;rhonor=261385.84479; heat=0.15572;th=2.967/*10 deg from face-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//changing viewing angle, almost face-on
 	case 37: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=2.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 2*PI/3
 	case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
+
+      #include "lightup_jet.cpp"
+
 };
 
 printf("Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);

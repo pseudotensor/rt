@@ -35,16 +35,24 @@ cout << "Assuming fluid snapshot is here: fdir="+fdir+"fieldline"+sstr.str()+".b
  cout << "sp=" << sp << endl;
 ifstream xfline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in);//read from a fluid simulation snapshot as text
 
-// RG: does not work for thickdisk7
+// RG: thickdisk7
 //xfline>>tt>>nx1>>nx2>>nx3>>x1min>>dx1>>dx1>>dx1;                      //read a number of variables from file including grid dimensions - check how it works for your fluid simulations
 
 // RG: WIP
 xfline>>tt>>nx1>>nx2>>nx3>>x1min>>dx1>>dx1>>dx1;                      //read a number of variables from file including grid dimensions - check how it works for your fluid simulations
 
+//THICKDISK7 HEADER
+//xfline>>off>>off>>off>>off>>off>>off;
+//xfline>>off>>off>>off;
 
+// dipole3dfiduciala
 xfline>>off>>off>>off>>off>>off>>off;
 xfline>>off>>off>>off;
+
 xfline.close();
+
+// RG: talk about it
+ printf("tt=%e,nx1=%d,nx2=%d,nx3=%d,x1min=%e,dx1=%e\n",tt,nx1,nx2,nx3,x1min,dx1);
 
 if((rlen!=nx1)||(thlen!=nx2)||(phlen!=nx3)){                          //check that the grid dimensions specified in "win_lin..." agrees with that found in simulation snapshots
   printf("rlen=%d,nx1=%d,thlen=%d,nx2=%d,phlen=%d,nx3=%d\nErrors in dimensions \n Exiting ",rlen,nx1,thlen,nx2,phlen,nx3);
@@ -53,7 +61,9 @@ if((rlen!=nx1)||(thlen!=nx2)||(phlen!=nx3)){                          //check th
 
 
 filebuf *pbuf;                                                        //auxiliary file buffer
-if(astr[sp].length()<4){                                              //differentiate between reading "usgdump2d" and "dxdxp.dat"
+//if(astr[sp].length()<4){                                              //differentiate between reading "usgdump2d" and "dxdxp.dat"
+ printf("Assume we are working with dxdxp.dat files rather than usgdump2d\n");
+ if(false){                                              //differentiate between reading "usgdump2d" and "dxdxp.dat"
 	ifstream gre((dir+astr[sp]+xstr+"usgdump2d").c_str(), ios::in|ios::binary);//read "usgdump2d" file as binary - check path!
 	pbuf=gre.rdbuf();                                                 //define buffer
 	pbuf->pubseekpos(usgoff);                                         //set the reading position at the beginning of the array of records
@@ -71,13 +81,23 @@ if(astr[sp].length()<4){                                              //differen
 	ifstream dxp((dir+astr[sp]+xstr+"dxdxp.dat").c_str(), ios::in|ios::binary);//read "dxdxp.dat" file, which was pre-generated in Mathematica
 	pbuf=dxp.rdbuf();                                                 //define buffer
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));//read coordinates 2D matrix
-	dxp.read(reinterpret_cast<char *>(dxdxp), ndd*thlen*4*4*sizeof(float));//read transformation matrix from MKS to KS - not actually used
+	dxp.read(reinterpret_cast<char *>(dxdxp), ndd*thlen*4*4*sizeof(float));//read transformation matrix from MKS to KS - not actually used // RG: WHAT?!
 	dxp.close();
 	for(k=0;k<rlen;k++)
 		for(i=0;i<thlen;i++){
+
+          if (coord[k][i][1]!=coord[k][i][1]) {
+            cout << "[m_ts.cpp]: Theta coordinates contain nan. Unwise to continue..." << endl;
+            exit(1);}
+
 			theta[k][i]=coord[k][i][1];                               //define theta grid (for each radius)
 		}
 	for(k=0;k<rlen;k++){
+
+          if (coord[k][0][0]!=coord[k][0][0]) {
+            cout << "[m_ts.cpp]: Radial coordinates contain nan. Unwise to continue..." << endl;
+            exit(1);}
+
 		rad[k]=exp(coord[k][0][0]);                                   //radial grid
 	};
 }
@@ -94,7 +114,9 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){                                  //cycle ov
 	ifstream fline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in|ios::binary);//read another fluid simulation snapshots
 	pbuf=fline.rdbuf();                                               //initialize buffer
 	int fsize=pbuf->pubseekoff (0,ios::end),                          //size of file
-		tosize=11*phlen*thlen*rlen*sizeof(float);                     //size of binary section of fluid simulation snapshot file
+	tosize=wdd*phlen*thlen*rlen*sizeof(float);                        //size of binary section of fluid simulation snapshot file
+    //RG: WHY DEFINE wdd and not use it?
+    //tosize=11*phlen*thlen*rlen*sizeof(float);                       //size of binary section of fluid simulation snapshot file
 	pbuf->pubseekpos(fsize-tosize);                                   //set file position at the beginning of binary section
 	fline.read(reinterpret_cast<char *>(uu[0]), tosize);              //read fluid simulation snapshot
 	fline.close();
@@ -106,7 +128,7 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){                                  //cycle ov
 			};
 
 //done till here
-// RG: THIS INDEX-BASED HARDWIRING APPEARS TO BE DANGEROUS
+// RG:FIXME THIS INDEX-BASED HARDWIRING APPEARS TO BE DANGEROUS
 	int nx=37;                                                        //radial point, where instantaneous space-averaged density is computed
     cout << "[HARDWIRE]: nx="+nx<<endl; //RG:FIXME not reached...
 	doub rx=rad[nx-1];                                                //correspondent radius
@@ -118,10 +140,10 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){                                  //cycle ov
 	printf("fn=%d: average density at r=%f is rho=%f \n",fnum,rx,rhoinst);
 };
 	
-bool sorted=false;                                                    //bubble sorting of density and energy density profiles. These arrays are alredy almost sorted
+bool sorted=false;                                                    //bubble sorting of density and energy density profiles. These arrays are already almost sorted
 doub temp;
 while(!sorted){
-	sorted=true;
+    sorted=true;
 	for(ix=1;ix<rlen;ix++){
 		if(ts[ix-1]<ts[ix]){
 			temp=ts[ix-1];

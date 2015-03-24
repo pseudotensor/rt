@@ -34,7 +34,7 @@ int solvetemperature (doub rz, const doub zz[],doub ff[],void *pas) {
 	doub Dts=(Tstab[ib]-Tstab[ia])/(rtab[ib]-rtab[ia]),                 //internal energy density gradient
          dcap=2.-0.49/(0.7+kb*zz[0]/me/cc/cc)/(0.7+kb*zz[0]/me/cc/cc),  //heat capacity coefficient dcap=1..2
          rhofun=rhocon*pow(rz/rcut,-rhopo),                             //approximate density at rz
-         nuc=8.9e-11*pow(zz[0]/(doub)3e10,(doub)-1.5)*rhofun/1e7,       //Coulomb collisions term. Warning: its normalization depends on BH mass!
+         nuc=8.9e-11*pow(zz[0]/(doub)3e10,(doub)-1.5)*rhofun/1e7,       //Coulomb collisions term. Warning: its normalization depends on BH mass! //RG:FIXME This should be mentinoed in documentation (easy to miss)
 		 tail=nuc*2.*mp*rgrav*rgrav*rgrav*rz*rz*rhofun/9e16*(zz[1]-zz[0])+ 2*(sqrt(zz[1])/(sqrt(zz[1])+heat*sqrt(zz[0]))-heat/dcap*sqrt(zz[0])/(sqrt(zz[1])+heat*sqrt(zz[0])))*Dts;
 	     //energy flux between electrons and protons
     

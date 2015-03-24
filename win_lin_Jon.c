@@ -4,21 +4,74 @@
 //adir - points to fluid simulation dump files
 //POWERLAW
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
-//THERMAL
-const string dir="/home/rgold/rt/thermal/", adir="/home/rgold/rt/thermal/", fieldstr="/dumps/", xstr="/";
+
 const int nthreads=24; // 24: bh01;// 8;//Orange
-const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX
 
 // RG: this is from win_lin_ADAF.c
 /* const int ncuttab[3] = {100, 116, 128}, rlen=272, thlen=128,phlen=256, */
 /* 	 usgsize=69/\*record size in usgdump2d*\/,usgoff=156/\*offset in usgdump2d file*\/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations */
 
-// RG: default
+// RG: THICKDISK7 GRMHD model
+const string dir="/home/rgold/rt/thermal/", adir=dir, fieldstr="/dumps/", xstr="/";
+
+//RG: WHY "int"?
+const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX
+// RG: THICKDISK7
 const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,
 	 usgsize=69/*record size in usgdump2d*/,usgoff=156/*offset in usgdump2d file*/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations
-
-//const string astr[1]={"b2.5"}; //RG: POWERLAW
 const string astr[1]={"thermal"};
-
 const doub atab[1]={0.9375};
+
+// THICKDISKHR3
+/* const string dir="/home/rgold/rt/thickdiskhr3/", adir=dir, fieldstr="/dumps/", xstr="/";  */
+/* const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX */
+/* const int ncuttab[1] = {143}, rlen=256, thlen=128,phlen=256, */
+/*   usgsize=69/\*record size in usgdump2d*\/,usgoff=156; */
+/* const string astr[1]={""}; */
+/* const doub atab[1]={0.9375}; */
+
+
+// RG: dipole3dfiduciala GRMHD model
+/* const string dir="/home/rgold/rt/dipole3dfiduciala/", adir="/home/rgold/rt/dipole3dfiduciala/", fieldstr="/dumps/", xstr="/"; */
+
+/* const int ncuttab[1] = {120}, rlen=256, thlen=128,phlen=32, */
+/* 	 usgsize=69/\*record size in usgdump2d*\/,usgoff=156/\*offset in usgdump2d file*\/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations */
+/* const string astr[1]={""}; //"dipole3dfiduciala"}; //RG: POWERLAW */
+/* const doub atab[1]={0.92}; */
+/* const int dtimdf=2.; */
+
+
+// RG: thinner MAD GRMHD models
+/* const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32, */
+/*      // actually no usgdump2d file but for consistency */
+/* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
+/* const string astr[1]={""}; */
+/* const int dtimdf=5; */
+
+// a0mad or thinnermad0
+// const doub atab[1]={0.0};
+// const string dir="/home/rgold/rt/a0mad/", adir=dir, fieldstr="/dumps/", xstr="/";
+// thinnermad9beta25
+/* const doub atab[1]={0.9}; */
+/* const string dir="/home/rgold/rt/thinnermad9beta25/", adir=dir, fieldstr="/dumps/", xstr="/"; */
+
+// thinnermad9beta25
+//const doub atab[1]={-0.9};
+//const string dir="/home/rgold/rt/thinnermadneg9/", adir=dir, fieldstr="/dumps/", xstr="/";
+
+
+// RG: quadrupole MRI GRMHD models (i.e. blandford3d)
+/* const int ncuttab[1] = {120}, rlen=128, thlen=128,phlen=32, */
+/*      // actually no usgdump2d file but for consistency */
+/* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
+/* const string astr[1]={""}; */
+/* const int dtimdf=4; */
+/* const doub atab[1]={0.9375}; */
+/* const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/"; */
+
+
+
+/**************************** CHOOSE MODEL **********************************/
+/****************************************************************************/
+
 char * descr = getenv("LSB_JOBINDEX");
