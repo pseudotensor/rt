@@ -17,7 +17,7 @@ doub step=xstep,   //local variables, which control radiative transfer
 	 sstep=xsstep,
 	 Iint=xIint,
 	 Iang=xIang;
-int ind,           //number of time frames for spectrum evaluation
+int ind,           //number of time frames for spectrum evaluation (to compute mean spectrum)
 	fmin,          //minimum ID of fluid simulation snapshot
 	fmax;          //maximum ID of fluid simulation snapshot
 string qadd="";    //output filename modifier, helps to distinguish cases
@@ -65,7 +65,7 @@ printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
 
 
 /* SETTING UP MAIN LOOP OVER SNAPSHOTS */
-//ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each)
+//ind=21;                 //set a number of fluid simulation snapshots (an image is computed for each) (average spectra over ind nr of snapshots? see appendix in Shcherbakov,Penna & McKinney 2012)
 //sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 
 //RG: catch fmin=fmax
@@ -82,6 +82,10 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenM
   init(sp,fmin,fmax,sep); //RG: sep not used in init()... remove!
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "imaging.cpp"	
+
+  //RG: every new should be match with delete or we leak memory
+  //delete[] uu; // ERROR why?
 }
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
+
 }

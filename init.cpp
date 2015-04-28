@@ -56,8 +56,12 @@ if(!inited){
 	//allocating memory for fluid simulation snapshots - takes some time
 	for(j=0;j<2*fdiff+1;j++)
 		loaded[j]=0;
-	for(j=0;j<2*fdiff+1;j++)
-		uu[j]=(uuarr) new float[phlen][thlen][rlen][wdd];
+
+    // RG: We have done that already in ASTRORAY_main.cpp
+    // RG: As long as fdiff is defined globally not locally within cases we can remove the below two-liner
+	// for(j=0;j<2*fdiff+1;j++)
+	//  	uu[j]=(uuarr) new float[phlen][thlen][rlen][wdd];
+    // RG: new should have a matching delete or we leak memory
 
 	//reading coordinate matrix and coordinate transformation matrix
 	ifstream dxp((dir+astr[sp]+xstr+"dxdxp.dat").c_str(), ios::in|ios::binary);
@@ -114,7 +118,7 @@ if(!inited){
 	maxT=Tstab[0];//maximum internal energy density
 	rmin=xx[0][0];//minimum radius (inside the event horizon)
 
-    //reading emissivities jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
+    //reading emissivities for [THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
     cout << "READING in lookup???.dat files from dir="+dir+"\n";
 
 	ifstream fI ((dir+"lookupjIy.dat").c_str(), ios::in);
@@ -134,7 +138,62 @@ if(!inited){
 	}
 	fI.close();fQ.close();fV.close();frQ.close();frV.close();
 
+
+    if (nth) {
+      //  stringstream dir_nth="/home/rgold/rt/newthermaltabs/";
+      const string       dir_nth="/home/rgold/rt/newthermaltabs/";
+      //char dir_nth[64]="/home/rgold/rt/newthermaltabs/";
+      cout << "READING in NEW THERMAL lookup but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir+"\n";
+
+    // thermal tabs v1 (sanity check: expect agreement with old tables)
+    ifstream fI_nth ((dir_nth+"origlookup_thermalIjcSs_log.dat").c_str(), ios::in);
+	ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_log.dat").c_str(), ios::in);
+	ifstream fV_nth ((dir_nth+"origlookup_thermalVjcSs_log.dat").c_str(), ios::in);
+
+	ifstream faI_nth ((dir_nth+"origlookup_thermalaIT_log.dat").c_str(), ios::in);
+	ifstream faQ_nth ((dir_nth+"origlookup_thermalaQT_log.dat").c_str(), ios::in);
+	ifstream faV_nth ((dir_nth+"origlookup_thermalaVT_log.dat").c_str(), ios::in);
+
+    //reading emissivities for [NON-THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
+    char nth_power[8]="2.4";
+    // cout << "READING in NON-THERMAL origlookup_"<<nth_power<<"jcSs_log.dat files from dir="+dir+"\n";
+
+	//ifstream fI_nth ((dir+"origlookup_"+nth_power+"_IjcSs_log.dat").c_str(), ios::in);
+	// ifstream fQ_nth ((dir+"origlookup_"+nth_power+"_QjcSs_log.dat").c_str(), ios::in);
+	// ifstream fV_nth ((dir+"origlookup_"+nth_power+"_VjcSs_log.dat").c_str(), ios::in);
+    
+    // RG: Te rotativities are just fake, we zero them out afterwards
+    // RG: problems when lookup sizes differ between th vs nth?
+	ifstream frQ_nth ((dir+"origlookup_thermalrQT_log.dat").c_str(), ios::in);
+	ifstream frV_nth ((dir+"origlookup_thermalrVT_log.dat").c_str(), ios::in); 
+
+	for(k=0;k<=Tlen_nth;k++) 
+		for(j=0;j<=nWlen_nth;j++) {
+			fI_nth>>jI_nth[k][j];
+			fQ_nth>>jQ_nth[k][j];
+			fV_nth>>jV_nth[k][j];
+
+			faI_nth>>aI_nth[k][j];
+			faQ_nth>>aQ_nth[k][j];
+			faV_nth>>aV_nth[k][j];
+		}
+	for(k=0;k<=2*Tlen_nth;k++) {
+
+			frQ_nth>>rQ_nth[k];
+			frV_nth>>rV_nth[k];
+
+      // if (k==0) printf("[init.cpp]: ZEROING OUT ROTATIVITIES FOR NON-THERMALS\n");
+      // frQ_nth>>rQ_nth[k];rQ_nth[k]=0.;
+      // frV_nth>>rV_nth[k];rV_nth[k]=0.;
+        
+	}
+	fI_nth.close();fQ_nth.close();fV_nth.close();frQ_nth.close();frV_nth.close();
+    
+
+
+
 	inited=true; //repeat once
+    };
 };
 
 //reading fluid simulation dump files from disk
@@ -178,7 +237,9 @@ for(i=-fdiff;i<=fdiff;i++) {
     if(fline.good())
 		printf("fieldline %d read\n",fx);
 	else { 
-		printf("Something is wrong loading fluid simulation dumps \n Exiting");
+      printf("Something is wrong loading fluid simulation dumps\n...EXITING...\n");
+      // WRONG
+      // printf("Something is wrong loading fluid simulation dumps fline=%s\n Exiting",fline);
 		exit(-1);
 	};
 	fline.close();
@@ -191,6 +252,29 @@ for(i=-fdiff;i<=fdiff;i++) {
 // single fluid simulation dump files contains: 
 // uu[?]:     [0    1   2     3                4    5    6        7      8    9        10   ]
 //             rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+
+
+
+/****** OVERWRITE DATA WITH AVERY'S FORCE-FREE TOY JET MODEL ************/
+char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+
+if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
+  cout << "...[WIP]..." << endl;
+  cout << "...SETTING UP AVERY'S FORCE_FREE TOY JET MODEL..." << endl;
+  if (fdiff!=0) {
+    fdiff=0;
+    printf("You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
+  }
+  //RG: SETUP AVERY'S TOYJET + RIAF MODEL
+  // consider use of something like #ifdef TOYJET ?
+  // #include "setup_averys_toyjet.cpp"
+  }
+
+
+// for(int var=0;var<=10;var++)
+//   printf("(*uu[0])[0][0][0][%d]=%e\n",var,(*uu[0])[0][0][0][var]);
+
+
 //for(theta_index=0;theta_index<thlen-1;theta_index++)
 // int theta_bc_cells = 5;
 // //RG: HMM...                        vv
@@ -250,6 +334,7 @@ for(k=ncut;k<ndd;k++){
 int nx=60;                       //radial point where accretion rate is computed
 doub rx=exp(coord[nx-1][0][0]),  //radius at nx
 	 u0;                         //u^t
+printf("[init.cpp]: HARDWIRED r[nx=%d]=%e (radius where mdot is evaluated)\n",nx,rx);
 rate=0.;
 
 //computing the accretion rate in code units
@@ -278,7 +363,7 @@ for(k=0;k<thlen-1;k++)
               //printf("rate=%e,u0=%lf,uu[0][21][1][nx-1][5]=%lf\n",rate,u0,uu[0][21][1][nx-1][5]); //RG:FIXME uu[0][21][1][nx-1][5] = ???
               // RG: FIXME: rate -nan due to uu array -> fieldline data ??
 
-              cout << u0 << endl;
+              cout << "u0=" << u0 << endl;
 
               exit(1); /***************************************** EXIT *****************/
             }
@@ -506,10 +591,13 @@ for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
         uext[np][nt][0]=B[1];
         uext[np][nt][1]=B[2];
         uext[np][nt][2]=B[3];
+
     };
 };
 
 printf("\nExiting [init.cpp]\n");
 
-return(0);
+return 0; // init()
 }
+
+

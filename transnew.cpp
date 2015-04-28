@@ -21,17 +21,34 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
     ff[2]=(det*(cosqs*sin2k - cos2k*sinqs)*(jQc - aQc*frcu*yyy[0]) - det*frcu*(cos2k*cosqs*cosths*rQc + cosths*rQc*sin2k*sinqs -rVc*sinths)*yyy[1])/(frsq*sinths*yyy[1]);
     ff[1]= (det*((cos2k*cosqs + sin2k*sinqs)*sinths*(jQc - aQc*frcu*yyy[0]) + cosths*(jVc -aVc*frcu*yyy[0]) - aIc*frcu*yyy[1]))/frsq;
     ff[3]=(det*(-(jVc*sinths) + aVc*frcu*sinths*yyy[0] + cos2k*cosqs*cosths*(jQc - aQc*frcu*yyy[0]) + cosths*sin2k*sinqs*(jQc - aQc*frcu*yyy[0]) + cosqs*frcu*rQc*sin2k*yyy[1] -cos2k*frcu*rQc*sinqs*yyy[1]))/(frsq*yyy[1]);
-    ff[4]= det*(-fr*xaIc*yyy[4] + xjIc/frsq);
+    ff[4]= det*(-fr*aIc_approx*yyy[4] + jIc_approx/frsq);
+
+    // ADD NON-THERMAL CONTRIBUTION 
+    // RG:TODO: ULTIMATELY WANT SEPARATE VARIABLES FOR THESE FOR DIAGNOSTIC PURPOSES
+
+    //char emissivity[16]="th"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
+    //if (emissivity=="nth"){
+    if (nth){
+      // CHANGED += -> -= for TESTING PURPOSES 
+      // use new thermal and subtract from old thermal (expect small values)
+      // USE OLD absorption
+      ff[0]-=(det*(jIc_nth - frcu*(aIc_nth*yyy[0] + (aVc_nth*cosths +aQc_nth*cos2k*cosqs*sinths + aQc_nth*sin2k*sinqs*sinths)*yyy[1])))/frsq;
+
+      ff[2]-=(det*(cosqs*sin2k - cos2k*sinqs)*(jQc_nth - aQc_nth*frcu*yyy[0]) - det*frcu*(cos2k*cosqs*cosths*rQc + cosths*rQc*sin2k*sinqs -rVc*sinths)*yyy[1])/(frsq*sinths*yyy[1]);
+      ff[1]-= (det*((cos2k*cosqs + sin2k*sinqs)*sinths*(jQc_nth - aQc_nth*frcu*yyy[0]) + cosths*(jVc_nth -aVc_nth*frcu*yyy[0]) - aIc_nth*frcu*yyy[1]))/frsq;
+      ff[3]-=(det*(-(jVc_nth*sinths) + aVc_nth*frcu*sinths*yyy[0] + cos2k*cosqs*cosths*(jQc_nth - aQc_nth*frcu*yyy[0]) + cosths*sin2k*sinqs*(jQc_nth - aQc_nth*frcu*yyy[0]) + cosqs*frcu*rQc*sin2k*yyy[1] -cos2k*frcu*rQc*sinqs*yyy[1]))/(frsq*yyy[1]);
+      ff[4]-= det*(-fr*aIc_approx*yyy[4] + jIc_approx/frsq);
+    }
+
 
     //Check for NANs
     for (int index=0; index<=4; index++){
-    if(ff[index]!=ff[index]) {
-      printf("[transnew.cpp] Error in radiative transfer ff[%d] is NAN.\n...Exiting...\n",index); 
-    //RG: for thickdisk7 iteration fieldline0001.bin sin2k is nan (->k->B?)
-      printf("NAN search: %e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,sin2k=%e,%e,%e,%e\n",det,jIc,frcu,aIc,yyy[0],aVc,cosths,aQc,cos2k,cosqs,sinths,aQc,sin2k,sinqs,yyy[1],frsq);
-
+      if(ff[index]!=ff[index]) {
+        printf("[transnew.cpp] Error in radiative transfer ff[%d] is NAN.\n...Exiting...\n",index); 
+        //RG: for thickdisk7 iteration fieldline0001.bin sin2k is nan (->k->B?)
+        printf("NAN search: %e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,%e,sin2k=%e,%e,%e,%e\n",det,jIc,frcu,aIc,yyy[0],aVc,cosths,aQc,cos2k,cosqs,sinths,aQc,sin2k,sinqs,yyy[1],frsq);
 	    exit(1);
-    };
+      };
     };
     return(0);
 }

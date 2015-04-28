@@ -117,19 +117,26 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 			th=inp[oo][2];
             
             //RG: 
-            printf("sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
+            //printf("sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
 
 			init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
 			#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 			#include "intensity.cpp"
+
+            // RG: Free memory? Or is uu free
+            //#pragma omp barrier //RG: DONT WE NEED TO SYNCH HERE?
+            //delete[] uu; // GIVES ERROR (AT LEAST WITH openMP) WHY?
+
 			for(kk=kmin;kk<=kmax;kk++){ //add spectra up to get average spectra
 				ytotin[kk][oo]+=totin[kk]/ind;
 				yLPo[kk][oo]+=LPo[kk]/ind;
 				yCP[kk][oo]+=CP[kk]/ind;
 				yEVPA[kk][oo]+=EVPA[kk]/ind;
 			};
+
 		};
 	};
+
 //end of integration block 
 	
 	for(oo=0;oo<4;oo++){                //compute normalized residuals with respect to the observed spectra
@@ -194,6 +201,9 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	heat=inp[0][0]*(1+xf*ddh);                  //update quantities for the next iteration
 	rhonor=inp[0][1]*(1+xf*ddr);
 	th=inp[0][2]*(1+xf*dth);
+
+    //RG: ADD magn_cap, Te_jet as parameters here (replace heat?)
+
 	if (niter>20){                              //limit to 20 iterations
 		break;
 	};
@@ -235,6 +245,10 @@ for(il=0;il<nP;il++)                            //compute reduced \chi^2
 string stra = sss.str();                        //write best-fitting model into "bestfita" file
 FILE * pFile;
 pFile = fopen ((dir+"bestfita"+stra+".dat").c_str(),"a");
+
+//RG: write header
+fprintf(pFile,"# sftab[kk][0],\t xtotin[kk],\t xLPo[kk],\t xCP[kk],\t xEVPA[kk],\t th,\t heat,\t rhonor,\t Bpo \n");
+
 for(kk=kmin;kk<=kmax;kk++){
 	printf("avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2fdeg\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
 	fprintf(pFile,"%.1f %.3f %.3f %.3f %.2f %.5f %.4f %.4f %.4f\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk],th,heat,rhonor,Bpo);

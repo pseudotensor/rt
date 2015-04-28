@@ -18,8 +18,8 @@ doub step=xstep,   //local variables, which control radiative transfer
 int snxy=xsnxy,    //global variable correspondent to xsnxy
 	ind=co,        //number of snapshots over which to compute mean intensity = 2-nd command line argument
 	oo,            //index of the set of parameters (rhonor,th,heat)
-    fmin=6130,     //minimum ID of fluid simulation snapshot
-	fmax=6132,     //maximum ID of fluid simulation snapshot
+    fmin=2150,     //minimum ID of fluid simulation snapshot
+	fmax=2150,     //maximum ID of fluid simulation snapshot
 	sep=(fmax-fmin)/(ind-1);//ID difference between consecutive considered fluid simulation snapshots
 doub resid[sflen][4], //residuals for \chi^2 minimization algorithm
 	 Jac[sflen][3],   //correspondent Jacobian
@@ -32,7 +32,10 @@ ss=xss;
 
 cas=atoi(descr);      //batch job ID = environment variable
 printf("angle thx=%d\n",cas);
-th=PI/2.*(2*cas-1)/thn;//define theta angle out of a discrete set
+
+//RG: DEFAULT: ASTRORAYv1
+//th=PI/2.*(2*cas-1)/thn;//define theta angle out of a discrete set
+th=PI/2.-0.4;
 
 printf("in=%d shots; sp=%d\n",co,sp);
 start=clock();
@@ -40,7 +43,10 @@ start=clock();
 rhonor=3e5;           //initial density for iterations
 drho=0.02;            //density relative offset to compute Jacobian
 
+// RG shorten it?
+// for(heat=0.4;heat>0.39;heat*=0.96){             //choose heat=0.4
 for(heat=0.75;heat>0.15;heat*=0.96){               //choose a set of heat parameter
+
 	doub ddr=1.;                                   //relative adjustment of density for next iteration
 	niter=0;                                       //number of iterations
 	iswrite=false;

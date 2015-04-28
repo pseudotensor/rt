@@ -70,7 +70,7 @@ switch (cas){      //selection of a model (only few examples are shown)
 
 printf("Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
 
-sep=1;                                           //take each fluid simulation snapshot within the range
+//sep=1;                                           //take each fluid simulation snapshot within the range
 ind=(fmax-fmin)/sep+1;                           //number of fluid simulation snapshots
 
 
@@ -80,14 +80,11 @@ ind=(fmax-fmin)/sep+1;                           //number of fluid simulation sn
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation snapshots - computing average spectrum
 
-    //RG: 
-    //cout << "CALLING init()...\n";
-
+    cout << "CALLING init()...\n";
 	init(sp,fmin,fmax,sep);
+    cout << "[m_quick.cpp]: rho(0,0,0)="<<(*uu[0])[0][0][0][0]<<endl;
 
-    //RG: 
     //cout << "include intensity.cpp\n";
-
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "intensity.cpp"
 	for(kk=kmin;kk<=kmax;kk++){

@@ -146,7 +146,9 @@ try:
         rr = 1+( float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0]) -100)/5.
         title_vary_string = " at $r="+str(rr)+"M$"
     elif VARY=="t":
-        t = ( float(filename_out.split("_")[0].split('fn')[1])-6100 )*4. *rg/c /60.
+        iter_ref=2010 # 6100
+        dt=5 # 4
+        t = ( float(filename_out.split("_")[0].split('fn')[1]) - iter_ref )*dt *rg/c /60.
         title_vary_string = " at $t="+str(int(round(t,0)))+"min$"
     elif VARY=="theta":
         th = pi*(float(filename_out.split(str(int(nxy))+"_")[1].split('.')[0])-100)/100.
@@ -219,7 +221,8 @@ titles_4panel_xy = [
 #r"$\rm \|m_{LP}\|\equiv |(Q+iU)/I\|$", 
 r"$\rm \|I\|$", 
 r"$\rm \|m_{LP}\|\equiv \sqrt{\|Q\|^2+\|U\|^2}/\|I\|$", 
-r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
+#r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
+r"$\rm EVPA=\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
 r"$\rm m_{CP}\equiv \|V\|/I$"]
 titles_IQUV_uv = [ 
 r"$\rm \|\tilde{I}\|$", 
@@ -405,6 +408,8 @@ limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))),(0,1.0),(-90,90),(0,0
 #limits_colors_miniversion_4panel_uv = [(0,3),(0,1.0),(-90,90),(0,0.5)]
 
 limits_xy = [-image_size/2,image_size/2,-image_size/2,image_size/2]
+# size_tmp=70;limits_xy = [-size_tmp,size_tmp,-size_tmp,size_tmp] ## FOR 102Ghz case 418
+
 #limits_xy = [-200,200,-200,200] # helical pattern in jet, filaments in QUV
 #limits_xy = [-45,45,-45,45]
 limits_uv = [-6,6,-6,6]
@@ -482,7 +487,9 @@ savefig(filename_out.replace(".png","_IQUV_uv.png"))
 fig_xy_4panel = figure(8)
 fig_xy_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
 
-EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
+# EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
+EVPA_xy = 180./2. - 0.5*angle(Q_xy+1j*U_xy,deg=True)
+
 mbreve_xy = abs((Q_xy+1j*U_xy)/I_xy)
 m_xy = (Q_xy+1j*U_xy)/I_xy
 # I_xy_masked = I_xy[:,:]
@@ -585,7 +592,161 @@ savefig(filename_out.replace(".png","_miniversion_4panel_uv.png"))
 
 
 
+#[close(window) for window in [0,1,2,5]]
 
+figure(9)
+
+
+## WIP ##
+# I mask?
+# edges around ticks (arrow shafts)?
+# every=5
+# I_threshold=0.1
+# scale_quiver=0.2
+# width_quiver=0.002
+
+## WORKS WELL FOR 230Ghz
+every=6
+I_threshold=0.05 
+scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+width_quiver=0.01 # 0.01 good for LP/I
+## WORKS WELL FOR 102Ghz
+# every=6
+# I_threshold=0.05 
+# scale_quiver=1e-2*amax(I_xy)  # 0.2  good for LP/I
+# width_quiver=0.01 # 0.01 good for LP/I
+
+Q_masked=(Q_xy/I_xy)
+Q_masked[I_xy < I_threshold*amax(I_xy)] = 0. # None # 0.
+U_masked=(U_xy/I_xy)
+U_masked[I_xy < I_threshold*amax(I_xy)] = 0. # None # 0.
+
+
+#figure(10)
+#subplot(121)
+
+# quiver_fake_inst= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="uv",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+#figure(10)
+NIRVANA=1000
+quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+#figure(9)
+#cla()
+# subplot(121)
+
+# pcolormesh(X,Y,I_xy,cmap=cm.cubehelix)
+# colorbar()
+
+# # WORK, but gives weird quiverkey behavior... 
+# # Could workaround it by (hidden) dummy plot without angles/angles="uv"
+# # I_xy_mask = I_xy>I_threshold*amax(I_xy) # use np.ma() instead...
+
+# #Q_mask=np.ma.less_equal(Q_xy/I_xy,amax(I_xy)*ones(shape(I_xy)))
+# # Q_mask=[np.ma.greater_equal(I_xy,I_threshold*amax(I_xy)*ones(shape(I_xy)))][0][::every,::every]
+# # U_mask=[np.ma.greater_equal(I_xy,I_threshold*amax(I_xy)*ones(shape(I_xy)))][0][::every,::every]
+
+# #quiver(X[every],Y[every],(Q_xy/I_xy)[Q_mask],(U_xy/I_xy)[U_mask])
+# quiver_inst= quiver(X[::every],Y[::every],\
+# Q_masked[::every,::every],\
+# U_masked[::every,::every],\
+# headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles=EVPA_xy[::every,::every],scale=scale_quiver)
+
+# #quiver_inst= quiver(X[::every],Y[::every],(Q_xy/I_xy)[Q_mask],(U_xy/I_xy)[U_mask],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy",angles=EVPA_xy[::every,::every])
+# axis((-40,40,-40,40))
+# # quiverkey(quiver_fake_inst, 0.3, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+# # STRANGE ERROR MESSAGE WITH CRYPTIC TRACE-BACK
+# quiverkey(quiver_fake_inst, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+# # quiverkey(quiver_inst, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+# gcf().patch.set_facecolor('white')
+# # WIP: remove angles ->  solves quiverkey issues...
+# quiver(X[::every],Y[::every],(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy") # ,angles=EVPA_xy[::every,::every])
+# # WIP: angles="uv" see whether it solves quiverkey issues...
+
+
+## TESTS ##
+
+# One sanity check is to zero out stokes U to leave only Q. Then the ticks should all be vertical or horizontal. If you make all the Stokes Q's positive, then the ticks should all be vertical.
+
+# Next, zero out all Stokes Q to leave only U. Then the ticks should be 45 degrees East of North or 45 degrees West of North. If you make all the Stokes U's positive, then they should point 45 degrees East of North.
+
+# angles="xy"
+# Q_xy[:,:]=0 # Q=0: / and \
+# U_xy[:,:]=0 # U=0: | and -
+# U_xy[:,:]=0; Q_xy[Q_xy<0]=0. # U=0,Q>=0: |
+# Q_xy[:,:]=0; U_xy[U_xy<0]=0. # Q=0,U>=0: \
+
+# angles="uv"
+# Q_masked[:,:]=0 # Q=0: vertical
+# U_masked[:,:]=0 # U=0: horizontal
+# U_masked[:,:]=0; Q_masked[Q_masked<0]=0. # U=0,Q>=0: horizontal
+# Q_masked[:,:]=0; U_masked[U_masked<0]=0. # Q=0,U>=0: vertical
+
+# angles=EVPA_xy
+# Q_masked[:,:]=0 # Q=0: both vertical & horizontal
+# U_masked[:,:]=0 # U=0: all diagonal (both directions "\" and "/" )
+# U_masked[:,:]=0; Q_masked[Q_masked<0]=0. # U=0,Q>=0: all "/"
+# Q_masked[:,:]=0; U_masked[U_masked<0]=0. # Q=0,U>=0: vertical?
+
+
+
+
+# subplot(122)
+
+## INCONSISTENT WITH ASTRORAY CONVENTIONS
+## MICHAEL: This is for EAST=LEFT
+# EVPA_xy = pi/2. + 0.5*angle(Q_xy+1j*U_xy)
+# x_michael = abs(Q_xy+1j*U_xy)*cos( pi/2 + 0.5*angle(Q_xy+1j*U_xy) )
+# y_michael = abs(Q_xy+1j*U_xy)*sin( pi/2 + 0.5*angle(Q_xy+1j*U_xy) )
+
+## CONSISTENT WITH ASTRORAY CONVENTION
+## MICHAEL: This is for EAST=RIGHT
+EVPA_xy = pi/2. - 0.5*angle(Q_xy+1j*U_xy)
+x_michael = abs(Q_xy+1j*U_xy)*cos( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
+y_michael = abs(Q_xy+1j*U_xy)*sin( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
+
+# x_michael/=I_xy;y_michael/=I_xy
+
+Q_masked=x_michael
+Q_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
+U_masked=y_michael
+U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
+
+
+
+pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=limits_colors_xy[0][1])
+# pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
+colorbar()
+#quiver_inst2= quiver(X[::every],Y[::every],(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale=scale_quiver,scale_units="xy",angles="uv") # ,angles=EVPA_xy[::every,::every])
+# quiver_inst2= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale=scale_quiver,scale_units="xy",angles="uv") # ,angles=EVPA_xy[::every,::every])
+
+#quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy",angles=EVPA_xy[::every,::every])
+
+# Michael, angles=EVPA_xy
+#quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy",angles=EVPA_xy[::every,::every])
+# Michael, angles=uv
+# quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,width=width_quiver*2,pivot="tip",scale_units="xy",angles="uv",scale=1)
+# Michael, angles=xy
+#quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
+quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
+
+
+# strange "fan":
+#quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})
+# WIP
+# quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+# tight_layout()
+
+# quiverkey(quiver_fake_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+#quiverkey(quiver_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+
+#quiver(X[::every],Y[::every],mbreve_xy[::every,::every],mbreve_xy[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,scale_units='xy', angles=EVPA_xy[::every,::every],width=0.005,pivot="mid")
+
+gca().set(xlabel=r"$X/\mu arcsec$",ylabel=r"$Y/\mu arcsec$",title="I (with polarization ticks)"+title_vary_string)
+axis(limits_xy)
+savefig(filename_out.replace(".png","_polarization-ticks.png"))
 
 ######## DONE ###
 print "="*8

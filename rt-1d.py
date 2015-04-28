@@ -30,14 +30,32 @@ m_CP_cap = 1.0
 m_LP_floor = 0.5
 m_CP_floor = 0.0
 
-try:
-    SED_filenames=[element for element in sys.argv if "polires" in element]
-    # SED_SCS_filename=sys.argv[ sys.argv.index() ]"/home/rgold/rt/thickdisk7/Te35-SCS/avg/poliresa93.75th140fn6130hi.dat" # WIP
-    SED_SCS_filename=SED_filenames[0]
-    SED="YES" # if no file found above -> IndexError
+FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
+FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE]
 
-except IndexError:
-    SED="NO"
+SED="no"
+col_SED=[1,2]
+if len(FILES_1D)>0:
+    SED="yes"
+    SED_SCS_filename=FILES_1D[0]
+    if "bestfit" in FILES_1D[0]:
+        bestfit="yes"
+        col_SED=[0,1,2,3,4]
+    elif "polires" in FILES_1D[0]:
+        polires="yes"
+        col_SED=[1,2,3,4,5] # 1:nu, 2: F, 3: LP, 4: EVPA, 5: CP
+    elif "quick" in FILES_1D[0]:
+        polires="yes"
+        col_SED=[0,1,2,3,4] # 1:nu, 2: F, 3: LP, 4: EVPA, 5: CP
+    
+# try:
+#     SED_filenames=[element for element in sys.argv if "polires" in element]
+#     # SED_SCS_filename=sys.argv[ sys.argv.index() ]"/home/rgold/rt/thickdisk7/Te35-SCS/avg/poliresa93.75th140fn6130hi.dat" # WIP
+#     SED_SCS_filename=SED_filenames[0]
+#     SED="YES" # if no file found above -> IndexError
+
+# except IndexError:
+#     SED="NO"
 
 rc('font',size=20)
 
@@ -78,12 +96,12 @@ mbreve_vs_t = [] # to be filled with single point in (u,v) data
 mbreve_opposite_vs_t = []
 dEVPA_vs_t  = [] # to be filled with single/two opposite points in (u,v) data
 
-FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
-FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE]
-
 # SORT IT ACCORDING TO TIME STAMP IN FILENAME
-FILES_1D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0].split('hi')[0]))
-FILES_2D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0]))
+try:
+    FILES_1D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0].split('hi')[0]))
+    FILES_2D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0]))
+except:
+    pass
 
 for snapshot in FILES_2D:
 
@@ -203,6 +221,7 @@ for snapshot in FILES_2D:
     #t_ref = 6100 ## thickdisk7
     dt = 5. ## a0mad
     t_ref = 2000
+    print "[HARDWIRE-WARNING]: dt,t_ref=",dt,t_ref
     t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt * (G*M/c**3) /60./60.]
     mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
     mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
@@ -282,21 +301,22 @@ if size(FILES_2D)>0:
       xlabel(r"$u/G\lambda$")
       tight_layout()
 
+
+
 #######################################
 ################ SED ##################
 
 if string.lower(SED)=="yes":
 
     figure(4)
-    
     #SED_SCS_filename="/home/rgold/rt/thickdisk7/Te35-SCS/avg/poliresa93.75th140fn6130hi.dat" # WIP
-    SED_SCS=loadtxt(SED_SCS_filename,usecols=(1,2))
+    SED_SCS=loadtxt(SED_SCS_filename,usecols=col_SED)
     try:
         SED_SCSjet_filename="/home/rgold/rt/thickdisk7/Te10/poliresa93.75th140fn6130hi.dat" # WIP
-        SED_SCSjet=loadtxt(SED_SCSjet_filename,usecols=(1,2))
+        SED_SCSjet=loadtxt(SED_SCSjet_filename,usecols=col_SED)
         #SED_default_filename="../../Te-default/poliresa93.75th140fn6130hi.dat" # WIP
         SED_default_filename="/home/rgold/rt/thickdisk7/Te-default/poliresa93.75th130fn6130hi.dat" # WIP
-        SED_default=loadtxt(SED_default_filename,usecols=(1,2))
+        SED_default=loadtxt(SED_default_filename,usecols=col_SED)
 
         #plot(SED_SCSjet[:,0],SED_SCSjet[:,1],'mx-',label=r"$\rm T_{e,jet}=10m_ec^2,SCS+jet$")
         #plot(SED_default[:,0],SED_default[:,1],'cD-',label=r"$\rm default$")
@@ -305,9 +325,23 @@ if string.lower(SED)=="yes":
         pass
         
     # PLOT SED & COMPARE TO OBSERVATIONS
-    nu_obs = array([8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857.]) #, 1500., 3000., 5000.])
-    SED_errors = array([0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404]) #, 0. , 0., 0.])
+    nu_obs = array([8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857., 1500., 3000., 5000.])
+    SED_errors = array([0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0. , 0., 0.])
+
+
+#polarized spectrum of Sgr A*, each array element is (frequency, Fnu, LP, EVP\A, CP)
+#Fnu:  flux at frequency nu
+#LP:   linear polarization fraction at frequency nu
+#EVPA: Electric vector position angle
+#CP:   circular polarization fraction at frequency nu
+    # tofit = [[8.450, 0.683, 0., 0., -0.2500], [14.90, 0.871, 0., 0., -0.6200], [22.50, 0.979, 0.1900, 131.0, 0.], [43.00, 1.135, 0.5500, 94.25, 0.], [87.73, 1.841, 1.420, -4., 0.], [102.0, 1.908, 0., 0., 0.], [145.0, 2.275, 0., 0., 0.], [230.9, 2.637, 7.398, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, 0., 0., 0.], [857.0, 2.867, 0., 0., 0.], [1500., 1., 0., 0., 0.], [3000., 1., 0., 0., 0.], [5000., 1., 0., 0., 0.]];
+    tofit = [[8.450, 0.683, None, None, -0.2500], [14.90, 0.871, None, None, -0.6200], [22.50, 0.979, 0.1900, 131.0, None], [43.00, 1.135, 0.5500, 94.25, None], [87.73, 1.841, 1.420, -4., None], [102.0, 1.908, None, None, None], [145.0, 2.275, None, None, None], [230.9, 2.637, 7.398, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, None, None, None], [857.0, 2.867, None, None, None], [1500., 1., None, None, None], [3000., 1., None, None, None], [5000., 1., None, None, None]];
+    tofit=array(tofit)
+
     SgrA_SED_Observed=[[],[]] # [nu_Ghz,F_nu] [WIP]
+    SgrA_LP_Observed=[[],[]] # [nu_Ghz,LP] [WIP]
+    SgrA_CP_Observed=[[],[]] # [nu_Ghz,CP] [WIP]
+    SgrA_EVPA_Observed=[[],[]] # [nu_Ghz,EVPA] [WIP]
     nu=linspace(0,1000,100)
 
     def SgrA_SED_FIT(nu):
@@ -315,19 +349,48 @@ if string.lower(SED)=="yes":
 
     #plot(SED_SCS[:,0],SED_SCS[:,1],'bo-',label=r"$\rm T_{e,jet}=35m_ec^2,SCS$")
     errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
-    plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
+    #plot(nu[:-3],SgrA_SED_FIT(nu[:-3]),'k--',alpha=0.5,lw=4,label="FIT") 
 
+    # plot_styles = ["rd-","b+"]
+    # taken from orbits.py
+    # style = Line2D.markers.keys()[index]+Line2D.lineStyles.keys()[index]
+    # plot_styles = ["rd-","b+"]
     for FILE in FILES_1D:
-    
-        SED=loadtxt(FILE,usecols=(1,2))
-        plot(SED[:,0],SED[:,1],'rd-',label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
-
-    legend(loc="lower right",labelspacing=0.2,fontsize=15)
+        # taken from orbits.py
+        # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vv [issue with "0"]
+        plot_style = str(Line2D.markers.keys()[FILES_1D.index(FILE)]+1)+str(Line2D.lineStyles.keys()[FILES_1D.index(FILE)+3])    
+        SED=loadtxt(FILE,usecols=col_SED)
+        plot(SED[:,0],SED[:,1],plot_style,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
+        if FILES_1D==FILE:
+            legend(loc="lower right",labelspacing=0.2,fontsize=15)
     xlabel(r"$\nu/Ghz$")
     ylabel(r"$F_\nu/Jy$")
+    xlim(0,1000) # ,1600)
     tight_layout()
     savefig("SED.png")
     savefig("SED.pdf")
+
+figure(5)
+# bestfit_labels=[r"$F_\nu$",r"$<LP>$",r"$<CP>$",r"$<EVPA>$"]
+bestfit_labels=[r"$F_\nu/Jy$",r"$<LP>/\%$",r"$<EVPA>/{}^\circ$",r"$<CP>/\%$"]
+yticks_obs=[arange(5),arange(0,20,5),arange(0,200,45),arange(-2,5)]
+for panel in range(1,5):
+    subplot(220+panel)
+    plot(SED[:,0],SED[:,panel],label="model")
+    if panel==1: ## WHY is this the lower right panel?
+        plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
+        #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
+        errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
+    #elif panel==4:
+        legend(loc="lower right",fontsize=12)
+    else:
+        plot(tofit[:,0],tofit[:,panel],"ks",label="observations")
+    #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
+    gca().set(xlabel=r"$\nu$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
+    xlim(None,1e3)
+
+tight_layout()
+savefig("F_LP_CP_EVPA.png")
 
 ##################################
 print "============\n====DONE===="

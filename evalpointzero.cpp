@@ -63,11 +63,25 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 jIc,aIc,          //thermal emissivity and absorptivity in total intensity
 	 jQc,aQc,          //thermal emissivity and absorptivity in linearly polarized intensity (\sqrt(U^2+Q^2))
      jVc,aVc,          //thermal emissivity and absorptivity in circularly polarized intensity
-	 xjIc,xaIc,        //approximation to thermal emissivity and absorptivity in total intensity
+	 jIc_approx,aIc_approx,        //approximation to thermal emissivity and absorptivity in total intensity
 	 rVc,rQc,          //Faraday rotation and conversion coefficients
-	 xIc,xQc,xVc,      //dimensionless emissivities computed from the look-up tables
+	 jIc_lookuptab,jQc_lookuptab,jVc_lookuptab,      //dimensionless emissivities computed from the look-up tables
 	 XX,               //convenient quantity over which the lookup is conducted for rotativities
 	 xrVc,xrQc,        //dimensionless rotativities computed from the look-up tables (still approximate)
+
+
+	 jIc_nth,aIc_nth,          // non-thermal emissivity and absorptivity in total intensity
+	 jQc_nth,aQc_nth,          // non-thermal emissivity and absorptivity in linearly polarized intensity (\sqrt(U^2+Q^2))
+     jVc_nth,aVc_nth,          // non-thermal emissivity and absorptivity in circularly polarized intensity
+	 jIc_nth_lookuptab,jQc_nth_lookuptab,jVc_nth_lookuptab,      //dimensionless emissivities computed from the look-up tables
+	 jIc_approx_nth,aIc_approx_nth,        //approximation to non-thermal emissivity and absorptivity in total intensity
+	 rVc_nth,rQc_nth,          //Faraday rotation and conversion coefficients
+	 jIc_lookuptab_nth,jQc_lookuptab_nth,jVc_lookuptab_nth,      //dimensionless emissivities computed from the look-up tables
+	 XX_nth,               //convenient quantity over which the lookup is conducted for rotativities
+	 xrVc_nth,xrQc_nth,        //dimensionless rotativities computed from the look-up tables (still approximate)
+
+
+
 	 coskb,            //cosine of angle between k and B
 	 sinkb;            //sine of angle between k and B (always above 0)
 int  m, k, j, n, i,
@@ -121,11 +135,11 @@ rr=ly[1];                           //current radius
 costh=ly[2];                        //current cos(theta)
 ph=dphi-ly[3];                      //current phi, taking into account azimuthal offset and "different" orientations of phi on a geodesic and phi in numerical simulations - check for every simulation!
 if((fabs(rr)>100000.) || (rr<1.)) { 
-  //RG: 
+  // RG: 
   // (1) So rr<horizon ... No problem (just stop the geodesic!). Shouldn't abort the code
   // (2) BOUNDARIES SHOULD NOT BE HARDCODED
   // (3) GIVE USER HINT WHAT TO DO?
-  printf("Radial coordinate on a geodesic rr=%f is out of bounds \n Exiting ",rr);
+  printf("Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n",rr);
   // RG: FIXME: DOES NOT WORK. 
   // if (rr<1.) rr=rmin;
   exit(-1);
@@ -159,6 +173,7 @@ lrb=coord[ib][0][0];
 rn=ia;                             //closest radial cell index
 lrman=(lrz-lra)/(lrb-lra);         //weight of closest cell in interpolation over radial grid
 
+//RG:TODO: LOOK INTO THIS AND DIAGNOSE
 //find maximum/minimum theta for a given radius on a simulation grid
 const doub critan=-((1.-lrman)*theta[rn][0]+lrman*theta[rn+1][0]); 
 //if computed theta is too close to the poles, then set it at the maximum theta on a simulation grid - might lead to image artefacts!
@@ -173,7 +188,7 @@ int indth=thlen-1;                 //maximum index of theta coordinates array
 doub costhx,                       //cos(theta) for given radial and theta coordinates
 	 tha,                          //closest to costh of interest cos(theta) on the grid
 	 thb;                          
-ia=0;                              //indices of on cos(theta) grid
+ia=0;                              //indices of on cos(theta) grid //RG:?
 ib=indth;
 //find the closest theta cells of the fluid simulation/its radial extension
 while(ib>ia+1){
@@ -241,7 +256,7 @@ iKS[3][1]=iKS[1][3];
 iKS[3][2]=iKS[2][3];
 iKS[3][3]=sinsq*(rhosq+asq*(1+temp)*sinsq);
 
-//determine physical quantites at a point with given coordinates
+//determine physical quantities at a point with given coordinates
 if(rr<=rcut){                          //inside the convergence radius do interpolation
 	if(sing)                           //fast light approximation - no time axis
 		for(m=0;m<11;m++)              //3D space - multi-linear continuous interpolation over 8 points
@@ -394,7 +409,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	uKS[1]=0.;
 	uKS[2]=0.;
 	uKS[3]=0.;
-	doub expr=fabs((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3])* (uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3]) - iKS[0][0]*(1. + uKS[1]*uKS[1]*iKS[1][1] + 2.*uKS[1]*uKS[3]*iKS[1][3] + uKS[2]*uKS[2]*iKS[2][2] + uKS[3]*uKS[3]*iKS[3][3])); // RG: "excellent" variable name...
+	doub expr=fabs((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3])* (uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3]) - iKS[0][0]*(1. + uKS[1]*uKS[1]*iKS[1][1] + 2.*uKS[1]*uKS[3]*iKS[1][3] + uKS[2]*uKS[2]*iKS[2][2] + uKS[3]*uKS[3]*iKS[3][3]));
 	uKS[0]=-((uKS[1]*iKS[0][1] + uKS[3]*iKS[0][3] + sqrt(expr))/iKS[0][0]);
 	u[0]=uKS[0];
 	for(m=0;m<4;m++){
@@ -521,8 +536,10 @@ if(isBcut)                           //set temperature to zero in high magnetiza
    // T_e = T_{e,code}*exp(-magn/magn_cap) + T_{e,choice} (1-exp(-magn/magn_cap));
    /*************************************************************/
 
+   // limit emission / absorption in jet?
    double rho_jet=1.;
    rho = rho*exp(-magn/magn_cap) + rho*rho_jet*(1.-exp(-magn/magn_cap));
+
    //rho*=exp(-magn/10.);
    //rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
    // rho*=(1-exp(-magn/magn_cap)); // Limit disk emission => Lightup jet
@@ -577,15 +594,17 @@ tpt=(1-drman)*tp[ia]+drman*tp[ib];  //compute actual proton and electron tempera
 tet=(1-drman)*te[ia]+drman*te[ib];
 
 
-/***********************************************************************************/
+/*************************************************************/
 //RG: ADJUST ELECTRON TEMPERATURE
 /*************************************************************/
+
 //doub Y_e=0.62; doub mubar=0.62; // solar abundances
 //doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
 
-Te_jet=35.*me*cc*cc/kb; // SCS: 35.
-//Te_jet=10.*me*cc*cc/kb; // SCS+jet: 10.
-//Te_jet=me*cc*cc/kb;
+doub Te_jet_par = 35.; // make this a global parameter and include it in fitting procedures
+
+//doub Te_jet_par = 20.; // make this a global parameter and include it in fitting procedures
+doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 
 //printf("Te_jet=%e,tet=%e\n",Te_jet,tet);
 
@@ -617,7 +636,7 @@ tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
 
 
 for(m=0;m<4;m++)
-	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF //RG: LFCRF=?LocallyFlatComovingReferenceFrame
+	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF 
       kxx[m]+=yyloKS[m][j]*kupKS[j]; // RG: xx?
 for(m=0;m<4;m++)
 	for(j=0;j<4;j++)                //perpendicular vector in LFCRF
@@ -646,7 +665,7 @@ e2xx[3]=e1xx[2]*kxx[1] - e1xx[1]*kxx[2];
 kbpar=(kxx[1]*B[1]+kxx[2]*B[2]+kxx[3]*B[3]);            //k.B scalar product
 kbperp=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]-kbpar*kbpar); //norm of the vector product k x B - main parameter for emissivity
 
-fr=kxx[0];                                              //redshift/Doppler shift // RG: if kxx[0] is the red/Doppler shift then fr is not the frequency...
+fr=kxx[0];                                              //redshift/Doppler shift 
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
   fr=-fr; // RG: HMM... MAYBE "BETTER" TO FLOOR THE FREQUENCY...
 	printf("[evalpointzero.cpp]: Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n");
@@ -662,55 +681,241 @@ nW=2*me*cc*2*PI*nufr/(3*ee*kbperp);                     //effectively a ratio of
 Bnu=(2*kb*nufr*nufr*tet)/cc/cc;                         //thermal source term in LFCRF
 
 //computation of dimensionless emissivities from the look-up tables
-#include "emis.cpp"
+#include "emission_from_lookuptables.cpp"
 
-//physical emissivities
-jIc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*xIc;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-jQc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*xQc;
-jVc=fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me)*kbpar*xVc;//plus sign for the "k" vector defined above
+
+//physical emissivities [THERMAL]
+//RG: I guess "physical" means cgs units & specific to central mass?
+//RG: SEE MPK2012 eq (20) 
+doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
+
+// RG: What about jUc? Obtained via I^2=Q^2+U^2+V^2 ?
+// Ioldcoef: \nu q^2/(\sqrt{3} c \nu_\Omega = 4.44\times 10^{-33}\nu/\nu_\Omega
+// Qoldcoef: Ioldcoef
+// Voldcoef: Ioldcoef (4\cot\theta/3)
+
+// NEW PREFACTORS JON
+// I: n_0 \nu
+// Q: n_0 \nu
+// V: n_0 \nu\cot(\theta)
+// alphaI: n_0/\nu
+// alphaQ: n_0/\nu
+// alphaV: (n_0/\nu)\cot\theta
+// rhoQ: n_0/\nu
+// rhoV: (n_0/\nu)\cot\theta
+
+
+// ORIGINAL
+// jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+// jQc = emissivity_coeff * kbperp * jQc_lookuptab;
+// jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
+
+jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+jQc = emissivity_coeff * kbperp * jQc_lookuptab;
+jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
+
+
+// physical emissivities [NON-THERMAL]
+// RG: CHECK CONSISTENCY BETWEEN FACTORS/COEFFS HERE VS LOOKUP TABLE
+// Jon's tables have different coeffs
+// var=OLDSTUFF*(newprefactor/oldprefactor)*newtable
+// OLDSTUFF=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me) * kbperp // ???
+
+// where newprefactor is what I listed as my new prefactor,
+// oldprefactor is what *I* list as the old prefactor, and OLDSTUFF is
+// what's in astroray just before the variable assignment you showed
+// me.
+
+/*********************************************************************
+4/1/2015 Roman Gold 
+
+Here is what is done in astroray (I am working on the code so variable
+names are a bit different to git): First read in raw table values ->
+jIc_lookuptab and then
+
+jIc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*jIc_lookuptab;
+jQc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*jQc_lookuptab;
+
+4/1/2015 newset2.tgz‎ (1 MB‎) Inbox Wednesday, April 01, 2015 9:15 PM
+You replied on 4/1/2015 9:30 PM.  
+
+Roman,
+
+I've created new tables so that there are minimal extra factors to
+have in astroray.  That's supposed to minimize mistakes in astroray,
+but this is predicated upon you isolated the old functions/factors.
+
+Here are the new function prefactors for the table quantities.  This
+applies to the thermal or non-thermal tables I would produce.  Note
+that I have yet to produce a thermal table, but I will -- that might
+help you isolate factors as well by comparing new and old.  Note these
+prefactors exist because they are \nu and \theta and n_0 dependent and
+otherwise, e.g., one would have to have another dimension tabulating
+\theta or \nu or n_0.
+
+I: n_0 \nu
+Q: n_0 \nu
+V: n_0 \nu\cot(\theta)
+alphaI: n_0/\nu
+alphaQ: n_0/\nu
+alphaV: (n_0/\nu)\cot\theta
+rhoQ: n_0/\nu
+rhoV: (n_0/\nu)\cot\theta
+
+The new non-thermal tables and mathematica file are attached.
+
+Here are the original factors to look for in astroray, and one would either:
+
+1) remove prefactors if easy -- best for understanding.  Currently
+only remove for non-thermal case, keep for thermal case using old
+tables.
+
+or:
+
+2) take my prefactor and divide by these original prefactors I also
+provide below (need to avoid singularities though) and don't remove
+anything from astroray.  But problem if things like \nu are
+dimensionless in some other way than I expect, so then my prefactors
+would be used wrongly.
+
+Better is #1, to directly isolate expressions and ensure you see
+somewhere the exact coefficients I write.  If you don't see the entire
+expression, maybe he's absorbed some factors into making things scaled
+a certain way, and then ultimately maybe #2 is fine then.  But best to
+understand first.
+
+It depends on how localized the prefactors are and whether you can
+readily identify them, understand their normalization, etc.  And
+recall the table independent parameters are \nu_\Omega (\nu\Omega in
+mathematica), dimensionless T_e, gp (gp replaces T_e as parameter for
+non-thermal tables).
+
+Here are the old thermal prefactors:
+
+Ioldcoef: \nu q^2/(\sqrt{3} c \nu_\Omega = 4.44\times 10^{-33}\nu/\nu_\Omega
+Qoldcoef: Ioldcoef
+Voldcoef: Ioldcoef (4\cot\theta/3)
+
+Recall \alpha's were just using Kirchoff's law inside the code.
+rhoQoldcoef,rhoVoldcoef are complicated expressions given by
+Shcherbakov 2012 eq 23-26 or Huang & Shcherbakov 58-59.  Ensure you
+have isolated each one of those.  I'll write this out just so there's
+no confusion:
+
+XX= 30.7052T_e/\sqrt{\nu_\Omega}
+
+fx= -0.011 exp(-0.0211864XX) + 2.011exp(-0.212766XX^{1.035})-exp(-0.3663*XX^{1.2})\cos(XX/2)
+
+rhoQoldcoef: 0.00375 fx n_o/(\nu \nu^2_\Omega)
+
+gx=(1-0.11\log(1+0.035XX))
+
+rhoVoldcoef: 0.01126 gx n_0 \cos(\theta)/(\nu\nu_\Omega)
+
+In the above, Te is always the dimensionless temperature.
+
+Recall that the rhoQ,rhoV coefficients are certainly only ever for the
+thermal case (non-thermal could be done in old prefactor-style, but
+makes things not as clean, which is why changed the tables).  But,
+that doesn't really matter as you want to isolate these old
+prefactors.
+
+****************************************************************************/
+
+
+
+// jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+// jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
+// jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+
+doub newprefactor=rho/me/cc/cc * nufr; // nu:nufr?
+//doub oldprefactor=nufr * ee*ee / (sqrt(3.)*cc*nW); // nu:nufr?,nW:nu_omega?
+//doub oldprefactor=nW; // DOES NOT WORK
+doub oldprefactor=nW * ee*ee / (sqrt(3.)*cc); // DOES NOT WORK nW:nu_omega/nufr ?
+// var=OLDSTUFF*(newprefactor/oldprefactor)*newtable
+
+//jIc_nth = emissivity_coeff * (newprefactor/oldprefactor) * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+jIc_nth = rho*rgrav/2. * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+jQc_nth = emissivity_coeff *            jQc_nth_lookuptab;
+jVc_nth = fljVc            * kbpar    * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+
+
+// TESTING NTH
+if (nth) {
+  //jIc = 0.;                                 // zero out total I   emissivities for testing purposes
+  //jIc_nth = 0.;                                // zero out total I   emissivities for testing purposes
+  //aIc = 0.;aIc_nth = 0.;                       // zero out total I   absorptivies for testing purposes
+  //jQc = 0.;jVc = 0.;jQc_nth = 0.;jVc_nth = 0.; // zero out polarized emissivities for testing purposes
+  //aQc = 0.;aVc = 0.;aQc_nth = 0.;aVc_nth = 0.; // zero out polarized absorptivities for testing purposes
+ }
+
+
 
 Bn=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]);                            //magnetic field strength
 coskb=kbpar/Bn;                                                    //cos of angle between "k" and "B" vectors
 sinkb=sqrt(1-coskb*coskb);                                         //sin of angle between "k" and "B" vectors
-XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient quantity over which the lookup is conducted for rotativities
+XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient quantity over which the lookup is conducted for rotativities 
 
-//physical Faraday conversion and rotation coefficients
+// physical Faraday conversion and rotation coefficients [THERMAL]
 rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*xrQc*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
 rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log(1.+0.035*XX));
 
+//printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");
+rQc_nth = 0.;
+rVc_nth = 0.;
+
+
 //physical absorptivities
-// char absorption=="thermal"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
-// if (absorption=="thermal"){
+//char absorption[16] = "kirchhoff"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
+const string absorption = "kirchhoff"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
+//const string absorption = "tables"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
+if (absorption=="kirchhoff"){ //FIXME
+// if (true){
+  aIc=jIc/Bnu;
+  aQc=jQc/Bnu;
+  aVc=jVc/Bnu;
+  // aIc_nth=jIc_nth/Bnu;
+  // aQc_nth=jQc_nth/Bnu;
+  // aVc_nth=jVc_nth/Bnu;
+ }
+ else if (absorption=="powerlaw_jon" or absorption=="tables"){ // See Jon's notebook polarization_loop.nb in ASTRORAY repo
 
-aIc=jIc/Bnu;
-aQc=jQc/Bnu;
-aVc=jVc/Bnu;
+   //cout << "absorption=powerlaw_jon unsupported for now :-(..." << endl;
 
- // else if (absorption=="powerlaw_approximate"){ // Sazonov (1969) expressions, see eq(52) Huang & Shcherbakov 2011
- //   // general absorption coefficients eqs(7) Sazonov (1969):
- //   // eta_I = Im(alpha^{22}+alpha^{11})/nu
- //   // eta_Q = Im(alpha^{11}-alpha^{22})/nu
- //   // eta_V = 2Re(alpha^{12})/nu
- //   cout << "absorption=powerlaw_approximate unavailable for now :-(...better die...";
- //   double b=2.5; //powerlaw index in distribution function f~n^-(b+1) -> N~n^(-b)
- //   double gamma_min=1.;
- //   double omega=2.*PI*nu;
- //   double Omega_0=ee Bn/me/cc; // cyclotron frequency = eB/m_e c
+   // powerlaw index in distribution function f~n^-(b+1) -> N~n^(-b)
+   double b=2.5; //RG: be DRY used to defined in init.cpp make it global?
+   double gamma_min=100.;
+   double omega=2.*PI*nu;
+   double Omega_0=ee *Bn/me/cc; // cyclotron frequency = eB/m_e c
+ }
 
- //   /* WIP: CHECK EQS */
- //   //aIc=?;
- //   // WHERE IS THE EQUATION FOR alpha_I in Huang & Shcherbakov (2011) or Sazonov (1969) ?
- //   // Take approximate expression for alpha_N =? alpha_I from Avery's PhD thesis see eqn (5.47)
- //   aIc=sqrt(3.)/24./cc* /*WIP-> f*omega_P**2 */ *omega /*<-WIP*/ *pow(3.*Omega_0/omega*sinkb,(b+2)/2.); // see eqn (5.47) Broderick PhD thesis (2004) assume plasma frequency ~ nu
- //   aQc=3.1e-4*(b+2)*tgamma((3.*b+2)/12.)*tgamma((3.*b+10)/12.)*(b-1.)/pow(gamma_min,1.-b)*pow(3.*Omega_0/omega*sinkb,(b+2)/2.)/nu; // Gamma fct: tgamma() needs cmath
- //   aVc=4.1e-4*(b+3)/(b+1)*tgamma((3.*b+7)/12.)*tgamma((3.*b+11)/12.)*(b-1.)/pow(gamma_min,1.-b)*coskb/sinkb*pow(3.*Omega_0/omega*sinkb,(b+3)/2.)/nu; // Gamma fct: tgamma() needs cmath;
+ else if (absorption=="powerlaw_approximate"){ // Sazonov (1969) expressions, see eq(52) Huang & Shcherbakov 2011
+   // general absorption coefficients eqs(7) Sazonov (1969):
+   // eta_I = Im(alpha^{22}+alpha^{11})/nu
+   // eta_Q = Im(alpha^{11}-alpha^{22})/nu
+   // eta_V = 2Re(alpha^{12})/nu
+   cout << "absorption=powerlaw_approximate unavailable for now :-(...better die..." << endl;
 
- //   exit(1) 
- // }
- // else{
- //   cout << "YOU SHOULD MAKE A CHOICE FOR ABSORPTION IN evalpointzero.cpp . Choices are absorption=\"thermal\" or absorption=\"powerlaw_approximate\"";
- //   exit(1)
- // }
+   // powerlaw index in distribution function f~n^-(b+1) -> N~n^(-b)
+   double b=2.5; //RG: be DRY used to defined in init.cpp make it global?
+   double gamma_min=100.;
+   double omega=2.*PI*nu;
+   double Omega_0=ee *Bn/me/cc; // cyclotron frequency = eB/m_e c
+
+   /* WIP: CHECK EQS */
+   //aIc=?;
+   // WHERE IS THE EQUATION FOR alpha_I in Huang & Shcherbakov (2011) or Sazonov (1969) ?
+   // Take approximate expression for alpha_N =? alpha_I from Avery's PhD thesis see eqn (5.47)
+   aIc=sqrt(3.)/24./cc /*WIP-> *f*omega_P**2 */ *omega /*<-WIP*/ *pow(3.*Omega_0/omega*sinkb,(b+2)/2.); // see eqn (5.47) Broderick PhD thesis (2004) assume plasma frequency ~ nu
+   aQc=3.1e-4*(b+2)*tgamma((3.*b+2)/12.)*tgamma((3.*b+10)/12.)*(b-1.)/pow(gamma_min,1.-b)*pow(3.*Omega_0/omega*sinkb,(b+2)/2.)/nu; // Gamma fct: tgamma() needs cmath
+   aVc=4.1e-4*(b+3)/(b+1)*tgamma((3.*b+7)/12.)*tgamma((3.*b+11)/12.)*(b-1.)/pow(gamma_min,1.-b)*coskb/sinkb*pow(3.*Omega_0/omega*sinkb,(b+3)/2.)/nu; // Gamma fct: tgamma() needs cmath;
+
+   exit(1);
+ }
+else{
+  cout << "[evalpointzero.cpp]: CHOOSE YOUR ABSORPTION. Possible choices are: absorption=\"kirchhoff\" or absorption=\"powerlaw_approximate\" (yet unsupported)"<<endl;
+   exit(1);
+}
 
 
 Be1=B[1]*e1xx[1]+B[2]*e1xx[2]+B[3]*e1xx[3];                        //scalar product of B.e1
@@ -722,10 +927,14 @@ doub The=kb*tet/me/cc/cc,                                          //rest mass t
 	 nuc=ee*kbperp/me/cc/2./PI,                                    //cyclotron frequency
 	 nus=2./9.*nuc*The*The,                                        //peak emissivity frequency
 	 Xe=nu/nus;                                                    //ratio of observed frequency to peak emissivity frequency
-xjIc=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*Xe*exp(-pow(Xe,(doub)0.3333));       //simple approximation for total emissivity
+
+
+//printf("[evalpointzero.cpp]: Use approximate emissivities only to get absorptivities via Kirchhoff's law\n");
+
+jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*Xe*exp(-pow(Xe,(doub)0.3333));       //simple approximation for total emissivity
 doub tem=(sqrt(Xe)+pow(2.,11./12.)*pow(Xe,(doub)0.166666));                                //auxiliary
-xjIc=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*tem*tem*exp(-pow(Xe,(doub)0.3333));  //more accurate approximation for total emissivity from Leung et al. (2011)
-xaIc=xjIc/Bnu;                                                                             //correspondent absorptivity
+jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*tem*tem*exp(-pow(Xe,(doub)0.3333));  //more accurate approximation for total emissivity from Leung et al. (2011)
+aIc_approx=jIc_approx/Bnu;                                                                             //correspondent absorptivity (this is used/stored in ff[4])
 
 if(jIc!=jIc){                                                      //check for NANs
 	printf("Uncaught otherwise error in radiative transfer...\n Exiting");

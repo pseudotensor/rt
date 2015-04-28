@@ -92,6 +92,7 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 }
 
 if(iswrite){
+    // RG: TODO write header using static int
 	stringstream sstr;                                                             //prepare to write full spectra into "poliresa" files
 	sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"hi";//"hi" is a for high resolution
 	string stra = sstr.str();
