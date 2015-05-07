@@ -16,7 +16,7 @@ doub avrate,       //average accretion rate
 	 avTpTe,       //average ratio of Tp/Te at 6M radius
 	 avTe6;        //average electron temperature Te at 6M radius
 int snxy=xsnxy,    //global variable correspondent to xsnxy
-    ind,           //number of time frames for spectrum evaluation
+    ind,           //number of time frames for spectrum evaluation // RG: average over ind snapshots?
 	fmin,          //minimum ID of fluid simulation snapshot
 	fmax,          //maximum ID of fluid simulation snapshot
 	sep;           //ID difference between consecutive considered fluid simulation snapshots
@@ -73,6 +73,7 @@ printf("Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
 //sep=1;                                           //take each fluid simulation snapshot within the range
 ind=(fmax-fmin)/sep+1;                           //number of fluid simulation snapshots
 
+printf("[m_quick.cpp] ind=%d,fmin=%d,fmax=%d,sep=%d\n",ind,fmin,fmax,sep);
 
 //RG: 
 //cout << "CYCLE OVER SNAPSHOTS\n";

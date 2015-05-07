@@ -78,7 +78,7 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 rVc_nth,rQc_nth,          //Faraday rotation and conversion coefficients
 	 jIc_lookuptab_nth,jQc_lookuptab_nth,jVc_lookuptab_nth,      //dimensionless emissivities computed from the look-up tables
 	 XX_nth,               //convenient quantity over which the lookup is conducted for rotativities
-	 xrVc_nth,xrQc_nth,        //dimensionless rotativities computed from the look-up tables (still approximate)
+	 rVc_nth_lookup,rQc_nth_lookup,        //dimensionless rotativities computed from the look-up tables (still approximate)
 
 
 
@@ -681,6 +681,7 @@ nW=2*me*cc*2*PI*nufr/(3*ee*kbperp);                     //effectively a ratio of
 Bnu=(2*kb*nufr*nufr*tet)/cc/cc;                         //thermal source term in LFCRF
 
 //computation of dimensionless emissivities from the look-up tables
+//RG: actually an interpolation
 #include "emission_from_lookuptables.cpp"
 
 
@@ -799,54 +800,49 @@ Voldcoef: Ioldcoef (4\cot\theta/3)
 Recall \alpha's were just using Kirchoff's law inside the code.
 rhoQoldcoef,rhoVoldcoef are complicated expressions given by
 Shcherbakov 2012 eq 23-26 or Huang & Shcherbakov 58-59.  Ensure you
-have isolated each one of those.  I'll write this out just so there's
-no confusion:
+have isolated each one of those.  I'll write this out just so there's no confusion:
 
 XX= 30.7052T_e/\sqrt{\nu_\Omega}
-
 fx= -0.011 exp(-0.0211864XX) + 2.011exp(-0.212766XX^{1.035})-exp(-0.3663*XX^{1.2})\cos(XX/2)
-
 rhoQoldcoef: 0.00375 fx n_o/(\nu \nu^2_\Omega)
-
 gx=(1-0.11\log(1+0.035XX))
-
 rhoVoldcoef: 0.01126 gx n_0 \cos(\theta)/(\nu\nu_\Omega)
 
 In the above, Te is always the dimensionless temperature.
 
-Recall that the rhoQ,rhoV coefficients are certainly only ever for the
-thermal case (non-thermal could be done in old prefactor-style, but
+Recall that the rhoQ,rhoV coefficients are certainly only ever for the thermal case (non-thermal could be done in old prefactor-style, but
 makes things not as clean, which is why changed the tables).  But,
 that doesn't really matter as you want to isolate these old
 prefactors.
-
 ****************************************************************************/
 
 
+jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
+jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
 
-// jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-// jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
-// jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+//RG: too bad stNx undefined here...
+//if (stNx==0) printf("jIc=%e,jIc_nth=%e,stNx=%d\n",jIc,jIc_nth,stNx);
 
-doub newprefactor=rho/me/cc/cc * nufr; // nu:nufr?
+//doub newprefactor=rho/me/cc/cc * nufr; // nu:nufr?
 //doub oldprefactor=nufr * ee*ee / (sqrt(3.)*cc*nW); // nu:nufr?,nW:nu_omega?
 //doub oldprefactor=nW; // DOES NOT WORK
-doub oldprefactor=nW * ee*ee / (sqrt(3.)*cc); // DOES NOT WORK nW:nu_omega/nufr ?
+//doub oldprefactor=nW * ee*ee / (sqrt(3.)*cc); // DOES NOT WORK nW:nu_omega/nufr ?
 // var=OLDSTUFF*(newprefactor/oldprefactor)*newtable
 
 //jIc_nth = emissivity_coeff * (newprefactor/oldprefactor) * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-jIc_nth = rho*rgrav/2. * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-jQc_nth = emissivity_coeff *            jQc_nth_lookuptab;
-jVc_nth = fljVc            * kbpar    * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+//jIc_nth = rho*rgrav/2. * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+//jQc_nth = emissivity_coeff *            jQc_nth_lookuptab;
+//jVc_nth = fljVc            * kbpar    * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
 
 
 // TESTING NTH
 if (nth) {
   //jIc = 0.;                                 // zero out total I   emissivities for testing purposes
   //jIc_nth = 0.;                                // zero out total I   emissivities for testing purposes
-  //aIc = 0.;aIc_nth = 0.;                       // zero out total I   absorptivies for testing purposes
-  //jQc = 0.;jVc = 0.;jQc_nth = 0.;jVc_nth = 0.; // zero out polarized emissivities for testing purposes
-  //aQc = 0.;aVc = 0.;aQc_nth = 0.;aVc_nth = 0.; // zero out polarized absorptivities for testing purposes
+  aIc = 0.;aIc_nth = 0.;                       // zero out total I   absorptivies for testing purposes
+  jQc = 0.;jVc = 0.;jQc_nth = 0.;jVc_nth = 0.; // zero out polarized emissivities for testing purposes
+  aQc = 0.;aVc = 0.;aQc_nth = 0.;aVc_nth = 0.; // zero out polarized absorptivities for testing purposes
  }
 
 
@@ -860,7 +856,7 @@ XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient 
 rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*xrQc*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
 rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log(1.+0.035*XX));
 
-//printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");
+// if (nth && [one point only]) printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");
 rQc_nth = 0.;
 rVc_nth = 0.;
 

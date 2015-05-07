@@ -370,27 +370,45 @@ if string.lower(SED)=="yes":
     savefig("SED.png")
     savefig("SED.pdf")
 
-figure(5)
-# bestfit_labels=[r"$F_\nu$",r"$<LP>$",r"$<CP>$",r"$<EVPA>$"]
-bestfit_labels=[r"$F_\nu/Jy$",r"$<LP>/\%$",r"$<EVPA>/{}^\circ$",r"$<CP>/\%$"]
-yticks_obs=[arange(5),arange(0,20,5),arange(0,200,45),arange(-2,5)]
-for panel in range(1,5):
-    subplot(220+panel)
-    plot(SED[:,0],SED[:,panel],label="model")
-    if panel==1: ## WHY is this the lower right panel?
-        plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
-        #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
-        errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
-    #elif panel==4:
-        legend(loc="lower right",fontsize=12)
-    else:
-        plot(tofit[:,0],tofit[:,panel],"ks",label="observations")
-    #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
-    gca().set(xlabel=r"$\nu$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
-    xlim(None,1e3)
+if string.lower(SED)=="yes":
+    figure(5)
+    # bestfit_labels=[r"$F_\nu$",r"$<LP>$",r"$<CP>$",r"$<EVPA>$"]
+    bestfit_labels=[r"$F_\nu/Jy$",r"$<LP>/\%$",r"$<EVPA>/{}^\circ$",r"$<CP>/\%$"]
+    yticks_obs=[arange(5),arange(0,20,5),arange(0,200,45),arange(-2,5)]
+    for panel in range(1,5):
+        subplot(220+panel)
+        plot(SED[:,0],SED[:,panel],label="model")
+        if panel==1: ## WHY is this the lower right panel?
+            plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
+            #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
+            errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
+        #elif panel==4:
+            legend(loc="lower right",fontsize=12)
+        else:
+            plot(tofit[:,0],tofit[:,panel],"ks",label="observations")
+        #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
+        gca().set(xlabel=r"$\nu$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
+        xlim(None,1e3)
 
-tight_layout()
-savefig("F_LP_CP_EVPA.png")
+        tight_layout()
+        savefig("F_LP_CP_EVPA.png")
+
+
+
+####################################################
+## CORRELATED FLUX DENSITY / EMISSION REGION SIZE ##
+figure(6)
+I_uv_max = amax(abs(I_uv))
+uv_idx = shape(I_uv)[0]/2
+plot(v,abs(I_uv[uv_idx,:])/I_uv_max,label=r"$u=0$")
+plot(u,abs(I_uv[:,uv_idx])/I_uv_max,label=r"$v=0$")
+I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]])
+I_uv_err = array([0.2,0.03,0.05,0.05])
+errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
+xlim(0,10);xlabel(r"$\|uv\|$");ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");legend();tight_layout()
+savefig("Fnu-vs-uv.png")
+
+
 
 ##################################
 print "============\n====DONE===="

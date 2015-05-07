@@ -69,9 +69,9 @@ using namespace std;
 
 const doub PI = 4.0*atan(1.0);
 
-//const int  ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
-const int  
-  ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+// THICKDISK7
+const int  ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+//const int  ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
   sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
   thn=50,            //number of polar angle values to search for 
@@ -91,7 +91,7 @@ const int
   nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
   snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
 
-const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A*
+const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
 	       rhoout=130.,       //outer density for Sgr A*
 		   Tout=1.5e+7,       //outer temperature for Sgr A*
@@ -112,7 +112,7 @@ const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//mi
 		   lnWmin=log(nWmin), lnWmax=log(nWmax), lTminr=log(Tminr), lTmin=log(Tmin), lTmax=log(Tmax);//logarithms
 
 // Temperature sampling & range for propagation effects for NON-THERMAL
-double logspacing_Wmin_nth=1.1, logspacing_Wmax_nth=1.05;
+double logspacing_Wmin_nth=1.1, logspacing_Wmax_nth=1.25;
 const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=12000.*pow(logspacing_Wmin_nth, nWlen_nth/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
 		   Tmin_nth=0.4, Tmax_nth=0.4*pow(logspacing_Wmax_nth,Tlen_nth), //minimum and maximum ratios of actual and rest mass electron temperatures, for which emissivities are non-zero
 		   Tminr_nth=0.4*pow(logspacing_Wmax_nth,-Tlen_nth),         //minimum ratio of actual and rest mass electron temperatures, for which Faraday rotation/conversion are non-zero
@@ -141,8 +141,8 @@ const doub tofit[sflen][5]={{8.450, 0.683, 0., 0., -0.2500}, {14.90, 0.871, 0., 
 		   dEVPA[3]={11.,5.4,2.21};     //at 87GHz, 230GHz, and 345GHz
 const bool isLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
 
-//bool nth=false,                                          // include non-thermal electrons?
-bool nth=true,                                          // include non-thermal electrons?
+bool nth=false,                                          // include non-thermal electrons?
+//bool nth=true,                                          // include non-thermal electrons?
      iswrite=true,                                      //whether to write output to a file
 	 echeck1=false, echeck2=false, echeck3=false,       //markers for testing (see init.cpp)
 	 isBcut=false,                                      //whether to set temperature to zero in certain region close to the BH near polar axis (see evalpointzero.cpp)

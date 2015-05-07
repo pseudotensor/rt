@@ -4,8 +4,14 @@
 
 //case 100: fmin=6000;fmax=6000;sep=1;kmin=0;kmax=12;sp=0;rhonor=50000.; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
 
+// THICKDISK7: m_search yields xisq=10.451 
+//case 710: fmin=3655;fmax=3655;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
+case 710: fmin=6000;fmax=6000;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
+case 711: fmin=5880;fmax=5980;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=10;break;
+case 712: fmin=5450;fmax=5950;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
+case 713: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
 // THICKDISK7: m_search yields xisq=10.451
-// case 100: fmin=3655;fmax=6000;sep=5;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
+//case 100: fmin=3655;fmax=6000;sep=5;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
 
 //case 100: fmin=6200;fmax=6200;kmin=2;kmax=8;sp=0;rhonor=136834.; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=0.1;break;//changing azimuthal camera angle - 4*PI/3
 //case 100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;break;//changing azimuthal camera angle - 4*PI/3
@@ -114,7 +120,7 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
  case 425: fmin=2100;fmax=2200;sep=10;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.47; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
 
 
- case 666: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10; fljVc=0.; flrQc=0.; flrVc=0.;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
+ case 666: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10; fljVc=0.; flrQc=0.; flrVc=0.;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
 
  case 667: fmin=1000;fmax=1000;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10; fljVc=0.; flrQc=0.; flrVc=0.;break; // TEST NTH
 
