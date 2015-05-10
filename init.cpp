@@ -199,11 +199,11 @@ if(!inited){
     printf("[init.cpp]: jI[0][0]=%e jI_nth[0][0]=%e",jI[0][0],jI_nth[0][0]);
     printf("[init.cpp]: jQ[0][0]=%e jQ_nth[0][0]=%e",jQ[0][0],jQ_nth[0][0]);
     printf("[init.cpp]: jV[0][0]=%e jV_nth[0][0]=%e",jV[0][0],jV_nth[0][0]);
-    printf("[init.cpp]: aI[0][0]=%e aI_nth[0][0]=%e",aI[0][0],aI_nth[0][0]);
-    printf("[init.cpp]: aQ[0][0]=%e aQ_nth[0][0]=%e",aQ[0][0],aQ_nth[0][0]);
-    printf("[init.cpp]: aV[0][0]=%e aV_nth[0][0]=%e",aV[0][0],aV_nth[0][0]);
-    printf("[init.cpp]: rQ[0][0]=%e rQ_nth[0][0]=%e",rQ[0][0],rQ_nth[0][0]);
-    printf("[init.cpp]: rV[0][0]=%e rV_nth[0][0]=%e",rV[0][0],rV_nth[0][0]);
+    // printf("[init.cpp]: aI[0][0]=%e aI_nth[0][0]=%e",aI[0][0],aI_nth[0][0]);
+    // printf("[init.cpp]: aQ[0][0]=%e aQ_nth[0][0]=%e",aQ[0][0],aQ_nth[0][0]);
+    // printf("[init.cpp]: aV[0][0]=%e aV_nth[0][0]=%e",aV[0][0],aV_nth[0][0]);
+    printf("[init.cpp]: rQ[0]=%e rQ_nth[0]=%e",rQ[0],rQ_nth[0]);
+    printf("[init.cpp]: rV[0]=%e rV_nth[0]=%e",rV[0],rV_nth[0]);
     
 };
 
