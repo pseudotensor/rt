@@ -194,6 +194,17 @@ if(!inited){
 
 	inited=true; //repeat once
     };
+    
+    //RG: CHECK lookup tables
+    printf("[init.cpp]: jI[0][0]=%e jI_nth[0][0]=%e",jI[0][0],jI_nth[0][0]);
+    printf("[init.cpp]: jQ[0][0]=%e jQ_nth[0][0]=%e",jQ[0][0],jQ_nth[0][0]);
+    printf("[init.cpp]: jV[0][0]=%e jV_nth[0][0]=%e",jV[0][0],jV_nth[0][0]);
+    printf("[init.cpp]: aI[0][0]=%e aI_nth[0][0]=%e",aI[0][0],aI_nth[0][0]);
+    printf("[init.cpp]: aQ[0][0]=%e aQ_nth[0][0]=%e",aQ[0][0],aQ_nth[0][0]);
+    printf("[init.cpp]: aV[0][0]=%e aV_nth[0][0]=%e",aV[0][0],aV_nth[0][0]);
+    printf("[init.cpp]: rQ[0][0]=%e rQ_nth[0][0]=%e",rQ[0][0],rQ_nth[0][0]);
+    printf("[init.cpp]: rV[0][0]=%e rV_nth[0][0]=%e",rV[0][0],rV_nth[0][0]);
+    
 };
 
 //reading fluid simulation dump files from disk
@@ -340,7 +351,7 @@ rate=0.;
 //computing the accretion rate in code units
 for(k=0;k<thlen-1;k++)
 	for(i=0;i<phlen;i++)
-		for(j=0;j<=2*fdiff;j++) {
+      for(j=0;j<=2*fdiff;j++) { // RG: j -> t ?
 			u0=(*uu[j])[i][k][nx-1][4];
 			usp[j][i][k][0]=u0;
 			usp[j][i][k][1]=u0*(*uu[j])[i][k][nx-1][5];//u^r
@@ -373,7 +384,9 @@ for(k=0;k<thlen-1;k++)
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1);//accretion rate in physical units
 
 //initializing Te(Ts)+Tp(Ts) solver, standard for GSL
-doub acc=2e-3,   //relative accuracy
+cout << "[init.cpp] Electron Temperature Solver..." << endl;
+
+doub acc=2e-3,   //relative accuracy //RG: SHOULD BE GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
 	 IT[2],      //ODE vector (Te+Tp)
 	 step,       //step
 	 rz;         //radius
@@ -392,7 +405,7 @@ IT[0]=Tstab[ndd-1];
 IT[1]=IT[0];
 stNt=0;
 rz=rrmax;
-step=-0.001*rz; //initial step
+step=-0.001*rz; //initial step //RG:HARDWIRED
 ts[0]=IT[0];tp[0]=IT[0];te[0]=IT[0];
 
 //actual temperature solver
@@ -417,7 +430,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 maxT=ts[stNt];minT=ts[0];
 
 if(stNt>maxst){            //check if solver exceeded the number of steps
-	printf("Temperature solver error. Exceeded buffer! \n Exiting");
+	printf("Temperature solver error. Exceeded maximum steps allowed! \n Exiting");
 	exit(-1);
 };
 gsl_odeiv_evolve_free (ez);//free memory

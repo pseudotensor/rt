@@ -6,16 +6,22 @@ doub lnW=log(nW),             //log of frequency ratio
 	 lnWman;                  //weight of closest look-up table cell along frequency axis
 
 if((lTe<lTmin)||(lTe>lTmax)||(lnW<lnWmin)||(lnW>lnWmax)){ // if OUTSIDE of range for emissivities look-up table
+
 	jVc_lookuptab=0.;
 	jQc_lookuptab=0.;
 	jIc_lookuptab=0.;
+
  } else { // if INSIDE range of look-up tables use them
+
+    // Te=Tmin -> zeroth element, Te=Tmax -> last element 
 	lTefrac=(lTe-lTmin)/(lTmax-lTmin)*Tlen;
 	j=floor(lTefrac);
 	lTeman=lTefrac-j;
+
 	lnWfrac=(lnW-lnWmin)/(lnWmax-lnWmin)*nWlen;
 	k=floor(lnWfrac);
 	lnWman=lnWfrac-k;
+
 	temp = lnWman*lTeman;
 
 	//look up dimensionless emissivities by 2D multi-linear interpolation
@@ -50,22 +56,27 @@ doub lnW_nth=log(nW),             //log of frequency ratio // RG: no nW_nth
 	 lnWman_nth;                  //weight of closest look-up table cell along frequency axis
 
 if((lTe<lTmin_nth)||(lTe>lTmax_nth)||(lnW_nth<lnWmin_nth)||(lnW_nth>lnWmax_nth)){ // if OUTSIDE of range for emissivities look-up table
-	jVc_nth_lookuptab=0.;
-	jQc_nth_lookuptab=0.;
-	jIc_nth_lookuptab=0.;
- } else { // if INSIDE range of look-up tables use them
-	lTefrac_nth=(lTe-lTmin_nth)/(lTmax_nth-lTmin_nth)*Tlen;
-	j=floor(lTefrac_nth);
-	lTeman_nth=lTefrac_nth-j;
-	lnWfrac_nth=(lnW_nth-lnWmin_nth)/(lnWmax_nth-lnWmin_nth)*nWlen;
-	k=floor(lnWfrac_nth);
-	lnWman_nth=lnWfrac_nth-k;
-	temp = lnWman_nth*lTeman_nth;
+  jVc_nth_lookuptab=0.;
+  jQc_nth_lookuptab=0.;
+  jIc_nth_lookuptab=0.;
 
-	//look up dimensionless emissivities by 2D multi-linear interpolation
-	jIc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jI_nth[j][k] + (lnWman_nth - temp)*jI_nth[j][1 + k] + (lTeman_nth - temp)*jI_nth[1 + j][k] + temp*jI_nth[1 + j][1 + k]);
-	jQc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jQ_nth[j][k] + (lnWman_nth - temp)*jQ_nth[j][1 + k] + (lTeman_nth - temp)*jQ_nth[1 + j][k] + temp*jQ_nth[1 + j][1 + k]);
-	jVc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jV_nth[j][k] + (lnWman_nth - temp)*jV_nth[j][1 + k] + (lTeman_nth - temp)*jV_nth[1 + j][k] + temp*jV_nth[1 + j][1 + k]);
+ } else { // if INSIDE range of look-up tables use them
+
+  // Te=Tmin -> zeroth element, Te=Tmax -> last element 
+  lTefrac_nth=(lTe-lTmin_nth)/(lTmax_nth-lTmin_nth)*Tlen_nth;
+  j=floor(lTefrac_nth);
+  lTeman_nth=lTefrac_nth-j;
+
+  lnWfrac_nth=(lnW_nth-lnWmin_nth)/(lnWmax_nth-lnWmin_nth)*nWlen;
+  k=floor(lnWfrac_nth);
+  lnWman_nth=lnWfrac_nth-k;
+
+  temp = lnWman_nth*lTeman_nth;
+
+  //look up dimensionless emissivities by 2D multi-linear interpolation
+  jIc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jI_nth[j][k] + (lnWman_nth - temp)*jI_nth[j][1 + k] + (lTeman_nth - temp)*jI_nth[1 + j][k] + temp*jI_nth[1 + j][1 + k]);
+  jQc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jQ_nth[j][k] + (lnWman_nth - temp)*jQ_nth[j][1 + k] + (lTeman_nth - temp)*jQ_nth[1 + j][k] + temp*jQ_nth[1 + j][1 + k]);
+  jVc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jV_nth[j][k] + (lnWman_nth - temp)*jV_nth[j][1 + k] + (lTeman_nth - temp)*jV_nth[1 + j][k] + temp*jV_nth[1 + j][1 + k]);
 };
 
 if((lTe<lTminr_nth)||(lTe>lTmax_nth)){                             //if outside of range for rotativities look-up table

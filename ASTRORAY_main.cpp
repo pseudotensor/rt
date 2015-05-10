@@ -85,9 +85,8 @@ const int  ndd=650,           //radial dimension of coordinate/coordinate transf
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
   maxco=3000,        //maximum number of points on a geodesic
   maxst=12000,       //maximum number of points for radial temperature profile
-  nWlen=120,nWlen_nth=120,         //number of frequencies for which propagation coefficients are computed
-//  nWlen=60,         //number of frequencies for which propagation coefficients are computed
-  Tlen=100,Tlen_nth=100,          //number of temperatures for which propagation coefficients are computed
+  nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
+  Tlen=100,Tlen_nth=100,          // number of temperature bins for lookup tables of propagation coefficients 
   nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
   snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
 

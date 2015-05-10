@@ -32,7 +32,7 @@ doub in[sflen][5];                                             //define array fo
 for(kk=kmin;kk<=kmax;kk++){                                    //initialize array with zeros
 	for(il=0;il<5;il++)
 		in[kk][il]=0.;
-	doub hei=2./snxy,                                          //distance between neighbooring points in picture plane
+	doub hei=2./snxy,                                          //distance between neighbooring points in picture plane // RG: image plane side length = 2?
 		 maxy=fact*sftab[kk][1];                               //size of the integration regions in picture plane 
 	for(ix=0;ix<=snxy-3;ix+=2)                                 //2D integration loop over picture plane
 		for(iy=0;iy<=snxy-3;iy+=2)
