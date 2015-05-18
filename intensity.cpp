@@ -14,10 +14,28 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
 			b=sqrt(xg*xg+yg*yg),                               //impact parameter
 			beta=atan2(yg,xg);                                 //polar angle in picture plane
 		//new geodesic integration for each ray
-		#include "geoint.cpp"
+        
+        // doub t_b4_geodesics = clock()/ (doub)CLOCKS_PER_SEC;
+        // time_t t_b4_geodesics = time(0);
+        time_t t_b4_geodesics = clock();
+        //struct rusage t_b4_geodesics;
+        //getrusage(RUSAGE_SELF, &t_b4_geodesics);
+        //printf("[intensity.cpp]: t_b4_geodesics=%ld\n",t_b4_geodesics.ru_stime.tv_usec);
+        #include "geoint.cpp"
+        t_geodesics += (clock() - t_b4_geodesics) / (doub)CLOCKS_PER_SEC;
+        // time_t t_after_geodesics = time(0);
+        // time_t t_after_geodesics = time(0);
+        // t_geodesics += difftime(t_after_geodesics,t_b4_geodesics);
+        //getrusage(RUSAGE_SELF, &t_after_geodesics);
+        //t_geodesics += (t_after_geodesics.ru_stime.tv_usec - t_b4_geodesics.ru_stime.tv_usec);
+
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
+
+        //doub t_b4_solvetrans = clock();
+        clock_t t_b4_solvetrans = clock();
 		//new radiative transfer is solved for each ray
-		#include "solvetrans.cpp"
+        #include "solvetrans.cpp"
+        t_solvetrans += (clock() - t_b4_solvetrans) / (float)CLOCKS_PER_SEC;
 		
 		(*ausin)[iix][iiy][kk][0]=II[0];                       //total intensity I
 		(*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]); //linearly polarized intensity Q
@@ -29,14 +47,14 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
 
 doub in[sflen][5];                                             //define array for computing intensity
 
-for(kk=kmin;kk<=kmax;kk++){                                    //initialize array with zeros
+for(kk=kmin;kk<=kmax;kk++){                                    
 	for(il=0;il<5;il++)
-		in[kk][il]=0.;
+      in[kk][il]=0.;                                           
 	doub hei=2./snxy,                                          //distance between neighbooring points in picture plane // RG: image plane side length = 2?
-		 maxy=fact*sftab[kk][1];                               //size of the integration regions in picture plane 
+      maxy=fact*sftab[kk][1];                                  //size of the integration regions in picture plane 
 	for(ix=0;ix<=snxy-3;ix+=2)                                 //2D integration loop over picture plane
-		for(iy=0;iy<=snxy-3;iy+=2)
-			for(il=0;il<5;il++)                                //for each kind of intensity
+      for(iy=0;iy<=snxy-3;iy+=2)
+        for(il=0;il<5;il++)                                //for each kind of intensity
 				//2nd order accuracy of the integrator - works best RG: What does best mean? In what way?
 				in[kk][il]+=((*ausin)[ix][iy][kk][il] + (*ausin)[ix][2 + iy][kk][il] + 4*(*ausin)[1 +ix][iy][kk][il] + 4*(*ausin)[1 + ix][2 + iy][kk][il] + (*ausin)[2 +ix][iy][kk][il] +
 				4*((*ausin)[ix][1 + iy][kk][il] + 4*(*ausin)[1 + ix][1 +iy][kk][il] + (*ausin)[2 + ix][1 + iy][kk][il]) + (*ausin)[2 + ix][2 +iy][kk][il])*hei*hei/9.;

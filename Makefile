@@ -1,7 +1,7 @@
 CC=g++
 CXX=g++
 CFLAGS=-fopenmp -Ofast
-CXXFLAGS=-fopenmp -Ofast
+CXXFLAGS=-fopenmp -Ofast # -pg -fprofile-arcs -ftest-coverage
 LIBS=
 RM=/bin/rm
 

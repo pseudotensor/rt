@@ -25,7 +25,9 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
     ff[3]=(det*(-(jVc*sinths) + aVc*frcu*sinths*yyy[0] + cos2k*cosqs*cosths*(jQc - aQc*frcu*yyy[0]) + cosths*sin2k*sinqs*(jQc - aQc*frcu*yyy[0]) + cosqs*frcu*rQc*sin2k*yyy[1] -cos2k*frcu*rQc*sinqs*yyy[1]))/(frsq*yyy[1]);
     ff[4]= det*(-fr*aIc_approx*yyy[4] + jIc_approx/frsq);
 
+    /*******************************/
     // ADD NON-THERMAL CONTRIBUTION 
+    //
     // RG:TODO: ULTIMATELY WANT SEPARATE VARIABLES FOR THESE FOR DIAGNOSTIC PURPOSES
 
     //char emissivity[16]="th"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c

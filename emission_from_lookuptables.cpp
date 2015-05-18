@@ -24,6 +24,7 @@ if((lTe<lTmin)||(lTe>lTmax)||(lnW<lnWmin)||(lnW>lnWmax)){ // if OUTSIDE of range
 
 	temp = lnWman*lTeman;
 
+    //RG: POSSIBLE SPEED-UP by LOCAL VARIABLE FOR EXP() terms
 	//look up dimensionless emissivities by 2D multi-linear interpolation
 	jIc_lookuptab=exp((-lnWman - lTeman + 1 + temp)*jI[j][k] + (lnWman - temp)*jI[j][1 + k] + (lTeman - temp)*jI[1 + j][k] + temp*jI[1 + j][1 + k]);
 	jQc_lookuptab=exp((-lnWman - lTeman + 1 + temp)*jQ[j][k] + (lnWman - temp)*jQ[j][1 + k] + (lTeman - temp)*jQ[1 + j][k] + temp*jQ[1 + j][1 + k]);

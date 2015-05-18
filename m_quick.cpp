@@ -83,7 +83,6 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation s
 
     cout << "CALLING init()...\n";
 	init(sp,fmin,fmax,sep);
-    cout << "[m_quick.cpp]: rho(0,0,0)="<<(*uu[0])[0][0][0][0]<<endl;
 
     //cout << "include intensity.cpp\n";
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
@@ -107,9 +106,10 @@ string stra = ytr.str();
 FILE * pFile; 
 
 //RG: 
- cout << "FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
+cout << "FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
 
 pFile = fopen ((dir+"quicka"+stra+qadd+".dat").c_str(),"a");
+
 
 for(kk=kmin;kk<=kmax;kk++){                     //actual writing into "quicka" file
 	printf("avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2f \n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);

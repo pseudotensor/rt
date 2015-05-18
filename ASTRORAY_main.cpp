@@ -60,6 +60,10 @@
 #include "control.c"
 #include "evolve.c"
 #include "rk2.c"
+
+#include <unistd.h> //sleep
+#include <sys/resource.h> // NEEDED FOR getrusage -> PROFILING
+
 using namespace std;
 
 //different setups are below
@@ -67,6 +71,7 @@ using namespace std;
 #include "win_lin_Jon.c"
 //#include "win_lin_ADAFs.c"
 
+#include "profiling.cpp"
 const doub PI = 4.0*atan(1.0);
 
 // THICKDISK7
@@ -86,7 +91,7 @@ const int  ndd=650,           //radial dimension of coordinate/coordinate transf
   maxco=3000,        //maximum number of points on a geodesic
   maxst=12000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
-  Tlen=100,Tlen_nth=100,          // number of temperature bins for lookup tables of propagation coefficients 
+  Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
   nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
   snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
 
@@ -111,10 +116,11 @@ const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//mi
 		   lnWmin=log(nWmin), lnWmax=log(nWmax), lTminr=log(Tminr), lTmin=log(Tmin), lTmax=log(Tmax);//logarithms
 
 // Temperature sampling & range for propagation effects for NON-THERMAL
-double logspacing_Wmin_nth=1.1, logspacing_Wmax_nth=1.25;
-const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=12000.*pow(logspacing_Wmin_nth, nWlen_nth/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
-		   Tmin_nth=0.4, Tmax_nth=0.4*pow(logspacing_Wmax_nth,Tlen_nth), //minimum and maximum ratios of actual and rest mass electron temperatures, for which emissivities are non-zero
-		   Tminr_nth=0.4*pow(logspacing_Wmax_nth,-Tlen_nth),         //minimum ratio of actual and rest mass electron temperatures, for which Faraday rotation/conversion are non-zero
+double logspacing_Wmin_nth=1.25, logspacing_Wmax_nth=1.25;
+double logspacing_Tmin_nth=1.05, logspacing_Tmax_nth=1.05;
+const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=12000.*pow(logspacing_Wmax_nth, nWlen_nth/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
+		   Tmin_nth=0.4, Tmax_nth=0.4*pow(logspacing_Tmin_nth,Tlen_nth), //minimum and maximum ratios of actual and rest mass electron temperatures, for which emissivities are non-zero
+		   Tminr_nth=0.4*pow(logspacing_Tmax_nth,-Tlen_nth),         //minimum ratio of actual and rest mass electron temperatures, for which Faraday rotation/conversion are non-zero
 		   lnWmin_nth=log(nWmin_nth), lnWmax_nth=log(nWmax_nth), lTminr_nth=log(Tminr_nth), lTmin_nth=log(Tmin_nth), lTmax_nth=log(Tmax_nth);//logarithms
 
 
@@ -240,7 +246,9 @@ extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
 #include "transnew.cpp"
 
 int main(int argc, char* argv[]) {
+
 	int n1;
+    struct rusage usage; // FOR PROFILING PURPOSES
     
     //RG:FIXME BAD PLACE TO DO BECAUSE fdiff can change from here to init.cpp
     // RG: As long as fdiff is defined globally 
@@ -321,7 +329,27 @@ int main(int argc, char* argv[]) {
 	        #include "m_ts.cpp"
 		    break;
 	}
-    printf ("Iterations per second = % .6f\n", doub(ittot)/ans);
-    printf ("Iterations = %d\n", ittot);
+
+    // Use gprof to obtain time taken by each function. Use these flags for compilation -pg -fprofile-arcs -ftest-coverage.
+    printf ("==============PROFILING INFO==============\n");
+    doub t_total = (clock()-start)/(doub)CLOCKS_PER_SEC;
+    printf ("TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* 0.01, t_total *0.01 * nthreads);
+    //printf ("===================RT=====================\n");
+    //printf ("RUNTIME RT SOLVER         = % .1f secs (%.0f%% %.1f across all threads)\n", ans*0.01, ans/t_total*nthreads, ans*0.01);
+    printf ("Total iterations          = %d\n", ittot);
+    printf ("Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/0.01);
+    printf ("RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *0.01, t_geodesics/t_total/nthreads*100);
+    printf ("RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*0.01, t_solvetrans/t_total/nthreads*100);
+    printf ("============PROFILING INFO END============\n");
+
+    // RG: BELOW PRINTS 0.02 instead of 2
+    // time_t t_test=clock();
+    // sleep(2);
+    // printf("TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
+
+    // ans=(clock() - start) / (doub)CLOCKS_PER_SEC;
+
+    cout << "====\nDONE\n====" << endl;
+
     return(0);
 }

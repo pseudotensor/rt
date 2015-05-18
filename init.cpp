@@ -126,6 +126,7 @@ if(!inited){
 	ifstream fV ((dir+"lookupjVy.dat").c_str(), ios::in);
 	ifstream frQ ((dir+"lookuprQa.dat").c_str(), ios::in);
 	ifstream frV ((dir+"lookuprVa.dat").c_str(), ios::in);
+
 	for(k=0;k<=Tlen;k++) 
 		for(j=0;j<=nWlen;j++) {
 			fI>>jI[k][j];
@@ -143,11 +144,16 @@ if(!inited){
       //  stringstream dir_nth="/home/rgold/rt/newthermaltabs/";
       const string       dir_nth="/home/rgold/rt/newthermaltabs/";
       //char dir_nth[64]="/home/rgold/rt/newthermaltabs/";
-      cout << "READING in NEW THERMAL lookup but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir+"\n";
+      const string jI_file=dir_nth+"origlookup_thermalIjcSs_log.dat";
+
+      cout << "READING in NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
 
     // thermal tabs v1 (sanity check: expect agreement with old tables)
-    ifstream fI_nth ((dir_nth+"origlookup_thermalIjcSs_log.dat").c_str(), ios::in);
+    ifstream fI_nth ((jI_file).c_str(), ios::in);
+    //ifstream fI_nth ((dir_nth+"origlookup_thermalIjcSs_log.dat").c_str(), ios::in);
 	ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_log.dat").c_str(), ios::in);
+    //cout << "[init.cpp]: ATTENTION: jQ is linear, rest is log [TESTING]" <<endl;
+	//ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_lin.dat").c_str(), ios::in);
 	ifstream fV_nth ((dir_nth+"origlookup_thermalVjcSs_log.dat").c_str(), ios::in);
 
 	ifstream faI_nth ((dir_nth+"origlookup_thermalaIT_log.dat").c_str(), ios::in);
@@ -155,7 +161,7 @@ if(!inited){
 	ifstream faV_nth ((dir_nth+"origlookup_thermalaVT_log.dat").c_str(), ios::in);
 
     //reading emissivities for [NON-THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
-    char nth_power[8]="2.4";
+    //char nth_power[8]="2.4";
     // cout << "READING in NON-THERMAL origlookup_"<<nth_power<<"jcSs_log.dat files from dir="+dir+"\n";
 
 	//ifstream fI_nth ((dir+"origlookup_"+nth_power+"_IjcSs_log.dat").c_str(), ios::in);
@@ -166,16 +172,56 @@ if(!inited){
     // RG: problems when lookup sizes differ between th vs nth?
 	ifstream frQ_nth ((dir+"origlookup_thermalrQT_log.dat").c_str(), ios::in);
 	ifstream frV_nth ((dir+"origlookup_thermalrVT_log.dat").c_str(), ios::in); 
+    string fname_table_readin="table_jI_nth.dat";
+    //FILE fd=(fname_table_readin,'a');
+    //ifstream f_table_readin (fname_table_readin.c_str(), ios::in);
+ 
+    cout<<"Tlen_nth="<<Tlen_nth<<",nWlen_nth="<<nWlen_nth<<endl;
 
-	for(k=0;k<=Tlen_nth;k++) 
-		for(j=0;j<=nWlen_nth;j++) {
-			fI_nth>>jI_nth[k][j];
-			fQ_nth>>jQ_nth[k][j];
-			fV_nth>>jV_nth[k][j];
+    // for(int col=0;col<3;col++) 
+    int col=0;
+    
+      for(k=0;k<=Tlen_nth;k++) 
+        for(j=0;j<=nWlen_nth;j++) 
 
-			faI_nth>>aI_nth[k][j];
-			faQ_nth>>aQ_nth[k][j];
-			faV_nth>>aV_nth[k][j];
+          {
+            doub nu_Omega_nth = 12000.*pow(1.25,-nWlen_nth/2+j);
+            doub nu_Omega_th = 12000.*pow(1.1,-nWlen/2+j);
+            doub Theta_e = 0.4*pow(1.05,k);
+
+            // READ-IN LOOKUP TABLE FILES
+            fI_nth>>jI_nth[k][j];
+            // TRANSLATE from JON's NEW TABLES to ROMAN S. OLD TABLES
+            jI_nth[k][j]=log(exp(jI_nth[k][j])/4.44e-30*nu_Omega_nth);
+            fQ_nth>>jQ_nth[k][j];
+            jQ_nth[k][j]=log(exp(jQ_nth[k][j])/4.44e-30*nu_Omega_nth);
+
+            fV_nth>>jV_nth[k][j];
+            jV_nth[k][j]=log(exp(jV_nth[k][j])/4.44e-30*nu_Omega_nth*3./4.);
+            
+
+          //if (k+j==Tlen_nth*nWlen_nth) cout<<"jI table value:"<<exp(jI_nth[k][j])/4.44e-33*nu_Omega<<endl;
+          // cout<<"nu_Omega_nth="<<nu_Omega_nth<<" Theta_e="<<Theta_e<<" jI table value="<<exp(jI_nth[k][j])/4.44e-33*nu_Omega_nth<<endl;
+          // if (true) fprintf(fname_table_readin,"%e %e %e\n",nu_Omega,Theta_e,exp(jI_nth[k][j])/4.44e-33*nu_Omega);
+          if (nu_Omega_nth==12000. && k==0) // j=60,k=0
+            printf("%e %e exp(jI_new)=%e j=%d k=%d #nthtable \n",nu_Omega_nth,Theta_e,exp(jI_nth[k][j]),j,k);
+          //printf("%e %e exp(jI_new)=%e j=%d k=%d #nthtable \n",nu_Omega_nth,Theta_e,exp(jI_nth[k][j])/4.44e-30*nu_Omega_nth,j,k);
+
+            // std::setprecision(32) <<
+          //   cout <<nu_Omega_nth<<", "<<Theta_e<<", " <<jI_nth[k][j]<<", "<<j<<", "<<k<<endl;///4.44e-33*nu_Omega_nth,j,k);
+          // }
+          // if (k==0 && j==0)  cout <<"nu_Omega_nth="<<nu_Omega_nth<<", Theta_e="<<Theta_e<<", jI_nth=" <<jI_nth[k][j]<<", j="<<j<<", k="<<k<<endl;///4.44e-33*nu_Omega_nth,j,k); // RG: [-nWlen,+nWlen] vs [-nWlen/2,+nWlen/2]
+          // if (k==0 && j==nWlen/2)  cout <<"nu_Omega_nth="<<nu_Omega_nth<<", Theta_e="<<Theta_e<<", jI_nth=" <<jI_nth[k][j]<<", j="<<j<<", k="<<k<<endl;///4.44e-33*nu_Omega_nth,j,k); // RG: [-nWlen,+nWlen] vs [-nWlen/2,+nWlen/2]
+
+          if (nu_Omega_th==12000. && k==0) printf("%e %e exp(jI_old)=%e j=%d k=%d #thtable \n",nu_Omega_th,Theta_e,exp(jI[k][j]),j,k);
+          //fI_nth>>jI_nth[k][j]; // Theta_e
+          //if (k+j==0) cout<<"Theta_a:"<<jI_nth[k][j]<<endl;
+          //fI_nth>>jI_nth[k][j];
+          //fI_nth>>jI[k][j];
+
+          faI_nth>>aI_nth[k][j];
+          faQ_nth>>aQ_nth[k][j];
+          faV_nth>>aV_nth[k][j];
 		}
 	for(k=0;k<=2*Tlen_nth;k++) {
 
@@ -192,19 +238,31 @@ if(!inited){
 
 
 
-	inited=true; //repeat once
+	inited=true; //repeat once //RG:never repeated? if !(inited){}
     };
     
     //RG: CHECK lookup tables
-    printf("[init.cpp]: jI[0][0]=%e jI_nth[0][0]=%e",jI[0][0],jI_nth[0][0]);
-    printf("[init.cpp]: jQ[0][0]=%e jQ_nth[0][0]=%e",jQ[0][0],jQ_nth[0][0]);
-    printf("[init.cpp]: jV[0][0]=%e jV_nth[0][0]=%e",jV[0][0],jV_nth[0][0]);
-    // printf("[init.cpp]: aI[0][0]=%e aI_nth[0][0]=%e",aI[0][0],aI_nth[0][0]);
-    // printf("[init.cpp]: aQ[0][0]=%e aQ_nth[0][0]=%e",aQ[0][0],aQ_nth[0][0]);
-    // printf("[init.cpp]: aV[0][0]=%e aV_nth[0][0]=%e",aV[0][0],aV_nth[0][0]);
-    printf("[init.cpp]: rQ[0]=%e rQ_nth[0]=%e",rQ[0],rQ_nth[0]);
-    printf("[init.cpp]: rV[0]=%e rV_nth[0]=%e",rV[0],rV_nth[0]);
-    
+    int inspect=0;
+    int inspect_W=nWlen/2,inspect_T=0;
+    int inspect_W_nth=nWlen_nth/2,inspect_T_nth=0;
+    if (false){
+    printf("[init.cpp]: frequency=%E temperature=%E\n",12000.*pow(1.1, -nWlen/2+(inspect_W/2)),0.4*pow(1.05, inspect_T));
+    printf("[init.cpp]: frequency_nth=%E temperature_nth=%E\n",12000.*pow(1.25, -nWlen_nth/2+(inspect_W_nth/2)),0.4*pow(1.05, inspect_T_nth));
+
+    // jI
+    printf("[init.cpp]: jI[%d][%d]=%E jI_nth[%d][%d]=%E\n",inspect_T,inspect_W,jI[inspect][inspect],inspect_T_nth,inspect_W_nth,jI_nth[inspect][inspect]);
+    printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d])=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect]));
+
+    printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d]/4.44e-33*422e-9)=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect])/4.44e-33*422./1e9); // 1e9 Hz->Ghz ?
+    printf("[init.cpp]: jQ[%d][%d]=%E jQ_nth[%d][%d]=%E\n",inspect_T,inspect_W,jQ[inspect][inspect],inspect_T_nth,inspect_W_nth,jQ_nth[inspect][inspect]);
+    printf("[init.cpp]: jV[%d][%d]=%E jV_nth[%d][%d]=%E\n",inspect_T,inspect_W,jV[inspect][inspect],inspect_T_nth,inspect_W_nth,jV_nth[inspect][inspect]);
+
+    // printf("[init.cpp]: aI[%d][%d]=%E aI_nth[%d][%d]=%E\n",inspect,,aI[inspect][inspect],aI_nth[inspect][inspect]);
+    // printf("[init.cpp]: aQ[%d][%d]=%E aQ_nth[%d][%d]=%E\n",inspect,aQ[inspect][inspect],aQ_nth[inspect][inspect]);
+    // printf("[init.cpp]: aV[%d][%d]=%E aV_nth[%d][%d]=%E\n",inspect,aV[inspect][inspect],aV_nth[inspect][inspect]);
+    printf("[init.cpp]: rQ[%d]=%E rQ_nth[%d]=%E\n",inspect,rQ[inspect],inspect,rQ_nth[inspect]);
+    printf("[init.cpp]: rV[%d]=%E rV_nth[%d]=%E\n",inspect,rV[inspect],inspect,rV_nth[inspect]);
+    }
 };
 
 //reading fluid simulation dump files from disk

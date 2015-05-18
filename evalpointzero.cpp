@@ -678,6 +678,8 @@ if(fr<0){                                               //plug for negative freq
 
 nufr=nu*fr;                                             //frequency in LFCRF taking redshift into account
 nW=2*me*cc*2*PI*nufr/(3*ee*kbperp);                     //effectively a ratio of observed to cyclotron frequency with some convenient factor
+
+// PLANCK FCT (Rayleigh-Jeans limit)
 Bnu=(2*kb*nufr*nufr*tet)/cc/cc;                         //thermal source term in LFCRF
 
 //computation of dimensionless emissivities from the look-up tables
@@ -711,9 +713,26 @@ doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
 // jQc = emissivity_coeff * kbperp * jQc_lookuptab;
 // jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
 
+// doub The=kb*tet/me/cc/cc,                                          //rest mass temperature of electron
+// 	 nuc=ee*kbperp/me/cc/2./PI,                                    //cyclotron frequency
+// 	 nus=2./9.*nuc*The*The,                                        //peak emissivity frequency
+// 	 Xe=nu/nus;                                                    //ratio of observed frequency to peak emissivity frequency
+
+// printf("nu=%e,nufr=%e,Xe=%e\n",nu,nufr,Xe); // nu~230e9,nufr~231e9
+
 jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-jQc = emissivity_coeff * kbperp * jQc_lookuptab;
+jQc = emissivity_coeff * kbperp * jQc_lookuptab; // /4.44e-30*Xe;
+
 jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
+
+
+//cout<<"[evalpointzero.cpp]:"<<emissivity_coeff<<kbperp<<jIc_nth_lookuptab<<jQc_nth_lookuptab<<kbpar<<jVc_nth_lookuptab<<endl;
+
+// jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;
+// jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
+// jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+//jVc_nth = jVc; // RG:FIXME SETTING V emissivity equal to old value
+
 
 
 // physical emissivities [NON-THERMAL]
@@ -728,12 +747,6 @@ jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookupt
 // me.
 
 /*********************************************************************
-4/1/2015 Roman Gold 
-
-Here is what is done in astroray (I am working on the code so variable
-names are a bit different to git): First read in raw table values ->
-jIc_lookuptab and then
-
 jIc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*jIc_lookuptab;
 jQc=(sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me)*kbperp*jQc_lookuptab;
 
@@ -793,7 +806,7 @@ non-thermal tables).
 
 Here are the old thermal prefactors:
 
-Ioldcoef: \nu q^2/(\sqrt{3} c \nu_\Omega = 4.44\times 10^{-33}\nu/\nu_\Omega
+Ioldcoef: \nu q^2/(\sqrt{3} c \nu_\Omega = 4.44\times 10^{-30}\nu/\nu_\Omega
 Qoldcoef: Ioldcoef
 Voldcoef: Ioldcoef (4\cot\theta/3)
 
@@ -816,10 +829,9 @@ that doesn't really matter as you want to isolate these old
 prefactors.
 ****************************************************************************/
 
-
-jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
-jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
-jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+// jIc_nth = emissivity_coeff * kbperp * log(exp(jIc_nth_lookuptab)/4.44e-30*Xe);
+// jQc_nth = emissivity_coeff * kbperp * log(exp(jQc_nth_lookuptab)/4.44e-30*Xe);
+// jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
 
 //RG: too bad stNx undefined here...
 //if (stNx==0) printf("jIc=%e,jIc_nth=%e,stNx=%d\n",jIc,jIc_nth,stNx);
@@ -836,29 +848,33 @@ jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_n
 //jVc_nth = fljVc            * kbpar    * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
 
 
-// TESTING NTH
-if (nth) {
-  //jIc = 0.;                                 // zero out total I   emissivities for testing purposes
-  //jIc_nth = 0.;                                // zero out total I   emissivities for testing purposes
-  aIc = 0.;aIc_nth = 0.;                       // zero out total I   absorptivies for testing purposes
-  jQc = 0.;jVc = 0.;jQc_nth = 0.;jVc_nth = 0.; // zero out polarized emissivities for testing purposes
-  aQc = 0.;aVc = 0.;aQc_nth = 0.;aVc_nth = 0.; // zero out polarized absorptivities for testing purposes
- }
-
-
-
 Bn=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]);                            //magnetic field strength
 coskb=kbpar/Bn;                                                    //cos of angle between "k" and "B" vectors
 sinkb=sqrt(1-coskb*coskb);                                         //sin of angle between "k" and "B" vectors
 XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient quantity over which the lookup is conducted for rotativities 
 
-// physical Faraday conversion and rotation coefficients [THERMAL]
+// dimension-full FARADAY CONVERSION and FARADAY ROTATION coefficients [THERMAL]
 rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*xrQc*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
 rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log(1.+0.035*XX));
 
+
 // if (nth && [one point only]) printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");
-rQc_nth = 0.;
-rVc_nth = 0.;
+// rQc_nth = 0.;
+// rVc_nth = 0.;
+// RG:FIXME TEMPORARILY SET ROTATIVITIES TO OLD THERMAL VALUES
+static int onetime=1;if(onetime) cout<<"[WIP]:...SETTING ROTATION COEFFS TO OLD THERMAL..."<<endl;onetime *= 0;
+rQc_nth = rQc;
+rVc_nth = rVc;
+
+
+
+jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;
+jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
+jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+
+// jIc_nth = jIc; // when not resetting I,Q and V ->nan why!?
+// jQc_nth = jQc;
+// jVc_nth = jVc;
 
 
 //physical absorptivities
@@ -870,9 +886,31 @@ if (absorption=="kirchhoff"){ //FIXME
   aIc=jIc/Bnu;
   aQc=jQc/Bnu;
   aVc=jVc/Bnu;
-  // aIc_nth=jIc_nth/Bnu;
-  // aQc_nth=jQc_nth/Bnu;
-  // aVc_nth=jVc_nth/Bnu;
+
+  // AVOID EXTREMELY SMALL VALUES 
+  if (jIc_nth < 1e-32) jIc_nth = 0.; //0.;
+  if (jQc_nth < 1e-32) jQc_nth = 0.; //0.;
+  if (jVc_nth < 1e-32) jVc_nth = 0.; //0.;
+
+  //RG:FIXME PROBLEM HERE...
+  aIc_nth=jIc_nth/Bnu;
+  aQc_nth=jQc_nth/Bnu;
+  aVc_nth=jVc_nth/Bnu;
+  
+  // RG: aIc_nth,aQc_nth,aVc_nth are finite
+
+  // AVOID EXTREMELY SMALL VALUES
+  if (aIc_nth < 1e-32) aIc_nth = 0.;//aIc; //0.;
+  if (aQc_nth < 1e-32) aQc_nth = 0.;//aQc; //0.;
+  if (aVc_nth < 1e-32) aVc_nth = 0.;//aVc; //0.;
+
+  if (aIc_nth<0) cout<<"aIc_nth="<<aIc_nth<<endl;
+
+  //if ( max(abs(aIc_nth/aIc),abs(aIc/aIc_nth)) > 2. ) printf("absorption: IQV_old=%e %e %e IQV_new=%e %e %e\n",aIc,aQc,aVc,aIc_nth,aQc_nth,aVc_nth);
+  //RG:PROBLEM GOES AWAY WHEN...
+  aIc_nth=aIc;
+  aQc_nth=aQc;
+  aVc_nth=aVc;
  }
  else if (absorption=="powerlaw_jon" or absorption=="tables"){ // See Jon's notebook polarization_loop.nb in ASTRORAY repo
 
@@ -925,6 +963,12 @@ doub The=kb*tet/me/cc/cc,                                          //rest mass t
 	 Xe=nu/nus;                                                    //ratio of observed frequency to peak emissivity frequency
 
 
+//RG:nth emissivities -> try to move upwards, figure out dependencies
+// jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;
+// jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
+// jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
+// //jVc_nth = jVc; // RG:FIXME SETTING V emissivity equal to old value
+
 //printf("[evalpointzero.cpp]: Use approximate emissivities only to get absorptivities via Kirchhoff's law\n");
 
 jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*Xe*exp(-pow(Xe,(doub)0.3333));       //simple approximation for total emissivity
@@ -932,7 +976,25 @@ doub tem=(sqrt(Xe)+pow(2.,11./12.)*pow(Xe,(doub)0.166666));                     
 jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*tem*tem*exp(-pow(Xe,(doub)0.3333));  //more accurate approximation for total emissivity from Leung et al. (2011)
 aIc_approx=jIc_approx/Bnu;                                                                             //correspondent absorptivity (this is used/stored in ff[4])
 
-if(jIc!=jIc){                                                      //check for NANs
+
+
+// TESTING NTH
+if (nth) {
+//if (false) {
+  //jIc = 0.;                                 // zero out total I   emissivities for testing purposes
+  //jIc_nth = 0.;                                // zero out total I   emissivities for testing purposes
+  //aIc = 0.; aIc_nth = 0.;                       // zero out total I   absorptivies for testing purposes
+  //jQc = 0.; jVc = 0.; jQc_nth = 0.; jVc_nth = 0.; // zero out polarized emissivities for testing purposes
+  //aQc = 0.; aVc = 0.; aQc_nth = 0.; aVc_nth = 0.; // zero out polarized absorptivities for testing purposes
+
+  //  printf("jI_old=%e jI_new=%e ratio=%e jI_approximate=%e\n",jIc,jIc_nth,jIc_nth/jIc,jIc_approx);
+
+}
+
+
+
+
+if(jIc!=jIc || jQc!=jQc || jVc!=jVc ){ //check for NANs
 	printf("Uncaught otherwise error in radiative transfer...\n Exiting");
 	exit(-1);
 };
