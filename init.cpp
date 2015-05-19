@@ -64,6 +64,7 @@ if(!inited){
     // RG: new should have a matching delete or we leak memory
 
 	//reading coordinate matrix and coordinate transformation matrix
+    cout<<"[init.cpp]: READING dxdxp.dat FILE FROM "<<dir+astr[sp]+xstr+"dxdxp.dat"<<endl;
 	ifstream dxp((dir+astr[sp]+xstr+"dxdxp.dat").c_str(), ios::in|ios::binary);
 	pbuf=dxp.rdbuf();
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));
@@ -119,13 +120,13 @@ if(!inited){
 	rmin=xx[0][0];//minimum radius (inside the event horizon)
 
     //reading emissivities for [THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
-    cout << "READING in lookup???.dat files from dir="+dir+"\n";
+    cout << "[init.cpp]: READING lookup???.dat files from "+ASTRORAY_PATH+"/analysis/\n";
 
-	ifstream fI ((dir+"lookupjIy.dat").c_str(), ios::in);
-	ifstream fQ ((dir+"lookupjQy.dat").c_str(), ios::in);
-	ifstream fV ((dir+"lookupjVy.dat").c_str(), ios::in);
-	ifstream frQ ((dir+"lookuprQa.dat").c_str(), ios::in);
-	ifstream frV ((dir+"lookuprVa.dat").c_str(), ios::in);
+	ifstream fI ((ASTRORAY_PATH+"/analysis/lookupjIy.dat").c_str(), ios::in);
+	ifstream fQ ((ASTRORAY_PATH+"/analysis/lookupjQy.dat").c_str(), ios::in);
+	ifstream fV ((ASTRORAY_PATH+"/analysis/lookupjVy.dat").c_str(), ios::in);
+	ifstream frQ ((ASTRORAY_PATH+"/analysis/lookuprQa.dat").c_str(), ios::in);
+	ifstream frV ((ASTRORAY_PATH+"/analysis/lookuprVa.dat").c_str(), ios::in);
 
 	for(k=0;k<=Tlen;k++) 
 		for(j=0;j<=nWlen;j++) {
@@ -142,11 +143,12 @@ if(!inited){
 
     if (nth) {
       //  stringstream dir_nth="/home/rgold/rt/newthermaltabs/";
-      const string       dir_nth="/home/rgold/rt/newthermaltabs/";
+      // const string       dir_nth="/home/rgold/rt/newthermaltabs/";
+      const string       dir_nth="/home/rgold/codes/rt-git/newthermaltabs/";
       //char dir_nth[64]="/home/rgold/rt/newthermaltabs/";
       const string jI_file=dir_nth+"origlookup_thermalIjcSs_log.dat";
 
-      cout << "READING in NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
+      cout << "[init.cpp]: READING NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
 
     // thermal tabs v1 (sanity check: expect agreement with old tables)
     ifstream fI_nth ((jI_file).c_str(), ios::in);
@@ -179,7 +181,7 @@ if(!inited){
     cout<<"Tlen_nth="<<Tlen_nth<<",nWlen_nth="<<nWlen_nth<<endl;
 
     // for(int col=0;col<3;col++) 
-    int col=0;
+    // int col=0;
     
       for(k=0;k<=Tlen_nth;k++) 
         for(j=0;j<=nWlen_nth;j++) 
@@ -197,7 +199,7 @@ if(!inited){
             jQ_nth[k][j]=log(exp(jQ_nth[k][j])/4.44e-30*nu_Omega_nth);
 
             fV_nth>>jV_nth[k][j];
-            jV_nth[k][j]=log(exp(jV_nth[k][j])/4.44e-30*nu_Omega_nth*3./4.);
+            jV_nth[k][j]=log(exp(jV_nth[k][j])/4.44e-30*nu_Omega_nth);
             
 
           //if (k+j==Tlen_nth*nWlen_nth) cout<<"jI table value:"<<exp(jI_nth[k][j])/4.44e-33*nu_Omega<<endl;
@@ -253,7 +255,7 @@ if(!inited){
     printf("[init.cpp]: jI[%d][%d]=%E jI_nth[%d][%d]=%E\n",inspect_T,inspect_W,jI[inspect][inspect],inspect_T_nth,inspect_W_nth,jI_nth[inspect][inspect]);
     printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d])=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect]));
 
-    printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d]/4.44e-33*422e-9)=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect])/4.44e-33*422./1e9); // 1e9 Hz->Ghz ?
+    // printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d]/4.44e-33*422e-9)=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect])/4.44e-33*422./1e9); // 1e9 Hz->Ghz ?
     printf("[init.cpp]: jQ[%d][%d]=%E jQ_nth[%d][%d]=%E\n",inspect_T,inspect_W,jQ[inspect][inspect],inspect_T_nth,inspect_W_nth,jQ_nth[inspect][inspect]);
     printf("[init.cpp]: jV[%d][%d]=%E jV_nth[%d][%d]=%E\n",inspect_T,inspect_W,jV[inspect][inspect],inspect_T_nth,inspect_W_nth,jV_nth[inspect][inspect]);
 
@@ -270,7 +272,7 @@ for(i=-fdiff;i<=fdiff;i++) {
 	int ioff=i+fdiff;         //consecutive number in an array of loaded dump files
 	int fx=fnum+i;            //ID of a dump file
 
-	//checking whether the simulation dump/snapshot of interest is already in memory
+	//checking if simulation dump/snapshot of interest is already in memory
 	bool reuse=false;         
 	for(j=0;j<2*fdiff+1;j++) 
 		if(loaded[j]==fx) {
@@ -307,8 +309,6 @@ for(i=-fdiff;i<=fdiff;i++) {
 		printf("fieldline %d read\n",fx);
 	else { 
       printf("Something is wrong loading fluid simulation dumps\n...EXITING...\n");
-      // WRONG
-      // printf("Something is wrong loading fluid simulation dumps fline=%s\n Exiting",fline);
 		exit(-1);
 	};
 	fline.close();
@@ -343,6 +343,8 @@ if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
 // for(int var=0;var<=10;var++)
 //   printf("(*uu[0])[0][0][0][%d]=%e\n",var,(*uu[0])[0][0][0][var]);
 
+
+//RG: BCs near the poles ...WIP...
 
 //for(theta_index=0;theta_index<thlen-1;theta_index++)
 // int theta_bc_cells = 5;
@@ -444,7 +446,7 @@ rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1);//accretion rate in physical units
 //initializing Te(Ts)+Tp(Ts) solver, standard for GSL
 cout << "[init.cpp] Electron Temperature Solver..." << endl;
 
-doub acc=2e-3,   //relative accuracy //RG: SHOULD BE GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
+doub acc=2e-3,   //relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
 	 IT[2],      //ODE vector (Te+Tp)
 	 step,       //step
 	 rz;         //radius

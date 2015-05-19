@@ -2,7 +2,7 @@
 /* main routine for computing light emission/absorption/propagation properties through plasma */
 /**********************************************************************************************/
 
-bool sing;             //whether to do the fast light or full evolution of simulation as the light ray propagates //RG:sing->fast_light
+bool fast_light;       //whether to do the fast light or full evolution of simulation as the light ray propagates 
 doub rr,               //radius
 	 costh,            //cos(polar angle)
 	 ph,               //azimuthal angle
@@ -67,7 +67,7 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 rVc,rQc,          //Faraday rotation and conversion coefficients
 	 jIc_lookuptab,jQc_lookuptab,jVc_lookuptab,      //dimensionless emissivities computed from the look-up tables
 	 XX,               //convenient quantity over which the lookup is conducted for rotativities
-	 xrVc,xrQc,        //dimensionless rotativities computed from the look-up tables (still approximate)
+	 rVc_lookuptab,rQc_lookuptab,        //dimensionless rotativities computed from the look-up tables (still approximate)
 
 
 	 jIc_nth,aIc_nth,          // non-thermal emissivity and absorptivity in total intensity
@@ -116,7 +116,7 @@ if((lz<=lb) && (la<=lz)){
 		};
 	};
 } else {
-	printf("Lookup error of closest geodesic point \n Exiting");
+	printf("[evalpointzero.cpp]: Lookup error of closest geodesic point \n Exiting");
 	exit(-1);
 };
 
@@ -214,20 +214,20 @@ phman=phfrac-k;int ak=(1+k)%phlen;//circular boundary condition
 //compute the closest ID of fluid simulation snapshot + decide whether to do fast light or full simultaneous evolution
 if(fdiff==0){                           //fast light approximation
 	sn=0;
-	sing=true;
+	fast_light=true;
 } else {                                //simultaneous evolution of fluid simulation & geodesics propagation
 	timfrac=(t-mintim)/(maxtim-mintim)*2*fdiff;
 	sn=floor(timfrac);
 	timman=timfrac-sn;
-	sing=false;
+	fast_light=false;
 }
 if(t>=maxtim){                          //for too large time offsets use maximum offset fluid simulation snapshot
 	sn=0;
-	sing=true;
+	fast_light=true;
 };
 if(t<=mintim){                          //for too small time offsets use maximum offset fluid simulation snapshot
 	sn=2*fdiff;
-	sing=true;
+	fast_light=true;
 };
 
 //auxiliary quantities
@@ -258,7 +258,7 @@ iKS[3][3]=sinsq*(rhosq+asq*(1+temp)*sinsq);
 
 //determine physical quantities at a point with given coordinates
 if(rr<=rcut){                          //inside the convergence radius do interpolation
-	if(sing)                           //fast light approximation - no time axis
+	if(fast_light)                           //fast light approximation - no time axis
 		for(m=0;m<11;m++)              //3D space - multi-linear continuous interpolation over 8 points
 			rest[m]=(1-lrman)*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn][m]+lrman*(1-thman)*(1-phman)*(*uu[sn])[k][tn][rn+1][m]+(1-lrman)*thman*(1-phman)*(*uu[sn])[k][tn+1][rn][m]+lrman*thman*(1-phman)*(*uu[sn])[k][tn+1][rn+1][m]+
 			(1-lrman)*(1-thman)*phman*(*uu[sn])[ak][tn][rn][m]+lrman*(1-thman)*phman*(*uu[sn])[ak][tn][rn+1][m]+(1-lrman)*thman*phman*(*uu[sn])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn])[ak][tn+1][rn+1][m];
@@ -682,6 +682,11 @@ nW=2*me*cc*2*PI*nufr/(3*ee*kbperp);                     //effectively a ratio of
 // PLANCK FCT (Rayleigh-Jeans limit)
 Bnu=(2*kb*nufr*nufr*tet)/cc/cc;                         //thermal source term in LFCRF
 
+
+
+/*** EMISSIVITIES ***/
+
+
 //computation of dimensionless emissivities from the look-up tables
 //RG: actually an interpolation
 #include "emission_from_lookuptables.cpp"
@@ -693,7 +698,7 @@ Bnu=(2*kb*nufr*nufr*tet)/cc/cc;                         //thermal source term in
 doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
 
 // RG: What about jUc? Obtained via I^2=Q^2+U^2+V^2 ?
-// Ioldcoef: \nu q^2/(\sqrt{3} c \nu_\Omega = 4.44\times 10^{-33}\nu/\nu_\Omega
+// Ioldcoef: \nu q^2/(\sqrt{3} c\nu_\Omega = 4.44\times 10^{-33}\nu/\nu_\Omega
 // Qoldcoef: Ioldcoef
 // Voldcoef: Ioldcoef (4\cot\theta/3)
 
@@ -707,7 +712,6 @@ doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
 // rhoQ: n_0/\nu
 // rhoV: (n_0/\nu)\cot\theta
 
-
 // ORIGINAL
 // jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
 // jQc = emissivity_coeff * kbperp * jQc_lookuptab;
@@ -718,12 +722,12 @@ doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
 // 	 nus=2./9.*nuc*The*The,                                        //peak emissivity frequency
 // 	 Xe=nu/nus;                                                    //ratio of observed frequency to peak emissivity frequency
 
-// printf("nu=%e,nufr=%e,Xe=%e\n",nu,nufr,Xe); // nu~230e9,nufr~231e9
-
 jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
 jQc = emissivity_coeff * kbperp * jQc_lookuptab; // /4.44e-30*Xe;
 
-jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
+//          (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) = emissivity_coeff*4./3.
+jVc = fljVc * 4./3. * emissivity_coeff * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
+//jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
 
 
 //cout<<"[evalpointzero.cpp]:"<<emissivity_coeff<<kbperp<<jIc_nth_lookuptab<<jQc_nth_lookuptab<<kbpar<<jVc_nth_lookuptab<<endl;
@@ -776,27 +780,11 @@ alphaV: (n_0/\nu)\cot\theta
 rhoQ: n_0/\nu
 rhoV: (n_0/\nu)\cot\theta
 
-The new non-thermal tables and mathematica file are attached.
-
-Here are the original factors to look for in astroray, and one would either:
-
-1) remove prefactors if easy -- best for understanding.  Currently
-only remove for non-thermal case, keep for thermal case using old
-tables.
-
-or:
-
-2) take my prefactor and divide by these original prefactors I also
+take my prefactor and divide by these original prefactors I also
 provide below (need to avoid singularities though) and don't remove
 anything from astroray.  But problem if things like \nu are
 dimensionless in some other way than I expect, so then my prefactors
 would be used wrongly.
-
-Better is #1, to directly isolate expressions and ensure you see
-somewhere the exact coefficients I write.  If you don't see the entire
-expression, maybe he's absorbed some factors into making things scaled
-a certain way, and then ultimately maybe #2 is fine then.  But best to
-understand first.
 
 It depends on how localized the prefactors are and whether you can
 readily identify them, understand their normalization, etc.  And
@@ -854,8 +842,8 @@ sinkb=sqrt(1-coskb*coskb);                                         //sin of angl
 XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient quantity over which the lookup is conducted for rotativities 
 
 // dimension-full FARADAY CONVERSION and FARADAY ROTATION coefficients [THERMAL]
-rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*xrQc*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
-rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*xrVc*(1.-0.11*log(1.+0.035*XX));
+rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*rQc_lookuptab*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
+rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*rVc_lookuptab*(1.-0.11*log(1.+0.035*XX));
 
 
 // if (nth && [one point only]) printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");

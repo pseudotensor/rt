@@ -43,8 +43,7 @@
 #    along with ASTRORAY. If not, see <http://www.gnu.org/licenses/>.
 #    
 #***********************************************************************************/
-//Code works fine with double precision accuracy. Experiment with float at your own risk
-#define doub double
+#define doub double // PRECISION: double: ok. float: Use at your own risk!
 #include <stdio.h>
 #include <iomanip>
 #include <string>
@@ -61,164 +60,17 @@
 #include "evolve.c"
 #include "rk2.c"
 
-#include <unistd.h> //sleep
-#include <sys/resource.h> // NEEDED FOR getrusage -> PROFILING
+#include <unistd.h>       // -> sleep
+#include <sys/resource.h> // -> getrusage -> PROFILING
 
 using namespace std;
 
-//different setups are below
-//these files are also platform-specific, as they include directory names in Windows/Linux/UNIX
-#include "win_lin_Jon.c"
-//#include "win_lin_ADAFs.c"
+// different setups are below
+// these files are also platform-specific, as they include directory names in Windows/Linux/UNIX
+#include "win_lin_Jon.c" // #include "win_lin_ADAFs.c"
 
 #include "profiling.cpp"
-const doub PI = 4.0*atan(1.0);
-
-// THICKDISK7
-const int  ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
-//const int  ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
-  sflen=14,          //number of frequencies of interest for flux calculations
-  flen=4,            //number of frequencies of interest for images
-  thn=50,            //number of polar angle values to search for 
-  dd=3,              //record size of average temperature & density file
-
-// THICKDISK7,THICKDISKHR3?,DIPOLE3DFIDUCIALA,QUADRUPOLE
-    wdd=11,            //record size of fluid simulations dump file
-// a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
-//  wdd=11+3,          //record size of fluid simulations dump file
-
-  maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
-  maxco=3000,        //maximum number of points on a geodesic
-  maxst=12000,       //maximum number of points for radial temperature profile
-  nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
-  Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
-
-const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
-	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
-	       rhoout=130.,       //outer density for Sgr A*
-		   Tout=1.5e+7,       //outer temperature for Sgr A*
-		   mp=1.67e-24,       //proton mass
-		   me=9.1e-28,        //electron mass
-		   cc=3.e+10,         //speed of light
-		   kb=1.38e-16,       //Boltzmann constant 
-		   ee=4.8e-10,        //electron charge
-		   The=me*cc*cc/kb,   //rest mass temperature of electron
-		   year=86400.*365.25,//year in seconds
-		   Msun=2.00e+33;     //solar mass
-const doub r0=20000.;         //maximum radius of each light ray
-
-// Temperature sampling & range for propagation effects for THERMAL
-const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
-		   Tmin=0.4, Tmax=0.4*pow(1.05,Tlen), //minimum and maximum ratios of actual and rest mass electron temperatures, for which emissivities are non-zero
-		   Tminr=0.4*pow(1.05,-Tlen),         //minimum ratio of actual and rest mass electron temperatures, for which Faraday rotation/conversion are non-zero
-		   lnWmin=log(nWmin), lnWmax=log(nWmax), lTminr=log(Tminr), lTmin=log(Tmin), lTmax=log(Tmax);//logarithms
-
-// Temperature sampling & range for propagation effects for NON-THERMAL
-double logspacing_Wmin_nth=1.25, logspacing_Wmax_nth=1.25;
-double logspacing_Tmin_nth=1.05, logspacing_Tmax_nth=1.05;
-const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=12000.*pow(logspacing_Wmax_nth, nWlen_nth/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
-		   Tmin_nth=0.4, Tmax_nth=0.4*pow(logspacing_Tmin_nth,Tlen_nth), //minimum and maximum ratios of actual and rest mass electron temperatures, for which emissivities are non-zero
-		   Tminr_nth=0.4*pow(logspacing_Tmax_nth,-Tlen_nth),         //minimum ratio of actual and rest mass electron temperatures, for which Faraday rotation/conversion are non-zero
-		   lnWmin_nth=log(nWmin_nth), lnWmax_nth=log(nWmax_nth), lTminr_nth=log(Tminr_nth), lTmin_nth=log(Tmin_nth), lTmax_nth=log(Tmax_nth);//logarithms
-
-
-//half-size of the square in a picture plane for each frequency - for flux and image calculations
-// RG: frequencies are: 8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857., 1500., 3000., 5000. GHz?
-// RG: {{frequency1, half-screen-size@frequency1?}, {frequency2, half-screen-size@frequency2?}, ...}
-const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
-
-// polarized spectrum of Sgr A*, each array element is 
-// {frequency, Fnu, LP, EVPA, CP}
-// Fnu:  flux at frequency nu
-// LP:   linear polarization fraction (image-averaged/zero-baseline) at frequency nu
-// EVPA: Electric vector position angle (image-averaged/zero-baseline)
-// CP:   circular polarization fraction (image-averaged/zero-baseline) at frequency nu 
-const doub tofit[sflen][5]={{8.450, 0.683, 0., 0., -0.2500}, {14.90, 0.871, 0., 0., -0.6200}, {22.50, 0.979, 0.1900, 131.0, 0.}, {43.00, 1.135, 0.5500, 94.25, 0.}, {87.73, 1.841, 1.420, -4., 0.}, 
-                  {102.0, 1.908, 0., 0., 0.}, {145.0, 2.275, 0., 0., 0.}, {230.9, 2.637, 7.398, 111.5, -1.200}, {349.0, 3.181, 6.499, 146.9, -1.500}, {674.0, 3.286, 0., 0., 0.}, {857.0, 2.867, 0., 0., 0.}, 
-                  {1500., 1., 0., 0., 0.}, {3000., 1., 0., 0., 0.}, {5000., 1., 0., 0., 0.}};
-
-//measurement errors of mean fluxes, CP fractions, LP fractions, and EVPAs
- const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0., 0., 0.}, //no measurements at highest frequencies
-           dCP=0.30, //at 230GHz and 345GHz
-		   dLP[3]={0.50, 0.658, 0.605}, //at 87GHz, 230GHz, and 345GHz
-		   dEVPA[3]={11.,5.4,2.21};     //at 87GHz, 230GHz, and 345GHz
-const bool isLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
-
-bool nth=false,                                          // include non-thermal electrons?
-//bool nth=true,                                          // include non-thermal electrons?
-     iswrite=true,                                      //whether to write output to a file
-	 echeck1=false, echeck2=false, echeck3=false,       //markers for testing (see init.cpp)
-	 isBcut=false,                                      //whether to set temperature to zero in certain region close to the BH near polar axis (see evalpointzero.cpp)
-	 isBred=false;                                      //whether to reduce temperature in regions of high magnetization (see evalpointzero.cpp)
-doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
-doub magn_floor=0.; //used to lighten-up the jet and turn off the disk (see [evalpointzero.cpp])
-doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
-doub trace_theta_slice_angle; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
-doub trace_r_slice_width=2.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
-doub trace_r_slice; // used to trace geodesics arising from a thin slice in the r direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
-string fif="";                                          //any modifier for output file name
-clock_t start;                                          //timing variable
-int fnum,              //fluid simulation dump file number
-	cas,               //integer number encoded in LSB_JOBINDEX or PBS_ARRAYID
-
-/*********************************/
-/********* CMD-LINE-ARGS *********/
-	sp,                //first command line argument, typically spin
-	co,                //second command line argument
-	mco,               //third command line argument rounded
-	sear,              //fourth command line argument, choice of computation
-/********* CMD-LINE-ARGS *********/
-/*********************************/
-
-	ncut,              //the last radial grid point, where the simulation is considered converged
-	fdiff=200,           //loading fluid simulation dump files from XXXX-fdiff to XXXX+fdiff to consider simulation evolution as light propagates; fdiff=0 => fast light approximation
-	mintim, maxtim,    //physical times of XXXX-fdiff and XXXX+fdiff dump files
-	stNt,              //index of electron/ion temperature calculations; is eventually set at 6M radius 
-	loaded[maxfield];  //numbers of loaded dump files, storing these saves I/O
-
-//Yes, these are global. At least 2 routines use each of those => not always trivial to refactor
-doub Bpo,              //third command line argument, often magnetic field strength
-     rg,               //horizon radius in units of M
-	 fact=1.,          //relative size of integration region, good for tests
-	 ans,              //execution time. 
-	 a, asq,           //BH spin and its square
-	 th,               //BH spin inclination angle // RG: Do we mean latitude/inclination angle w.r.t. BH spin?!
-	 heat,             //electron temperature parameter, determines normalization // same as "C" in [Shcherbakov,Penna,McKinney 2012] eq ??
-	 rhonor,           //density normalization/unit/scale
-	 accur,            //relative accuracy of geodesic integration
-	 accurr,           //relative accuracy of radiative transfer integration
-	 rate,             //accretion rate, typically in g/s
-	 minT, maxT,       //minimum and maximum "temperature"=energy density/density
-	 ss,               // ss=dr/rg above the BH horizon, where we stop integration of a geodesic
-	 fljVc=1., flrQc=1., flrVc=1.,//multiplier to test the behavior of the code for boosted/zeroed V emissivity, Faraday conversion, and Faraday rotation, respectively
-	 dphi=0.,          //phi offset to test different phi viewing angles
-  Te_jet, TpTe_jet, TpTe, Te6,        //proton to electron temperature ratio and electron temperature at 6M
-	 ts[maxst], te[maxst], tp[maxst], //for computing radial proton and electron temperature profiles
-	 rcut,             //radius up to which fluid simulation converged // RG: converged->relaxed to steady state?
-	 rhopo, rhocon,    //density extension power-law slope and density at rcut
-	 Upo, Ucon,        //temperature extension power-law slope and temperature at rcut
-	 Bnor,             //magnetic field conversion factor from code units to Gauss
-	 rmin,             //inner radius of averaged temperature/density profile (Tsmap*.dat file)
-	 thlimit,          //critical parameter for cutting off polar region. Opening angle = arccos(1-thlimit)
-	 theta[ndd][thlen],//mapping of code coordinates to physical polar angle theta
-	 totin[sflen],  LPo[sflen], CP[sflen], EVPA[sflen], err[sflen],//total flux, LP fraction, CP fraction, EVPA, and flux error estimate
-	 xtotin[sflen],xLPo[sflen],xCP[sflen],xEVPA[sflen],            //another set of same quantities // RG: but not copy of the former... so explain the difference! Dont use x!
-     jI[Tlen+1][nWlen+1], jQ[Tlen+1][nWlen+1], jV[Tlen+1][nWlen+1],//emissivities tables THERMAL
-	 rQ[2*Tlen+1], rV[2*Tlen+1],                                   //Faraday conversion and rotation tables THERMAL
-     jI_nth[Tlen_nth+1][nWlen_nth+1], jQ_nth[Tlen_nth+1][nWlen_nth+1], jV_nth[Tlen_nth+1][nWlen_nth+1],//emissivities tables NON-THERMAL
-     aI_nth[Tlen_nth+1][nWlen_nth+1], aQ_nth[Tlen_nth+1][nWlen_nth+1], aV_nth[Tlen_nth+1][nWlen_nth+1],//absorptivity tables NON-THERMAL
-	 rQ_nth[2*Tlen_nth+1], rV_nth[2*Tlen_nth+1],                           //Faraday conversion and rotation tables NON-THERMAL
-     rtab[2000], Tstab[2000],                                      //for calculating electron and proton temperatures//global since are called in "solvetemperature" routine
-     usp[maxfield][phlen][thlen][4], uspKS[maxfield][phlen][thlen];//auxiliary for computing accretion rate in "init" function. Not made local due to stack overflow potential.
-
-float uext[phlen][thlen][5],       //quantities on the spherical fluid simulations convergence boundary
-	  dxdxp[ndd][thlen][4][4],     //coordinate transformation smatrix
-	  coord[ndd][thlen][2];        //coordinate matrix
-typedef float (*uuarr)[phlen][thlen][rlen][wdd]; //type for fluid simulations dump files
-
-      uuarr uu[200];                     //130 dumps fit in 64GB memory for Jon's simulations from 2012
+#include "global_variables.cpp" // contains most global variables
 
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;//geodesic object
      poinx ppy[nthreads]; //define 1 geodesic object per OpenMP thread
@@ -238,31 +90,32 @@ extern int solvetemperature (doub rz, const doub zz[],doub ff[],void *pas);
 //extern int setup_averys_toyjet(int i,int j,int k);//, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
 //extern int setup_averys_toyjet(doub coord, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
 //extern int setup_averys_toyjet();//, float restL);
-extern int init(int sp, int fmin, int fmax, int sep); //RG:CLEANUP sep not used
+extern int init(int sp, int fmin, int fmax, int sep); //RG:CLEANUP/INVESTIGATE sep not used
 #include "init.cpp"
 
 //polarized radiative transfer
 extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
 #include "transnew.cpp"
 
+
+
+/**********************************
+ ********* MAIN ROUTINE ***********
+ **********************************/
+
 int main(int argc, char* argv[]) {
 
 	int n1;
     struct rusage usage; // FOR PROFILING PURPOSES
     
-    //RG:FIXME BAD PLACE TO DO BECAUSE fdiff can change from here to init.cpp
-    // RG: As long as fdiff is defined globally 
-    //     and not locally within cases we can remove the below two-liner 
-    //     -> should make fdiff const global!
+    // RG:FIXME BAD PLACE TO DO THAT HERE. fdiff can change (e.g. in cases)
+    // RG: -> should make fdiff const global!
     for(n1=0;n1<2*fdiff+1;n1++)
-      { 
-      // RG: This used to be done here AND in init.cpp ...leaked memory...
-      uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd];//allocating memory for fluid simulation files
-      }
+      uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd]; // allocate memory for fluid data 
 
     typedef doub (*ausar)[snxy+1][snxy+1][sflen][5]; 
-    ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen][5];//allocating memory for radiative transfer results
-    int w,          //thread number for testing
+    ausar ausin = (ausar) new doub[snxy+1][snxy+1][sflen][5]; // allocate memory for radiative transfer results
+    int w,          //thread number (for testing)
 		ittot=0,    //number of steps for radiative transfer solver (sum among all threads)
 		niter=0,    //number of iterations for chi^2 minimization
 		ix,         //geodesic ID - combined x and y positions
@@ -277,7 +130,7 @@ int main(int argc, char* argv[]) {
 		dheat,      //relative variation of heating coefficient
 		drho,       //relative vatiation of density
 		dtheta;     //absolute variation of (polar) viewing angle of BH spin/disk axis
-    start = clock();//timing the entire calculation //RG:USE TO ADD MORE BENCHMARKING/PROFILING
+    start = clock();//timing entire computation //RG: ADD MORE BENCHMARKING/PROFILING see [profiling.cpp]
 
     #pragma omp parallel num_threads(nthreads) shared(ittot) private(w)
         {w = omp_get_thread_num();printf("Hello from thread %d\n", w);}//checking that we can create as many threads as we want
@@ -286,9 +139,10 @@ int main(int argc, char* argv[]) {
 		exit(1);
 	}
 
+
 /*********************************/
 /********* CMD-LINE-ARGS *********/
-    sp=atoi(argv[1])-1;   //first command line argument - spin ID
+    sp=atoi(argv[1])-1;   //first command line argument - index for spin ID
 	co=atoi(argv[2]);     // argv[4]=6:fmin [m_ts.cpp]
 	Bpo=atof(argv[3]);    // 
 	//mco=floor(Bpo+0.001); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
@@ -297,10 +151,10 @@ int main(int argc, char* argv[]) {
 /********* CMD-LINE-ARGS *********/
 /*********************************/
 
-    // sear=0;//setting a particular type of computation for testing
 
+    /**** CHOOSE MODE OF OPERATION ****/
     switch (sear){
-	    case 0: //Scan the entire parameter space for the best fit to polarized spectrum
+	    case 0: //Scan full parameter space for best fit to polarized spectrum
             cout << "[ASTRORAY_main.cpp]: ENTERING m_space..."<<endl;
 	        #include "m_space.cpp"
 		    break;
@@ -330,24 +184,25 @@ int main(int argc, char* argv[]) {
 		    break;
 	}
 
-    // Use gprof to obtain time taken by each function. Use these flags for compilation -pg -fprofile-arcs -ftest-coverage.
     printf ("==============PROFILING INFO==============\n");
+    // Use gprof to obtain time taken by each function. Use these flags for compilation -pg -fprofile-arcs -ftest-coverage.
+
+    // RG: BELOW PRINTS 0.01 instead of 1
+    // time_t t_test=clock();
+    // sleep(1);
+    // printf("TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
+    doub t_fudge=0.01; // test with sleep(1)
     doub t_total = (clock()-start)/(doub)CLOCKS_PER_SEC;
-    printf ("TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* 0.01, t_total *0.01 * nthreads);
+    printf ("TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* t_fudge, t_total *t_fudge * nthreads);
     //printf ("===================RT=====================\n");
-    //printf ("RUNTIME RT SOLVER         = % .1f secs (%.0f%% %.1f across all threads)\n", ans*0.01, ans/t_total*nthreads, ans*0.01);
+    //printf ("RUNTIME RT SOLVER         = % .1f secs (%.0f%% %.1f across all threads)\n", ans*t_fudge, ans/t_total*nthreads, ans*t_fudge);
     printf ("Total iterations          = %d\n", ittot);
-    printf ("Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/0.01);
-    printf ("RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *0.01, t_geodesics/t_total/nthreads*100);
-    printf ("RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*0.01, t_solvetrans/t_total/nthreads*100);
+    printf ("Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/t_fudge);
+    printf ("RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *t_fudge, t_geodesics/t_total/nthreads*100);
+    printf ("RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
     printf ("============PROFILING INFO END============\n");
 
-    // RG: BELOW PRINTS 0.02 instead of 2
-    // time_t t_test=clock();
-    // sleep(2);
-    // printf("TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
 
-    // ans=(clock() - start) / (doub)CLOCKS_PER_SEC;
 
     cout << "====\nDONE\n====" << endl;
 

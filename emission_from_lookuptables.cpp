@@ -32,15 +32,15 @@ if((lTe<lTmin)||(lTe>lTmax)||(lnW<lnWmin)||(lnW>lnWmax)){ // if OUTSIDE of range
 };
 
 if((lTe<lTminr)||(lTe>lTmax)){                             //if outside of range for rotativities look-up table
-	xrQc=0.;
-	xrVc=0.;
+	rQc_lookuptab=0.;
+	rVc_lookuptab=0.;
 } else {
 	lTefrac=(lTe-lTminr)/(lTmax-lTminr)*2*Tlen;
 	j=floor(lTefrac);
 	lTeman=lTefrac-j;
 	//look up dimensionless rotativities by 1D interpolation
-	xrQc=exp((-lTeman + 1)*rQ[j] + (lTeman)*rQ[1 + j]);
-	xrVc=exp((-lTeman + 1)*rV[j] + (lTeman)*rV[1 + j]);
+	rQc_lookuptab=exp((-lTeman + 1)*rQ[j] + (lTeman)*rQ[1 + j]);
+	rVc_lookuptab=exp((-lTeman + 1)*rV[j] + (lTeman)*rV[1 + j]);
 };
 
 
