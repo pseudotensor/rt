@@ -6,7 +6,7 @@
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
 
 const int nthreads=24; // 24: bh01;// 8;//Orange
-
+const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 
 // AVERY's TOY+RIAF model (Broderick & Loeb 2009)
