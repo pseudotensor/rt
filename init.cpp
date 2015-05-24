@@ -32,7 +32,7 @@ doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild
 a=atab[sp]; asq=a*a;                 //define spin value for chosen fluid simulation
 ncut=ncuttab[sp];                    //define radial index at the point, where the fluid simulation is barely converged
 string fdir=adir+astr[sp]+fieldstr;  //location of fluid simulation dumps
-cout << "location of fluid simulation dumps"+fdir+"\n";
+cout << YELLOW"[init.cpp]:"RESET" location of fluid simulation dumps"+fdir+"\n";
 
 //RG:    vvvvvvv HARDWIRE-WARNING, should be a parameter
 mintim=1-0.00005*dtimdf*fdiff;       //minimum and maximum proper time at infinity, when the simulation is still evolved together with light ray propagation
@@ -42,10 +42,10 @@ maxtim=1+0.00005*dtimdf*fdiff;
 if(!inited){
     //single record of fluid simulation dump files consists of: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi 
 	
-  cout << "dir="+dir+"\n,astr[sp]="+astr[sp]+"\n,xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
+  cout << YELLOW"[init.cpp]:"RESET" dir="+dir+",astr[sp]="+astr[sp]+",xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
 	//reading mean density & temperature radial profiles
     //RG:
-    cout << "location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
+    cout << YELLOW"[init.cpp]:"RESET"location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
 
 	ifstream faire ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
 	for(k=0;k<rlen;k++)
@@ -64,7 +64,7 @@ if(!inited){
     // RG: new should have a matching delete or we leak memory
 
 	//reading coordinate matrix and coordinate transformation matrix
-    cout<<"[init.cpp]: READING dxdxp.dat FILE FROM "<<dir+astr[sp]+xstr+"dxdxp.dat"<<endl;
+    cout<<YELLOW"[init.cpp]:"RESET" READING dxdxp.dat FILE FROM "<<dir+astr[sp]+xstr+"dxdxp.dat"<<endl;
 	ifstream dxp((dir+astr[sp]+xstr+"dxdxp.dat").c_str(), ios::in|ios::binary);
 	pbuf=dxp.rdbuf();
 	dxp.read(reinterpret_cast<char *>(coord), ndd*thlen*2*sizeof(float));
@@ -84,18 +84,18 @@ if(!inited){
 	//for(k=0;k<650;k++)
 
       //RG: REPORT COORDINATES
-      //printf("[init.cpp]: r[%d]=%e\n",k,exp(coord[k][0][0]));
+      //printf(YELLOW"[init.cpp]:"RESET" r[%d]=%e\n",k,exp(coord[k][0][0]));
 
 		for(i=0;i<thlen;i++) {
 
           //RG: CHECK FOR NAN
           for(m=0; m<4; m++) {
             if (dxdxp[k][i][1][m]!=dxdxp[k][i][1][m]) {
-                cout << "[init.cpp]: dxdxp coordinates contain nan. Unwise to continue..." << endl;
+                cout << YELLOW"[init.cpp]:"RESET" dxdxp coordinates contain nan. Unwise to continue..." << endl;
                 exit(1);}
             }
           if (coord[k][i][1]!=coord[k][i][1]) {
-            cout << "[init.cpp]: Theta coordinates contain nan. Unwise to continue..." << endl;
+            cout << YELLOW"[init.cpp]:"RESET" Theta coordinates contain nan. Unwise to continue..." << endl;
             exit(1);}
 
 			theta[k][i]=coord[k][i][1];
@@ -106,21 +106,21 @@ if(!inited){
 
           //RG: CHECK FOR NAN
           if (coord[k][0][0]!=coord[k][0][0]) {
-            cout << "[init.cpp]: Radial coordinates contain nan. Unwise to continue..." << endl;
+            cout << YELLOW"[init.cpp]:"RESET" Radial coordinates contain nan. Unwise to continue..." << endl;
             exit(1);}
 
 		rtab[k]=exp(coord[k][0][0]);
 		Tstab[k]=xx[k][1];
 
         //RG: REPORT COORDINATES
-        //printf("[init.cpp]: r[%d]=%e\n",k,rtab[k]);
+        //printf(YELLOW"[init.cpp]:"RESET" r[%d]=%e\n",k,rtab[k]);
 
 	};
 	maxT=Tstab[0];//maximum internal energy density
 	rmin=xx[0][0];//minimum radius (inside the event horizon)
 
     //reading emissivities for [THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
-    cout << "[init.cpp]: READING lookup???.dat files from "+ASTRORAY_PATH+"/analysis/\n";
+    cout << YELLOW"[init.cpp]:"RESET" READING lookup???.dat files from "+ASTRORAY_PATH+"/analysis/\n";
 
 	ifstream fI ((ASTRORAY_PATH+"/analysis/lookupjIy.dat").c_str(), ios::in);
 	ifstream fQ ((ASTRORAY_PATH+"/analysis/lookupjQy.dat").c_str(), ios::in);
@@ -133,7 +133,20 @@ if(!inited){
 			fI>>jI[k][j];
 			fQ>>jQ[k][j];
 			fV>>jV[k][j];
-		}
+
+            //doub nu_Omega_nth = 12000.*pow(1.25,-nWlen_nth/2+j);
+            doub nu_Omega_th = 12000.*pow(1.1,-nWlen/2+j);
+            doub Theta_e = 0.4*pow(1.05,k);
+
+            // if (nu_Omega_th==12000. && k==0) {
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jI_old)= %e j=%d k=%d #thtable"RESET"\n",nu_Omega_th,Theta_e,exp(jI[k][j]),j,k);
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jQ_old)= %e j=%d k=%d #thtable"RESET"\n",nu_Omega_th,Theta_e,exp(jQ[k][j]),j,k);
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jV_old)= %e j=%d k=%d #thtable"RESET"\n",nu_Omega_th,Theta_e,exp(jV[k][j]),j,k);
+            //   //printf(YELLOW"[init.cpp]:"RED" %e %e jI_old=%e j=%d k=%d #thtable"RESET"\n",nu_Omega_th,Theta_e,jI[k][j],j,k);
+            // }
+
+		} // for(j=0;j<=nWlen;j++) {
+
 	for(k=0;k<=2*Tlen;k++) {
 		frQ>>rQ[k];
 		frV>>rV[k];
@@ -143,19 +156,19 @@ if(!inited){
 
     if (nth) {
       //  stringstream dir_nth="/home/rgold/rt/newthermaltabs/";
-      // const string       dir_nth="/home/rgold/rt/newthermaltabs/";
-      const string       dir_nth="/home/rgold/codes/rt-git/newthermaltabs/";
+      const string       dir_nth="/home/rgold/rt/newthermaltabs/";
+      // const string       dir_nth="/home/rgold/codes/rt-git/newthermaltabs/";
       //char dir_nth[64]="/home/rgold/rt/newthermaltabs/";
       const string jI_file=dir_nth+"origlookup_thermalIjcSs_log.dat";
 
-      cout << "[init.cpp]: READING NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
+      cout << YELLOW"[init.cpp]:"RESET" READING NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
+
+      //RG:TODO CHECK WHETHER FILE EXISTS
 
     // thermal tabs v1 (sanity check: expect agreement with old tables)
     ifstream fI_nth ((jI_file).c_str(), ios::in);
     //ifstream fI_nth ((dir_nth+"origlookup_thermalIjcSs_log.dat").c_str(), ios::in);
 	ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_log.dat").c_str(), ios::in);
-    //cout << "[init.cpp]: ATTENTION: jQ is linear, rest is log [TESTING]" <<endl;
-	//ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_lin.dat").c_str(), ios::in);
 	ifstream fV_nth ((dir_nth+"origlookup_thermalVjcSs_log.dat").c_str(), ios::in);
 
 	ifstream faI_nth ((dir_nth+"origlookup_thermalaIT_log.dat").c_str(), ios::in);
@@ -174,12 +187,6 @@ if(!inited){
     // RG: problems when lookup sizes differ between th vs nth?
 	ifstream frQ_nth ((dir+"origlookup_thermalrQT_log.dat").c_str(), ios::in);
 	ifstream frV_nth ((dir+"origlookup_thermalrVT_log.dat").c_str(), ios::in); 
-    string fname_table_readin="table_jI_nth.dat";
-    //FILE fd=(fname_table_readin,'a');
-    //ifstream f_table_readin (fname_table_readin.c_str(), ios::in);
- 
-    cout<<"Tlen_nth="<<Tlen_nth<<",nWlen_nth="<<nWlen_nth<<endl;
-
     // for(int col=0;col<3;col++) 
     // int col=0;
     
@@ -188,52 +195,39 @@ if(!inited){
 
           {
             doub nu_Omega_nth = 12000.*pow(1.25,-nWlen_nth/2+j);
-            doub nu_Omega_th = 12000.*pow(1.1,-nWlen/2+j);
+            // doub nu_Omega_th = 12000.*pow(1.1,-nWlen/2+j);
             doub Theta_e = 0.4*pow(1.05,k);
 
             // READ-IN LOOKUP TABLE FILES
             fI_nth>>jI_nth[k][j];
-            // TRANSLATE from JON's NEW TABLES to ROMAN S. OLD TABLES
-            jI_nth[k][j]=log(exp(jI_nth[k][j])/4.44e-30*nu_Omega_nth);
             fQ_nth>>jQ_nth[k][j];
-            jQ_nth[k][j]=log(exp(jQ_nth[k][j])/4.44e-30*nu_Omega_nth);
-
             fV_nth>>jV_nth[k][j];
-            jV_nth[k][j]=log(exp(jV_nth[k][j])/4.44e-30*nu_Omega_nth);
+
+            // TRANSLATE from JON's NEW TABLES to ROMAN S. OLD TABLES
+            doub conversion=4.44e-30/nu_Omega_nth;
+            jI_nth[k][j]=log(exp(jI_nth[k][j])/conversion);
+            jQ_nth[k][j]=log(exp(jQ_nth[k][j])/conversion);
+            jV_nth[k][j]=log(exp(jV_nth[k][j])/conversion *4./3.);
             
+            // if (nu_Omega_nth==12000. && k==0) {// j=60,k=0
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jI_new)= %e j=%d k=%d #nthtable "RESET"\n",nu_Omega_nth,Theta_e,exp(jI_nth[k][j]),j,k);
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jQ_new)= %e j=%d k=%d #nthtable "RESET"\n",nu_Omega_nth,Theta_e,exp(jQ_nth[k][j]),j,k);
+            //   printf(YELLOW"[init.cpp]:"RED" %e %e exp(jV_new)= %e j=%d k=%d #nthtable "RESET"\n",nu_Omega_nth,Theta_e,exp(jV_nth[k][j]),j,k);
+            // }
 
-          //if (k+j==Tlen_nth*nWlen_nth) cout<<"jI table value:"<<exp(jI_nth[k][j])/4.44e-33*nu_Omega<<endl;
-          // cout<<"nu_Omega_nth="<<nu_Omega_nth<<" Theta_e="<<Theta_e<<" jI table value="<<exp(jI_nth[k][j])/4.44e-33*nu_Omega_nth<<endl;
-          // if (true) fprintf(fname_table_readin,"%e %e %e\n",nu_Omega,Theta_e,exp(jI_nth[k][j])/4.44e-33*nu_Omega);
-          if (nu_Omega_nth==12000. && k==0) // j=60,k=0
-            printf("%e %e exp(jI_new)=%e j=%d k=%d #nthtable \n",nu_Omega_nth,Theta_e,exp(jI_nth[k][j]),j,k);
-          //printf("%e %e exp(jI_new)=%e j=%d k=%d #nthtable \n",nu_Omega_nth,Theta_e,exp(jI_nth[k][j])/4.44e-30*nu_Omega_nth,j,k);
+            faI_nth>>aI_nth[k][j];
+            faQ_nth>>aQ_nth[k][j];
+            faV_nth>>aV_nth[k][j];
+            aI_nth[k][j]=log(exp(aI_nth[k][j])/conversion);
+            aQ_nth[k][j]=log(exp(aQ_nth[k][j])/conversion);
+            aV_nth[k][j]=log(exp(aV_nth[k][j])/conversion*4./3.);
 
-            // std::setprecision(32) <<
-          //   cout <<nu_Omega_nth<<", "<<Theta_e<<", " <<jI_nth[k][j]<<", "<<j<<", "<<k<<endl;///4.44e-33*nu_Omega_nth,j,k);
-          // }
-          // if (k==0 && j==0)  cout <<"nu_Omega_nth="<<nu_Omega_nth<<", Theta_e="<<Theta_e<<", jI_nth=" <<jI_nth[k][j]<<", j="<<j<<", k="<<k<<endl;///4.44e-33*nu_Omega_nth,j,k); // RG: [-nWlen,+nWlen] vs [-nWlen/2,+nWlen/2]
-          // if (k==0 && j==nWlen/2)  cout <<"nu_Omega_nth="<<nu_Omega_nth<<", Theta_e="<<Theta_e<<", jI_nth=" <<jI_nth[k][j]<<", j="<<j<<", k="<<k<<endl;///4.44e-33*nu_Omega_nth,j,k); // RG: [-nWlen,+nWlen] vs [-nWlen/2,+nWlen/2]
-
-          if (nu_Omega_th==12000. && k==0) printf("%e %e exp(jI_old)=%e j=%d k=%d #thtable \n",nu_Omega_th,Theta_e,exp(jI[k][j]),j,k);
-          //fI_nth>>jI_nth[k][j]; // Theta_e
-          //if (k+j==0) cout<<"Theta_a:"<<jI_nth[k][j]<<endl;
-          //fI_nth>>jI_nth[k][j];
-          //fI_nth>>jI[k][j];
-
-          faI_nth>>aI_nth[k][j];
-          faQ_nth>>aQ_nth[k][j];
-          faV_nth>>aV_nth[k][j];
 		}
 	for(k=0;k<=2*Tlen_nth;k++) {
 
 			frQ_nth>>rQ_nth[k];
 			frV_nth>>rV_nth[k];
 
-      // if (k==0) printf("[init.cpp]: ZEROING OUT ROTATIVITIES FOR NON-THERMALS\n");
-      // frQ_nth>>rQ_nth[k];rQ_nth[k]=0.;
-      // frV_nth>>rV_nth[k];rV_nth[k]=0.;
-        
 	}
 	fI_nth.close();fQ_nth.close();fV_nth.close();frQ_nth.close();frV_nth.close();
     
@@ -243,27 +237,13 @@ if(!inited){
 	inited=true; //repeat once //RG:never repeated? if !(inited){}
     };
     
-    //RG: CHECK lookup tables
+    if (false){ // CHECK lookup tables
     int inspect=0;
     int inspect_W=nWlen/2,inspect_T=0;
     int inspect_W_nth=nWlen_nth/2,inspect_T_nth=0;
-    if (false){
-    printf("[init.cpp]: frequency=%E temperature=%E\n",12000.*pow(1.1, -nWlen/2+(inspect_W/2)),0.4*pow(1.05, inspect_T));
-    printf("[init.cpp]: frequency_nth=%E temperature_nth=%E\n",12000.*pow(1.25, -nWlen_nth/2+(inspect_W_nth/2)),0.4*pow(1.05, inspect_T_nth));
-
-    // jI
-    printf("[init.cpp]: jI[%d][%d]=%E jI_nth[%d][%d]=%E\n",inspect_T,inspect_W,jI[inspect][inspect],inspect_T_nth,inspect_W_nth,jI_nth[inspect][inspect]);
-    printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d])=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect]));
-
-    // printf("[init.cpp]: exp(jI[%d][%d])=%E exp(jI_nth[%d][%d]/4.44e-33*422e-9)=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect])/4.44e-33*422./1e9); // 1e9 Hz->Ghz ?
-    printf("[init.cpp]: jQ[%d][%d]=%E jQ_nth[%d][%d]=%E\n",inspect_T,inspect_W,jQ[inspect][inspect],inspect_T_nth,inspect_W_nth,jQ_nth[inspect][inspect]);
-    printf("[init.cpp]: jV[%d][%d]=%E jV_nth[%d][%d]=%E\n",inspect_T,inspect_W,jV[inspect][inspect],inspect_T_nth,inspect_W_nth,jV_nth[inspect][inspect]);
-
-    // printf("[init.cpp]: aI[%d][%d]=%E aI_nth[%d][%d]=%E\n",inspect,,aI[inspect][inspect],aI_nth[inspect][inspect]);
-    // printf("[init.cpp]: aQ[%d][%d]=%E aQ_nth[%d][%d]=%E\n",inspect,aQ[inspect][inspect],aQ_nth[inspect][inspect]);
-    // printf("[init.cpp]: aV[%d][%d]=%E aV_nth[%d][%d]=%E\n",inspect,aV[inspect][inspect],aV_nth[inspect][inspect]);
-    printf("[init.cpp]: rQ[%d]=%E rQ_nth[%d]=%E\n",inspect,rQ[inspect],inspect,rQ_nth[inspect]);
-    printf("[init.cpp]: rV[%d]=%E rV_nth[%d]=%E\n",inspect,rV[inspect],inspect,rV_nth[inspect]);
+    printf(YELLOW"[init.cpp]:"RESET" frequency=%E temperature=%E\n",12000.*pow(1.1, -nWlen/2+(inspect_W/2)),0.4*pow(1.05, inspect_T));
+    printf(YELLOW"[init.cpp]:"RESET" frequency_nth=%E temperature_nth=%E\n",12000.*pow(1.25, -nWlen_nth/2+(inspect_W_nth/2)),0.4*pow(1.05, inspect_T_nth));
+    printf(YELLOW"[init.cpp]:"RESET" exp(jI[%d][%d])=%E exp(jI_nth[%d][%d])=%E\n",inspect_T,inspect_W,exp(jI[inspect][inspect]),inspect_T_nth,inspect_W_nth,exp(jI_nth[inspect][inspect]));
     }
 };
 
@@ -276,7 +256,7 @@ for(i=-fdiff;i<=fdiff;i++) {
 	bool reuse=false;         
 	for(j=0;j<2*fdiff+1;j++) 
 		if(loaded[j]==fx) {
-			printf("Found coincidence for fnum=%d\n",fx);
+			printf(YELLOW"[init.cpp]:"RESET"Found coincidence for fnum=%d\n",fx);
 			uuarr ptr=uu[ioff]; uu[ioff]=uu[j]; uu[j]=ptr;
 			loaded[ioff]=fx;
 			reuse=true;
@@ -306,9 +286,9 @@ for(i=-fdiff;i<=fdiff;i++) {
 
 	fline.read(reinterpret_cast<char *>(uu[ioff]), tosize); //reading as binary
     if(fline.good())
-		printf("fieldline %d read\n",fx);
+		printf(YELLOW"[init.cpp]:"RESET" fieldline %d read\n",fx);
 	else { 
-      printf("Something is wrong loading fluid simulation dumps\n...EXITING...\n");
+      printf(YELLOW"[init.cpp]:"RED" Something is wrong loading fluid simulation dumps\n...EXITING...\n"RESET);
 		exit(-1);
 	};
 	fline.close();
@@ -332,7 +312,7 @@ if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
   cout << "...SETTING UP AVERY'S FORCE_FREE TOY JET MODEL..." << endl;
   if (fdiff!=0) {
     fdiff=0;
-    printf("You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
+    printf(YELLOW"[init.cpp]:"RESET"You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
   }
   //RG: SETUP AVERY'S TOYJET + RIAF MODEL
   // consider use of something like #ifdef TOYJET ?
@@ -341,7 +321,7 @@ if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
 
 
 // for(int var=0;var<=10;var++)
-//   printf("(*uu[0])[0][0][0][%d]=%e\n",var,(*uu[0])[0][0][0][var]);
+//   printf(YELLOW"[init.cpp]:"RESET"(*uu[0])[0][0][0][%d]=%e\n",var,(*uu[0])[0][0][0][var]);
 
 
 //RG: BCs near the poles ...WIP...
@@ -405,7 +385,7 @@ for(k=ncut;k<ndd;k++){
 int nx=60;                       //radial point where accretion rate is computed
 doub rx=exp(coord[nx-1][0][0]),  //radius at nx
 	 u0;                         //u^t
-printf("[init.cpp]: HARDWIRED r[nx=%d]=%e (radius where mdot is evaluated)\n",nx,rx);
+printf(YELLOW"[init.cpp]:"RESET" HARDWIRED r[nx=%d]=%e (radius where mdot is evaluated)\n",nx,rx);
 rate=0.;
 
 //computing the accretion rate in code units
@@ -424,27 +404,23 @@ for(k=0;k<thlen-1;k++)
 
             //RG: Check for NAN
             if (isnan(rate)){//!=rate){
-              printf("rate=%e,i=%d,j=%d,k=%d,rhonor=%e,rgrav=%e,fdiff=%d\n",rate,i,j,k,rhonor,rgrav,fdiff); // rate is nan
-              printf("rate=%e,i=%d,j=%d,k=%d,rx=%e,asq=%e,theta[nx-1][%d]=%e\n",rate,i,j,k,rx,asq,k+1,theta[nx-1][k+1]); // rate is nan
-              printf("rate=%e,uu[%d][%d][%d][nx-1][0]=%e,uspKS[j][i][k]=%e\n",rate,j,i,k,(*uu[j])[i][k][nx-1][0],uspKS[j][i][k]); //RG:FIXME uspKS[0][21][1] = -nan !!!
-              printf("rate=%e,dxdxp[nx-1][k][1][0]=%e,usp[j][i][k][0]=%e\n",rate,dxdxp[nx-1][k][1][0],usp[j][i][k][0]); 
-              printf("rate=%e,dxdxp[nx-1][k][1][1]=%e,usp[j][i][k][1]=%e\n",rate,dxdxp[nx-1][k][1][1],usp[j][i][k][1]); //RG:FIXME usp[0][21][1] = -nan !!!
-              printf("rate=%e,dxdxp[nx-1][k][1][2]=%e,usp[j][i][k][2]=%e\n",rate,dxdxp[nx-1][k][1][2],usp[j][i][k][2]); 
-              printf("rate=%e,dxdxp[nx-1][k][1][3]=%e,usp[j][i][k][3]=%e\n",rate,dxdxp[nx-1][k][1][3],usp[j][i][k][3]); 
-              //printf("rate=%e,u0=%lf,uu[0][21][1][nx-1][5]=%lf\n",rate,u0,uu[0][21][1][nx-1][5]); //RG:FIXME uu[0][21][1][nx-1][5] = ???
-              // RG: FIXME: rate -nan due to uu array -> fieldline data ??
-
-              cout << "u0=" << u0 << endl;
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,i=%d,j=%d,k=%d,rhonor=%e,rgrav=%e,fdiff=%d\n",rate,i,j,k,rhonor,rgrav,fdiff);
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,i=%d,j=%d,k=%d,rx=%e,asq=%e,theta[nx-1][%d]=%e\n",rate,i,j,k,rx,asq,k+1,theta[nx-1][k+1]);
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,uu[%d][%d][%d][nx-1][0]=%e,uspKS[j][i][k]=%e\n",rate,j,i,k,(*uu[j])[i][k][nx-1][0],uspKS[j][i][k]);
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,dxdxp[nx-1][k][1][0]=%e,usp[j][i][k][0]=%e\n",rate,dxdxp[nx-1][k][1][0],usp[j][i][k][0]); 
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,dxdxp[nx-1][k][1][1]=%e,usp[j][i][k][1]=%e\n",rate,dxdxp[nx-1][k][1][1],usp[j][i][k][1]);
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,dxdxp[nx-1][k][1][2]=%e,usp[j][i][k][2]=%e\n",rate,dxdxp[nx-1][k][1][2],usp[j][i][k][2]); 
+              printf(YELLOW"[init.cpp]:"RESET"rate=%e,dxdxp[nx-1][k][1][3]=%e,usp[j][i][k][3]=%e\n",rate,dxdxp[nx-1][k][1][3],usp[j][i][k][3]); 
 
               exit(1); /***************************************** EXIT *****************/
             }
 
-
 		};
+
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1);//accretion rate in physical units
 
 //initializing Te(Ts)+Tp(Ts) solver, standard for GSL
-cout << "[init.cpp] Electron Temperature Solver..." << endl;
+cout << YELLOW"[init.cpp]:"RESET" Electron Temperature Solver..." << endl;
 
 doub acc=2e-3,   //relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
 	 IT[2],      //ODE vector (Te+Tp)
@@ -475,7 +451,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 		step=-0.005*rz;      //artificially limiting the step
 	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &step, IT);
 	if(status!=0){
-		printf("Temperature solver error\n Exiting");
+		printf(YELLOW"[init.cpp]:"RESET"Temperature solver error\n Exiting");
 		exit(-1);
 	};
 	te[stNt]=IT[0];
@@ -484,13 +460,13 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 		fl=false;
 		TpTe=tp[stNt]/te[stNt];
 		Te6=te[stNt];
-		printf("fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rhonor);
+		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rhonor);
 	};
 ;};
 maxT=ts[stNt];minT=ts[0];
 
 if(stNt>maxst){            //check if solver exceeded the number of steps
-	printf("Temperature solver error. Exceeded maximum steps allowed! \n Exiting");
+	printf(YELLOW"[init.cpp]:"RESET"Temperature solver error. Exceeded maximum steps allowed! \nEXITING\n");
 	exit(-1);
 };
 gsl_odeiv_evolve_free (ez);//free memory
@@ -668,7 +644,7 @@ for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
     };
 };
 
-printf("\nExiting [init.cpp]\n");
+printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
 
 return 0; // init()
 }

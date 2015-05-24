@@ -71,7 +71,7 @@ for(kk=kmin;kk<=kmax;kk++){
 	CP[kk]=100.*in[kk][3]/in[kk][0];                                     //compute CP fraction
 	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180.);       //compute EVPA
 	err[kk]=66.4648*in[kk][4];                                           //normalize 5-th intensity as total intensity
-	printf("%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
+	printf(YELLOW"[intensity.cpp]:"RESET" fnum=%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 };
 
 doub xisq,                                                               //\chi^2

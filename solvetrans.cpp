@@ -23,9 +23,13 @@ hh=sstep;                                  //initial step (step is always negati
 while (llog > ppy[currth].llmin-1.3*sstep) {//main radiative transfer loop
 	stNx++;                                 //increase count of points on each geodesic
 	ittot++;                                //increase global count of points
-    if(hh<sstep)                            //limit step size
-		hh=sstep;
-    int status = gsl_odeiv_evolve_apply (eee, ccc, ss, &sysx, &llog, ppy[currth].llmin, &hh, II);//evolve radiative transfer solution with a chosen step
+    if(hh<sstep) hh=sstep;                  //floor on step size
+    // actual call to trans() fct: solve radiative transfer equation
+    //                                   vars,acc,    trans()
+    int status = gsl_odeiv_evolve_apply (eee, ccc, ss, &sysx, 
+                                         // &llog, ppy[currth].llmin, &hh, II, stNx); //FCT ARG TO TRANS() //RG:WIP
+                                         &llog, ppy[currth].llmin, &hh, II); //FCT ARG TO TRANS()
+
     II[2]=fmod(II[2],(doub)2.*PI);          //phase winds up to be a large number, but only need phase modulo 2pi
     II[3]=fmod(II[3],(doub)2.*PI);
     if(II[0]<0)

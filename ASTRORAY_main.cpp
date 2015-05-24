@@ -95,6 +95,7 @@ extern int init(int sp, int fmin, int fmax, int sep); //RG:CLEANUP/INVESTIGATE s
 
 //polarized radiative transfer
 extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
+//extern int trans (doub llog, const doub yyy[], doub ff[], void *pas, int stNx); //RG:WIP
 #include "transnew.cpp"
 
 
@@ -133,9 +134,13 @@ int main(int argc, char* argv[]) {
     start = clock();//timing entire computation //RG: ADD MORE BENCHMARKING/PROFILING see [profiling.cpp]
 
     #pragma omp parallel num_threads(nthreads) shared(ittot) private(w)
-        {w = omp_get_thread_num();printf("Hello from thread %d\n", w);}//checking that we can create as many threads as we want
+    { // checking that we can create as many threads as we want
+      w = omp_get_thread_num();
+      // printf(YELLOW"[ASTRORAY_main.cpp]:"RESET" Hello from thread %d\n", w);
+    }
+
     if((descr==NULL) || (argc!=5)){
-		printf("Check that 4 numbers are supplied as command line arguments + array ID environment variable is defined\n Exiting\n");
+		printf(YELLOW"[ASTRORAY_main.cpp]:"RESET"  Check that 4 numbers are supplied as command line arguments + array ID environment variable is defined\n Exiting\n");
 		exit(1);
 	}
 
@@ -155,56 +160,56 @@ int main(int argc, char* argv[]) {
     /**** CHOOSE MODE OF OPERATION ****/
     switch (sear){
 	    case 0: //Scan full parameter space for best fit to polarized spectrum
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_space..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_space..."<<endl;
 	        #include "m_space.cpp"
 		    break;
         case 1: //quick computation of spectrum for given sp, heat, rhonor, th
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_quick..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_quick..."<<endl;
 	        #include "m_quick.cpp"
 		    break;
         case 2: //convergence studies //RG:sensitivity to various parameters
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_conv..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_conv..."<<endl;
 	        #include "m_conv.cpp" 
 		    break;
         case 3: //surf region close to best fit //RG:surf="search in more detail"
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_surf..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_surf..."<<endl;
 	        #include "m_surf.cpp"
 		    break;
         case 4: //image of the emitting region
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_imag..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_imag..."<<endl;
 	        #include "m_imag.cpp"
 		    break;
         case 5: //search for minimum with a steepest descent method, less reliable than "m_space", but faster
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_sear..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_sear..."<<endl;
 	        #include "m_sear.cpp"
 		    break;
         case 6: //averages temperature and density profiles to find Te(Ts) and Tp(Ts) functions
-            cout << "[ASTRORAY_main.cpp]: ENTERING m_ts..."<<endl;
+            cout << YELLOW"[ASTRORAY_main.cpp]:"RESET" ENTERING m_ts..."<<endl;
 	        #include "m_ts.cpp"
 		    break;
 	}
 
-    printf ("==============PROFILING INFO==============\n");
+    printf(YELLOW"[ASTRORAY_main.cpp]"BLUE"==============PROFILING INFO==============\n"RESET);
     // Use gprof to obtain time taken by each function. Use these flags for compilation -pg -fprofile-arcs -ftest-coverage.
 
     // RG: BELOW PRINTS 0.01 instead of 1
     // time_t t_test=clock();
     // sleep(1);
-    // printf("TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
+    // printf(YELLOW"[ASTRORAY_main.cpp]:"RESET" TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
     doub t_fudge=0.01; // test with sleep(1)
     doub t_total = (clock()-start)/(doub)CLOCKS_PER_SEC;
-    printf ("TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* t_fudge, t_total *t_fudge * nthreads);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* t_fudge, t_total *t_fudge * nthreads);
     //printf ("===================RT=====================\n");
     //printf ("RUNTIME RT SOLVER         = % .1f secs (%.0f%% %.1f across all threads)\n", ans*t_fudge, ans/t_total*nthreads, ans*t_fudge);
-    printf ("Total iterations          = %d\n", ittot);
-    printf ("Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/t_fudge);
-    printf ("RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *t_fudge, t_geodesics/t_total/nthreads*100);
-    printf ("RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
-    printf ("============PROFILING INFO END============\n");
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" Total iterations          = %d\n", ittot);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/t_fudge);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *t_fudge, t_geodesics/t_total/nthreads*100);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
+    printf(YELLOW"[ASTRORAY_main.cpp]"BLUE"============PROFILING INFO END============\n"RESET);
 
 
 
-    cout << "====\nDONE\n====" << endl;
+    cout << GREEN"====\nDONE\n===="RESET << endl;
 
     return(0);
 }

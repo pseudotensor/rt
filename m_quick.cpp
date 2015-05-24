@@ -68,23 +68,21 @@ switch (cas){      //selection of a model (only few examples are shown)
 
 };
 
-printf("Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
+printf(YELLOW"[m_quick.cpp]:"RESET" Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
 
 //sep=1;                                           //take each fluid simulation snapshot within the range
 ind=(fmax-fmin)/sep+1;                           //number of fluid simulation snapshots
 
-printf("[m_quick.cpp] ind=%d,fmin=%d,fmax=%d,sep=%d\n",ind,fmin,fmax,sep);
+printf(YELLOW"[m_quick.cpp]:"RESET" ind=%d,fmin=%d,fmax=%d,sep=%d\n",ind,fmin,fmax,sep);
 
-//RG: 
-//cout << "CYCLE OVER SNAPSHOTS\n";
 
 
 for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation snapshots - computing average spectrum
 
-    cout << "CALLING init()...\n";
+    cout << YELLOW"[m_quick.cpp]:"RESET" CALLING init()...\n";
 	init(sp,fmin,fmax,sep);
 
-    //cout << "include intensity.cpp\n";
+    //cout << YELLOW"[m_quick.cpp]:"RESET"include intensity.cpp\n";
 	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
 	#include "intensity.cpp"
 	for(kk=kmin;kk<=kmax;kk++){
@@ -98,7 +96,7 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation s
 	avTe6+=Te6/ind;
 };
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;
-printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
+printf(YELLOW"[m_quick.cpp]:"RESET" Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 
 stringstream ytr;                               //writing average spectrum into "quicka" file, specifying "ind"
 ytr<<(int)100*a<<"in"<<ind;
@@ -106,13 +104,13 @@ string stra = ytr.str();
 FILE * pFile; 
 
 //RG: 
-cout << "FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
+cout << YELLOW"[m_quick.cpp]:"RESET" FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
 
 pFile = fopen ((dir+"quicka"+stra+qadd+".dat").c_str(),"a");
 
 
 for(kk=kmin;kk<=kmax;kk++){                     //actual writing into "quicka" file
-	printf("avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2f \n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
+	printf(YELLOW"[m_quick.cpp]:"RESET"  avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2f \n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
 	fprintf(pFile,"%.1f %.3f %.2f %.3f %.2f %.3f %.3e %.2f %.3e\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk], xEVPA[kk],1.*cas,avrate*year/Msun,avTpTe,avTe6);
 };
 fclose(pFile);

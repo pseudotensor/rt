@@ -1,3 +1,21 @@
+// DEFINE SOME ANSI COLORS FOR MORE READABLE OUTPUT
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define YELLOW  "\x1b[33m"
+#define BLUE    "\x1b[34m"
+#define MAGENTA "\x1b[35m"
+#define CYAN    "\x1b[36m"
+#define RESET   "\x1b[0m"
+// UNCOMMENT BELOW TO DEACTIVATE IN CASE IT DOES NOT WORK FOR YOU
+// #define RED     ""
+// #define GREEN   ""
+// #define YELLOW  ""
+// #define BLUE    ""
+// #define MAGENTA ""
+// #define CYAN    ""
+// #define RESET   ""
+
+
 const doub PI = 4.0*atan(1.0);
 
 // THICKDISK7
