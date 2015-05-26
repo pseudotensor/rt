@@ -91,7 +91,7 @@ const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.141
 const bool isLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
 
 bool nth=false,                                          // include non-thermal electrons?
-// bool nth=true,                                          // include non-thermal electrons?
+//bool nth=true,                                          // include non-thermal electrons?
 
      iswrite=true,                                      //whether to write output to a file
 	 echeck1=false, echeck2=false, echeck3=false,       //markers for testing (see init.cpp)

@@ -38,9 +38,11 @@ if((lTe<lTminr)||(lTe>lTmax)){                             //if outside of range
 	lTefrac=(lTe-lTminr)/(lTmax-lTminr)*2*Tlen;
 	j=floor(lTefrac);
 	lTeman=lTefrac-j;
-	//look up dimensionless rotativities by 1D interpolation
+
+	// look up dimensionless rotativities by 1D interpolation
 	rQc_lookuptab=exp((-lTeman + 1)*rQ[j] + (lTeman)*rQ[1 + j]);
 	rVc_lookuptab=exp((-lTeman + 1)*rV[j] + (lTeman)*rV[1 + j]);
+
 };
 
 
@@ -81,13 +83,20 @@ if((lTe<lTmin_nth)||(lTe>lTmax_nth)||(lnW_nth<lnWmin_nth)||(lnW_nth>lnWmax_nth))
 };
 
 if((lTe<lTminr_nth)||(lTe>lTmax_nth)){                             //if outside of range for rotativities look-up table
-	rQc_nth_lookup=0.;
-	rVc_nth_lookup=0.;
+	rQc_nth_lookuptab=0.;
+	rVc_nth_lookuptab=0.;
 } else {
 	lTefrac_nth=(lTe-lTminr_nth)/(lTmax_nth-lTminr_nth)*2*Tlen_nth;
 	j=floor(lTefrac_nth);
 	lTeman_nth=lTefrac_nth-j;
+
 	//look up dimensionless rotativities by 1D interpolation
-	rQc_nth_lookup=exp((-lTeman_nth + 1)*rQ_nth[j] + (lTeman_nth)*rQ_nth[1 + j]);
-	rVc_nth_lookup=exp((-lTeman_nth + 1)*rV_nth[j] + (lTeman_nth)*rV_nth[1 + j]);
+	// rQc_nth_lookup=exp((-lTeman_nth + 1)*rQ_nth[j] + (lTeman_nth)*rQ_nth[1 + j]);
+	// rVc_nth_lookup=exp((-lTeman_nth + 1)*rV_nth[j] + (lTeman_nth)*rV_nth[1 + j]);
+
+    // LINEAR TABLES (negative values in new scheme)
+    if (j==0) cout<<YELLOW"[emission_from_lookuptables.cpp]:"RESET"LINEAR ROTATIVITIES"<<endl;
+	rQc_nth_lookuptab=(-lTeman_nth + 1)*rQ_nth[j] + (lTeman_nth)*rQ_nth[1 + j];
+	rVc_nth_lookuptab=exp((-lTeman_nth + 1)*rV_nth[j] + (lTeman_nth)*rV_nth[1 + j]);
+
 };

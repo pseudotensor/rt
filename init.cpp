@@ -159,14 +159,14 @@ if(!inited){
       const string       dir_nth="/home/rgold/rt/newthermaltabs/";
       // const string       dir_nth="/home/rgold/codes/rt-git/newthermaltabs/";
       //char dir_nth[64]="/home/rgold/rt/newthermaltabs/";
-      const string jI_file=dir_nth+"origlookup_thermalIjcSs_log.dat";
+      const string jI_nth_file=dir_nth+"origlookup_thermalIjcSs_log.dat";
 
-      cout << YELLOW"[init.cpp]:"RESET" READING NEW THERMAL lookup ["+jI_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
+      cout << YELLOW"[init.cpp]:"RESET" READING NEW THERMAL lookup ["+jI_nth_file+",...] but store them in NON-THERMAL origlookup_thermaljcSs_log.dat files from dir="+dir_nth+"\n";
 
       //RG:TODO CHECK WHETHER FILE EXISTS
 
     // thermal tabs v1 (sanity check: expect agreement with old tables)
-    ifstream fI_nth ((jI_file).c_str(), ios::in);
+    ifstream fI_nth ((jI_nth_file).c_str(), ios::in);
     //ifstream fI_nth ((dir_nth+"origlookup_thermalIjcSs_log.dat").c_str(), ios::in);
 	ifstream fQ_nth ((dir_nth+"origlookup_thermalQjcSs_log.dat").c_str(), ios::in);
 	ifstream fV_nth ((dir_nth+"origlookup_thermalVjcSs_log.dat").c_str(), ios::in);
@@ -185,8 +185,10 @@ if(!inited){
     
     // RG: Te rotativities are just fake, we zero them out afterwards
     // RG: problems when lookup sizes differ between th vs nth?
-	ifstream frQ_nth ((dir+"origlookup_thermalrQT_log.dat").c_str(), ios::in);
+	// ifstream frQ_nth ((dir+"origlookup_thermalrQT_log.dat").c_str(), ios::in);
 	ifstream frV_nth ((dir+"origlookup_thermalrVT_log.dat").c_str(), ios::in); 
+	ifstream frQ_nth ((dir+"origlookup_thermalrQT_lin.dat").c_str(), ios::in);
+	//ifstream frV_nth ((dir+"origlookup_thermalrVT_lin.dat").c_str(), ios::in); 
     // for(int col=0;col<3;col++) 
     // int col=0;
     
@@ -306,8 +308,10 @@ for(i=-fdiff;i<=fdiff;i++) {
 
 /****** OVERWRITE DATA WITH AVERY'S FORCE-FREE TOY JET MODEL ************/
 char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+//char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
 
-if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
+//if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
+if ( !strcmp(avery_toy_jet,"yes") ){
   cout << "...[WIP]..." << endl;
   cout << "...SETTING UP AVERY'S FORCE_FREE TOY JET MODEL..." << endl;
   if (fdiff!=0) {
@@ -315,8 +319,8 @@ if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
     printf(YELLOW"[init.cpp]:"RESET"You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
   }
   //RG: SETUP AVERY'S TOYJET + RIAF MODEL
-  // consider use of something like #ifdef TOYJET ?
-  // #include "setup_averys_toyjet.cpp"
+  // consider use of PREPROCESSOR DIRECTIVE: #ifdef TOYJET ?
+  #include "setup_averys_toyjet.cpp"
   }
 
 

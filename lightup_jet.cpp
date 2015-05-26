@@ -128,6 +128,8 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
 
  case 667: fmin=1000;fmax=1000;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10; fljVc=0.; flrQc=0.; flrVc=0.;break; // TEST NTH
 
+ case 668: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
+
 
 
 // FLAGGED/PATHOLOGICAL CASES TO BE INVESTIGATES

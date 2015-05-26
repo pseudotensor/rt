@@ -66,7 +66,7 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 jIc_approx,aIc_approx,        //approximation to thermal emissivity and absorptivity in total intensity
 	 rVc,rQc,          //Faraday rotation and conversion coefficients
 	 jIc_lookuptab,jQc_lookuptab,jVc_lookuptab,      //dimensionless emissivities computed from the look-up tables
-	 XX,               //convenient quantity over which the lookup is conducted for rotativities
+	 XX,               //convenient quantity over which the lookup is conducted for rotativities //RG: called Z in Shcherbakov, Penna, Mckinney 2012 eq.(24)
 	 rVc_lookuptab,rQc_lookuptab,        //dimensionless rotativities computed from the look-up tables (still approximate)
 
 
@@ -77,8 +77,7 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 jIc_approx_nth,aIc_approx_nth,        //approximation to non-thermal emissivity and absorptivity in total intensity
 	 rVc_nth,rQc_nth,          //Faraday rotation and conversion coefficients
 	 jIc_lookuptab_nth,jQc_lookuptab_nth,jVc_lookuptab_nth,      //dimensionless emissivities computed from the look-up tables
-	 XX_nth,               //convenient quantity over which the lookup is conducted for rotativities
-	 rVc_nth_lookup,rQc_nth_lookup,        //dimensionless rotativities computed from the look-up tables (still approximate)
+	 rVc_nth_lookuptab,rQc_nth_lookuptab,        //dimensionless rotativities computed from the look-up tables (still approximate)
 
 
 
@@ -139,7 +138,7 @@ if((fabs(rr)>100000.) || (rr<1.)) {
   // (1) So rr<horizon ... No problem (just stop the geodesic!). Shouldn't abort the code
   // (2) BOUNDARIES SHOULD NOT BE HARDCODED
   // (3) GIVE USER HINT WHAT TO DO?
-  printf("Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n",rr);
+  printf(YELLOW"[evalpointzero.cpp]:"RESET" Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n",rr);
   // RG: FIXME: DOES NOT WORK. 
   // if (rr<1.) rr=rmin;
   exit(-1);
@@ -590,7 +589,7 @@ if((Ta<=Tz) && (Tz<=Tb)){
 		};
 	};
 } else {
-	printf("Temperature lookup error \n Exiting");
+	printf(YELLOW"[evalpointzero.cpp]:"RESET" Temperature lookup error \n Exiting");
 	exit(-1);
 };
 Ta=ts[ia];
@@ -610,8 +609,8 @@ doub Te_jet_par = 35.; // make this a global parameter and include it in fitting
 doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 
 // if (magn > magn_cap) {
-//   //printf("magn=%e,magn_cap=%e",magn,magn_cap);
-//   //printf("minT=%e",minT);
+//   //printf(YELLOW"[evalpointzero.cpp]:"RESET" magn=%e,magn_cap=%e",magn,magn_cap);
+//   //printf(YELLOW"[evalpointzero.cpp]:"RESET" minT=%e",minT);
    // tet = minT; // minT:minimum in temperature table. Tmin is misleading; related to TpTe...
 //   tet = Te_jet;
 //  }
@@ -656,8 +655,8 @@ fr=kxx[0];                                              //redshift/Doppler shift
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
   fr=-fr; // RG: HMM... MAYBE "BETTER" TO FLOOR THE FREQUENCY...
 	printf(YELLOW"[evalpointzero.cpp]:"RESET" Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n");
-    printf("(kxx[0],kxx[1],kxx[2],kxx[3]) = (%lf, %lf, %lf, %lf)\n",kxx[0],kxx[1],kxx[2],kxx[3]);
-    printf("yyloKS[1][0]*kupKS[0]=%lf, yyloKS[1][1]*kupKS[1]=%lf, yyloKS[2][1]*kupKS[2]=%lf, yyloKS[3][1]*kupKS[3]=%lf\n",yyloKS[1][0]*kupKS[0],yyloKS[1][1]*kupKS[1],yyloKS[2][1]*kupKS[2],yyloKS[3][1]*kupKS[3]); // RG: xx?
+    printf(YELLOW"[evalpointzero.cpp]:"RESET" (kxx[0],kxx[1],kxx[2],kxx[3]) = (%lf, %lf, %lf, %lf)\n",kxx[0],kxx[1],kxx[2],kxx[3]);
+    printf(YELLOW"[evalpointzero.cpp]:"RESET" yyloKS[1][0]*kupKS[0]=%lf, yyloKS[1][1]*kupKS[1]=%lf, yyloKS[2][1]*kupKS[2]=%lf, yyloKS[3][1]*kupKS[3]=%lf\n",yyloKS[1][0]*kupKS[0],yyloKS[1][1]*kupKS[1],yyloKS[2][1]*kupKS[2],yyloKS[3][1]*kupKS[3]); // RG: xx?
 
     //exit(1);
 };
@@ -714,23 +713,65 @@ sinkb=sqrt(1-coskb*coskb);                                         //sin of angl
 XX=tet/The*sqrt(sqrt(2.)*kbperp*1000.*ee/(2.*cc*me*nufr*PI));      //convenient quantity over which the lookup is conducted for rotativities 
 
 // dimension-full FARADAY CONVERSION and FARADAY ROTATION coefficients [THERMAL]
-rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*rQc_lookuptab*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
-rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*rVc_lookuptab*(1.-0.11*log(1.+0.035*XX));
+doub g_of_Z=1-0.11*log(1+0.035*XX); // Shcherbakov, Penna, McKinney 2012 eq.(25)
+doub f_of_Z=2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2); // Shcherbakov, Penna, McKinney 2012 eq.(25)
+doub rQ_coeff = ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr * f_of_Z;// Shcherbakov, Penna, McKinney 2012 eq.(23)
+doub rV_coeff = ee*ee*ee   /cc/cc   /me/me     /PI   /nufr/nufr      * g_of_Z;// Shcherbakov, Penna, McKinney 2012 eq.(23)
+//doub rV_coeff = rQ_coeff/ee      *cc      *me*4   *PI          *nufr * g_of_Z;
 
+rQc = flrQc * kbperp*kbperp* rgrav/2.*rho* rQ_coeff * rQc_lookuptab;
+rVc = flrVc * kbpar*         rgrav/2.*rho* rV_coeff * rVc_lookuptab;
+
+// ORIGINAL [ASTRORAYv1.0]
+// rQc=flrQc*kbperp*kbperp*rgrav/2.*rho*ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr*rQc_lookuptab*(2.011*exp(-pow(XX,(doub)1.035)/4.7)-cos(XX/2.)*exp(-pow(XX,(doub)1.2)/2.73)-0.011*exp(-XX/47.2));
+// rVc=flrVc*ee*ee*ee*rho*rgrav/2.*kbpar/PI/cc/cc/me/me/nufr/nufr*rVc_lookuptab*(1.-0.11*log(1.+0.035*XX));
 
 // if (nth && [one point only]) printf("[evalpointzero]: ZERO-OUT NON-THERMAL ROTATIVITIES\n");
 // rQc_nth = 0.;
 // rVc_nth = 0.;
-// RG:FIXME TEMPORARILY SET ROTATIVITIES TO OLD THERMAL VALUES
-int thread_id=omp_get_thread_num();
-static int onetime=1;
-if(onetime && thread_id==1) {
-  cout<<YELLOW"[evalpointzero.cpp]:"RESET" [WIP]:...SETTING ROTATION COEFFS TO OLD THERMAL..."<<endl;
-  onetime *= 0;
- }
-rQc_nth = rQc;
-rVc_nth = rVc;
 
+// RG: SET ROTATIVITIES TO OLD THERMAL VALUES
+// int thread_id=omp_get_thread_num();
+// static int onetime=1;
+// if(onetime && thread_id==1) {
+//   cout<<YELLOW"[evalpointzero.cpp]:"RESET" [WIP]:...SETTING ROTATION COEFFS TO OLD THERMAL..."<<endl;
+//   onetime *= 0;
+//  }
+// rQc_nth = rQc;
+// rVc_nth = rVc;
+
+
+// Shcherbakov 2012 eq 23-26 or Huang & Shcherbakov 58-59.  Ensure you have isolated each one of those.  I'll write this out just so there's no confusion:
+
+// XX= 30.7052T_e/\sqrt{\nu_\Omega}
+//   fx= -0.011 exp(-0.0211864XX) + 2.011exp(-0.212766XX^{1.035})-exp(-0.3663*XX^{1.2})\cos(XX/2)
+//   rhoQoldcoef: 0.00375 fx n_o/(\nu \nu^2_\Omega)
+//   gx=(1-0.11\log(1+0.035XX))
+//   rhoVoldcoef: 0.01126 gx n_0 \cos(\theta)/(\nu\nu_\Omega)
+
+//   In the above, Te is always the dimensionless temperature.
+
+//   Recall that the rhoQ,rhoV coefficients are certainly only ever for the thermal case (non-thermal could be done in old prefactor-style, but makes things not as clean, which is why  changed the tables).  But, that doesn't really matter as you want to isolate these old prefactors.
+
+// var=OLDSTUFF*(newprefactor/oldprefactor)*newtable
+// oldprefactor: rQ -> 0.00375 fx n_o/(\nu \nu^2_\Omega)
+// oldprefactor: rV -> 0.01126 gx n_0 \cos(\theta)/(\nu\nu_\Omega)
+// newprefactor: rQ -> 1
+// newprefactor: rV -> cot(th) RG: CHECK!
+// OLDSTUFF:     rQ
+// OLDSTUFF:     rV
+
+//RG:FIXME COEFFS
+// rQc_nth = flrQc * kbperp*kbperp* rgrav/2.*rho* rQ_coeff * rQc_nth_lookuptab;
+// rVc_nth = flrVc * kbpar*         rgrav/2.*rho* rV_coeff * rVc_nth_lookuptab;
+rQc_nth = flrQc * kbperp*kbperp* rgrav/2.*rho* rQc_nth_lookuptab;
+rQc_nth *= ee*ee*ee*ee/cc/cc/cc/me/me/me/4/PI/PI/nufr/nufr/nufr;
+
+rVc_nth = flrVc * kbpar*         rgrav/2.*rho* rVc_nth_lookuptab;
+rVc_nth *= ee*ee*ee   /cc/cc   /me/me     /PI /nufr/nufr;
+
+// printf(YELLOW"[evalpointzero.cpp]:"RED"rQc_new=%e,rQc_old=%e,rVc_new=%e,rVc_old=%e\n"RESET,rQc,rQc_nth,rVc,rVc_nth);
+//exit(1);
 
 
 Be1=B[1]*e1xx[1]+B[2]*e1xx[2]+B[3]*e1xx[3];                        //scalar product of B.e1
