@@ -16,7 +16,7 @@ T = gsl_odeiv_step_rk2;            //use Runge-Kutta 2-nd order
 s = gsl_odeiv_step_alloc (T, 12);  //initialize with 12 variables
 c = gsl_odeiv_control_standard_new(0.0, accur, 1.0, 0.0);//relative accuracy "accur"
 e = gsl_odeiv_evolve_alloc (12);
-gsl_odeiv_system sys = {solvegeodesic, NULL, 12, NULL};//prepare to solve ODE of 12 variables given by "solvegeodesic" function
+gsl_odeiv_system geodesic_solver_gsl = {solvegeodesic, NULL, 12, NULL};//prepare to solve ODE of 12 variables given by "solvegeodesic" function
 
 //a - spin, r0 - distance from picture plane to BH, th - cosine of polar angle, b - impact parameter, 
 //beta - angle in a picture plane counterclockwise from the direction to the north pole  
@@ -91,7 +91,7 @@ doub h=step;                   //initialize step of geodesic solver
 //main integration cycle
 while (t < t1){                //main geodesic integration loop
 	stN++;                     //1 geodesic point per main loop
-	int status = gsl_odeiv_evolve_apply (e, c, s, &sys, &t, t1, &h, y);//evolve geodesic solution with a chosen step
+	int status = gsl_odeiv_evolve_apply (e, c, s, &geodesic_solver_gsl, &t, t1, &h, y);//evolve geodesic solution with a chosen step
 	lam[stN]=t;                //affine parameter at a next point
 	coox[0][stN]=y[0];         //geodesic properties
 	coox[3][stN]=y[1];

@@ -85,10 +85,10 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"f"<<floor(sftab[kk][0])<<"fn"<<fnum<<"_"<<nxy;
 	string stra = sstr.str();
 
-	ofstream faire ((dir+"shotimag"+stra+".dat").c_str(), ios::out|ios::binary);   //write into binary output file
-	faire.write(reinterpret_cast<char *>(params), 20*sizeof(double));              //write params - fixed size variable
-	faire.write(reinterpret_cast<char *>(intab), 5*(nxy+1)*(nxy+1)*sizeof(doub));  //write image
-	faire.close();
+	ofstream image_output_file ((dir+"shotimag"+stra+".dat").c_str(), ios::out|ios::binary);   //write into binary output file
+	image_output_file.write(reinterpret_cast<char *>(params), 20*sizeof(double));              //write params - fixed size variable
+	image_output_file.write(reinterpret_cast<char *>(intab), 5*(nxy+1)*(nxy+1)*sizeof(doub));  //write image
+	image_output_file.close();
 }
 
 if(iswrite){

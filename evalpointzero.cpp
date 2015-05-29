@@ -90,7 +90,7 @@ int  m, k, j, n, i,
 
 int curr=*(int*)pas;   //thread number passed by address to current thread
 if((curr>=nthreads)||(curr<0)){ //check the bounds of thread number
-	printf(YELLOW"[evalpointzero.cpp]:"RESET" Error in thread number \n Exiting \n");
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Error in thread number \n Exiting \n"RESET);
 	exit(-1);
 };
 doub nu=ppy[curr].nu;               //define frequency in current thread
@@ -115,7 +115,7 @@ if((lz<=lb) && (la<=lz)){
 		};
 	};
 } else {
-	printf(YELLOW"[evalpointzero.cpp]:"RESET" Lookup error of closest geodesic point \n Exiting");
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Lookup error of closest geodesic point \nEXITING\n"RESET);
 	exit(-1);
 };
 
@@ -138,7 +138,7 @@ if((fabs(rr)>100000.) || (rr<1.)) {
   // (1) So rr<horizon ... No problem (just stop the geodesic!). Shouldn't abort the code
   // (2) BOUNDARIES SHOULD NOT BE HARDCODED
   // (3) GIVE USER HINT WHAT TO DO?
-  printf(YELLOW"[evalpointzero.cpp]:"RESET" Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n",rr);
+  printf(YELLOW"[evalpointzero.cpp]:"RED" Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n"RESET,rr);
   // RG: FIXME: DOES NOT WORK. 
   // if (rr<1.) rr=rmin;
   exit(-1);
@@ -164,7 +164,7 @@ if((lrz<=lrb) && (lra<=lrz)){
 		};
 	};
 } else {
-  printf(YELLOW"[evalpointzero.cpp]:"RESET" Requested radius lrz=%lf coord[%d][0][0]=%lf outside of array of radial coordinates\n...EXITING...\n",lrz,ix,coord[ix][0][0]);
+  printf(YELLOW"[evalpointzero.cpp]:"RED" Requested radius lrz=%lf coord[%d][0][0]=%lf outside of array of radial coordinates\n...EXITING...\n"RESET,lrz,ix,coord[ix][0][0]);
 	exit(-1);
 };
 lra=coord[ia][0][0];               //closest log of radius
@@ -589,7 +589,7 @@ if((Ta<=Tz) && (Tz<=Tb)){
 		};
 	};
 } else {
-	printf(YELLOW"[evalpointzero.cpp]:"RESET" Temperature lookup error \n Exiting");
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \n Exiting"RESET);
 	exit(-1);
 };
 Ta=ts[ia];
@@ -618,6 +618,10 @@ doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 
 tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
 
+if ( !strcmp(avery_toy_jet,"yes") ) {
+  doub Te_RIAF=8.1e9;
+  tet = Te_RIAF;
+ }
 
 
 
@@ -654,7 +658,7 @@ kbperp=sqrt(B[1]*B[1]+B[2]*B[2]+B[3]*B[3]-kbpar*kbpar); //norm of the vector pro
 fr=kxx[0];                                              //redshift/Doppler shift 
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
   fr=-fr; // RG: HMM... MAYBE "BETTER" TO FLOOR THE FREQUENCY...
-	printf(YELLOW"[evalpointzero.cpp]:"RESET" Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n");
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n"RESET);
     printf(YELLOW"[evalpointzero.cpp]:"RESET" (kxx[0],kxx[1],kxx[2],kxx[3]) = (%lf, %lf, %lf, %lf)\n",kxx[0],kxx[1],kxx[2],kxx[3]);
     printf(YELLOW"[evalpointzero.cpp]:"RESET" yyloKS[1][0]*kupKS[0]=%lf, yyloKS[1][1]*kupKS[1]=%lf, yyloKS[2][1]*kupKS[2]=%lf, yyloKS[3][1]*kupKS[3]=%lf\n",yyloKS[1][0]*kupKS[0],yyloKS[1][1]*kupKS[1],yyloKS[2][1]*kupKS[2],yyloKS[3][1]*kupKS[3]); // RG: xx?
 

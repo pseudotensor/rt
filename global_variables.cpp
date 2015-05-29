@@ -18,6 +18,10 @@
 
 const doub PI = 4.0*atan(1.0);
 
+// MODELS
+//const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+
 // THICKDISK7
 const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
 //const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices

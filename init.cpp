@@ -9,6 +9,7 @@ filebuf *pbuf;         //buffer for reading file with offset
 
 doub rr,               //radius
 	 costh,            //cos(polar angle)
+	 sinth,            //sin(polar angle)
 	 cossq,            //cos^2(polar angle)
 	 sinsq,            //sin^2(polar angle) - to make the code nicer
 	 rsq,              //rr*rr
@@ -16,8 +17,9 @@ doub rr,               //radius
 	 rhosq;            //rsq+asq*cossq
 doub rest[11],         //single record in a fluid simulation file
 	 rho,              //physical number density
-	 xx[rlen][dd];     //for reading internal energy density radial profile from file
+	 r_T_u[rlen][dd];  //for reading internal energy density radial profile from file
 doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild metric
+     iBL[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr metric in Boyer-Lindquist coordinates
 	 iMKS[4][4],       //modified Kerr-Schild metric (code coordinates)
 	 MKStoKS[4][4],    //(covariant) vector transformation from MKS to KS
 	 u[4],             //4-velocity in MKS
@@ -47,11 +49,11 @@ if(!inited){
     //RG:
     cout << YELLOW"[init.cpp]:"RESET"location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
 
-	ifstream faire ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
+	ifstream r_T_u_file ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
 	for(k=0;k<rlen;k++)
 		for(i=0;i<dd;i++)
-			faire>>xx[k][i];
-	faire.close();
+          r_T_u_file>>r_T_u[k][i];
+	r_T_u_file.close();
 
 	//allocating memory for fluid simulation snapshots - takes some time
 	for(j=0;j<2*fdiff+1;j++)
@@ -103,21 +105,19 @@ if(!inited){
 
 	//radial grid & mean internal energy densities = "temperatures"
 	for(k=0;k<ncut;k++) {
-
-          //RG: CHECK FOR NAN
-          if (coord[k][0][0]!=coord[k][0][0]) {
-            cout << YELLOW"[init.cpp]:"RESET" Radial coordinates contain nan. Unwise to continue..." << endl;
-            exit(1);}
+        if (coord[k][0][0]!=coord[k][0][0]) { // CHECK FOR NAN
+          cout << YELLOW"[init.cpp]:"RESET" Radial coordinates contain nan. Unwise to continue..." << endl;
+          exit(1);}
 
 		rtab[k]=exp(coord[k][0][0]);
-		Tstab[k]=xx[k][1];
+		Tstab[k]=r_T_u[k][1];
 
         //RG: REPORT COORDINATES
         //printf(YELLOW"[init.cpp]:"RESET" r[%d]=%e\n",k,rtab[k]);
 
 	};
 	maxT=Tstab[0];//maximum internal energy density
-	rmin=xx[0][0];//minimum radius (inside the event horizon)
+	rmin=r_T_u[0][0];//minimum radius (inside the event horizon)
 
     //reading emissivities for [THERMAL] jI, jQ, jV as well as Faraday effects rQ (Faraday conversion coefficient) and rV (Faraday rotation coefficient)
     cout << YELLOW"[init.cpp]:"RESET" READING lookup???.dat files from "+ASTRORAY_PATH+"/analysis/\n";
@@ -223,8 +223,8 @@ if(!inited){
             aI_nth[k][j]=log(exp(aI_nth[k][j])/conversion);
             aQ_nth[k][j]=log(exp(aQ_nth[k][j])/conversion);
             aV_nth[k][j]=log(exp(aV_nth[k][j])/conversion*4./3.);
-
 		}
+
 	for(k=0;k<=2*Tlen_nth;k++) {
 
 			frQ_nth>>rQ_nth[k];
@@ -267,6 +267,7 @@ for(i=-fdiff;i<=fdiff;i++) {
 	if(reuse)continue;//the snapshot we want to load is already in memory
     
 	//reading the simulation snapshot
+    //RG:TODO HAVE ENCLOSING if(MODEL==SIMULATION) STATEMENT (AS OPPOSED TO "ANALYTIC")
 	stringstream sstr;
 	sstr<<setfill('0')<<setw(4)<<fx;
 	ifstream fline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in|ios::binary);
@@ -297,38 +298,27 @@ for(i=-fdiff;i<=fdiff;i++) {
 	loaded[ioff]=fx;
 };
 
-/**********************************************************************************************************/
-//RG: MODIFY FLUID DATA HERE?
-/**********************************************************************************************************/
-// single fluid simulation dump files contains: 
-// uu[?]:     [0    1   2     3                4    5    6        7      8    9        10   ]
-//             rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi
+
+
+        /********************************************************
+         * OVERWRITE DATA WITH AVERY'S FORCE-FREE TOY JET MODEL *
+         ********************************************************/
+
+        if ( !strcmp(avery_toy_jet,"yes") ){
+          if (fdiff!=0) {
+            fdiff=0;
+            printf(YELLOW"[init.cpp]:"RESET"You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
+          }
+          //RG: SETUP AVERY'S TOYJET + RIAF MODEL
+          // consider use of PREPROCESSOR DIRECTIVE: #ifdef TOYJET ?
+          #include "setup_averys_toyjet.cpp"
+        }
 
 
 
-/****** OVERWRITE DATA WITH AVERY'S FORCE-FREE TOY JET MODEL ************/
-char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
-//char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
-
-//if ( !strcmp(avery_toy_jet,"yes") && (nt==thlen-1) && (np==phlen-1) ){
-if ( !strcmp(avery_toy_jet,"yes") ){
-  cout << "...[WIP]..." << endl;
-  cout << "...SETTING UP AVERY'S FORCE_FREE TOY JET MODEL..." << endl;
-  if (fdiff!=0) {
-    fdiff=0;
-    printf(YELLOW"[init.cpp]:"RESET"You called Avery's toyjet model with fdiff=%d. Will set fdiff=0 (model is stationary).\n",fdiff);
-  }
-  //RG: SETUP AVERY'S TOYJET + RIAF MODEL
-  // consider use of PREPROCESSOR DIRECTIVE: #ifdef TOYJET ?
-  #include "setup_averys_toyjet.cpp"
-  }
-
-
-// for(int var=0;var<=10;var++)
-//   printf(YELLOW"[init.cpp]:"RESET"(*uu[0])[0][0][0][%d]=%e\n",var,(*uu[0])[0][0][0][var]);
-
-
-//RG: BCs near the poles ...WIP...
+/************************************
+ * RG: BCs near the poles ...WIP... *
+ ************************************/
 
 //for(theta_index=0;theta_index<thlen-1;theta_index++)
 // int theta_bc_cells = 5;
@@ -346,28 +336,13 @@ if ( !strcmp(avery_toy_jet,"yes") ){
 //             // extrapolate rho,ug,v1,v3,b1,b3 as symmetric (extrapolate as just constant)
 //             // v2,b2 as anti-symmetric (passed through zero at pole, so linear from cell 6 to pole where has value of zero)
 //           }
-//           //RG: FIXME: careful about T units (could be in K)
-//           // doub Y_e=0.62; doub mubar=0.62; // solar abundances
-//           // doub T_e=6.; // =3e10K (T_rest_electron=1=me c^2,me=511kev)
-//           // doub rho_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][0]; // grmhd (HARM) code
-//           // doub u_orig = uu[snapshot_iteration_index][phi_index][theta_index][r_index][1]; // grmhd (HARM) code
-//           // doub gamma_orig=4./3.; // 13./9.; // u_orig/P+1.;
-//           // //RG:                               vv
-//           // doub u_Te_cap = Y_e*rho_orig/(mubar*mb)*kb*T_e/(gamma_orig-1.); // = n_e kb T_e/(gamma-1) 
-//           // // set u_g=u_Te_cap get T_e the desired isothermal (constant) value, e.g. T_e = 3\times 10^{10}K.;
-//           // //RG:FIXME magn_cap not available at this stage in the code... use cmdline argument directly?
-//           // //RG:FIXME      vvv
-//           // // doub magn     = ???;// see [evalpointzero.cpp]
-//           // // doub magn_cap = 4; // see [evalpointzero.cpp]
-//           // //(*uu[snapshot_iteration_index])[i][theta_index][r_index][0] = u_orig*(1.-exp(-magn/magn_cap)) + u_Te_cap*(exp(-magn/magn_cap));
-//           (*uu[snapshot_iteration_index])[i][theta_index][r_index][0] = u_orig*(1.-exp(-magn/magn_cap)) + u_Te_cap*(exp(-magn/magn_cap));
-//         }
-/**********************************************************************************************************/
 /**********************************************************************************************************/
 
-rcut=xx[ncut-1][0];                                     //define radius up to which the simulation converged
-rhopo=-log(rhoout/rhonor/xx[ncut-1][2])/log(rrmax/rcut);//slope of powerlaw density (extension) profile
-Upo=-log(Tout/xx[ncut-1][1])/log(rrmax/rcut);           //slope of powerlaw temperature (extension) profile
+
+
+rcut=r_T_u[ncut-1][0];                                     //define radius up to which the simulation converged
+rhopo=-log(rhoout/rhonor/r_T_u[ncut-1][2])/log(rrmax/rcut);//slope of powerlaw density (extension) profile
+Upo=-log(Tout/r_T_u[ncut-1][1])/log(rrmax/rcut);           //slope of powerlaw temperature (extension) profile
 
 //----------------tests------------------------
 //testing sensitivity to slopes of power-law extensions of density, temperature, and magnetic field
@@ -376,8 +351,8 @@ Upo=-log(Tout/xx[ncut-1][1])/log(rrmax/rcut);           //slope of powerlaw temp
 	if(echeck3)Bpo+=0.2;
 //-------------end-of-tests--------------------
 
-rhocon=rhonor*xx[ncut-1][2];   //physical density at radial convergence boundary
-Ucon=xx[ncut-1][1];            //temperature at radial convergence boundary
+rhocon=rhonor*r_T_u[ncut-1][2];   //physical density at radial convergence boundary
+Ucon=r_T_u[ncut-1][1];            //temperature at radial convergence boundary
 Bnor=sqrt(4.*PI*rhonor*mp)*cc; //normalization of physical magnetic field, negative normalization is also allowed
 
 //extending radial temperature profile outwards as a powerlaw
@@ -455,7 +430,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 		step=-0.005*rz;      //artificially limiting the step
 	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &step, IT);
 	if(status!=0){
-		printf(YELLOW"[init.cpp]:"RESET"Temperature solver error\n Exiting");
+		printf(YELLOW"[init.cpp]:"RED"Temperature solver error\n Exiting"RESET);
 		exit(-1);
 	};
 	te[stNt]=IT[0];
@@ -470,7 +445,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 maxT=ts[stNt];minT=ts[0];
 
 if(stNt>maxst){            //check if solver exceeded the number of steps
-	printf(YELLOW"[init.cpp]:"RESET"Temperature solver error. Exceeded maximum steps allowed! \nEXITING\n");
+	printf(YELLOW"[init.cpp]:"RED"Temperature solver error. Exceeded maximum steps allowed! \nEXITING\n"RESET);
 	exit(-1);
 };
 gsl_odeiv_evolve_free (ez);//free memory
@@ -478,18 +453,43 @@ gsl_odeiv_control_free (cz);
 gsl_odeiv_step_free (sz);
 
 
+
+/*************************
+ * OUTER RADIAL BOUNDARY *
+ *************************/
+
 //compute quantities in the co-moving frame at the convergence boundary (given by rr=rcut=const)
 xrn=ncut-1; //point just inside convergence boundary
 rr=rcut;    
 
-for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
+/****************************************************************************/
+for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
 	costh=theta[xrn][nt];
 	cossq=costh*costh;
 	sinsq=1-cossq;
+    sinth=sqrt(sinsq);
 	rsq=rr*rr;
 	rhosq=rsq+asq*cossq;
-	Del=rsq-2.*rr+asq;
+	Del=rsq-2.*rr+asq; // Lambda_squared in http://grwiki.physics.ncsu.edu/wiki/Kerr_Black_Hole
 	doub temp=2.*rr/rhosq;
+
+	// contravariant BL metric matrix
+	// iBL[0][0]=-(Del/rhosq) - a*sinsq/rhosq;
+	// iBL[0][1]=0.;
+    // iBL[0][2]=0.;
+	// iBL[0][3]=Del/rhosq * a *sinsq - sinsq/rhosq*(rsq+asq)*a;
+	// iBL[1][0]=iBL[0][1];
+	// iBL[1][1]=rhosq/Del;
+	// iBL[1][2]=0.;iBL[1][3]=0.;
+	// iBL[2][0]=iBL[0][2];
+	// iBL[2][1]=iBL[1][2];
+	// iBL[2][2]=rhosq;
+	// iBL[2][3]=0.;
+	// iBL[3][0]=iBL[0][3];
+	// iBL[3][1]=iBL[1][3];
+	// iBL[3][2]=iBL[2][3];
+	// iBL[3][3]=Del/rhosq*a*sinsq + sinsq/rhosq*(rsq+asq);
+
 	//-,+,+,+ signature covariant KS metric matrix
 	iKS[0][0]=temp-1.;
 	iKS[0][1]=temp;
@@ -523,7 +523,9 @@ for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
 				for(m=0;m<4;m++)
 					iMKS[i][k]+=MKStoKS[m][i]*iKS[m][j]*MKStoKS[j][k];
 	
-	for(np=0;np<phlen;np++){ //for all azimuthal angles
+    /****************************************************/
+	for(np=0;np<phlen;np++){ //for all AZIMUTHAL angles *
+
 		//read fluid quantities at a given point
 		for(m=0;m<11;m++)
 			rest[m]=(*uu[fdiff])[np][nt][xrn][m];
@@ -645,8 +647,11 @@ for(nt=0;nt<thlen;nt++){ //for all polar angles at the convergence boundary
         uext[np][nt][1]=B[2];
         uext[np][nt][2]=B[3];
 
-    };
-};
+
+    }; 	// for(np=0;np<phlen;np++){ //for all AZIMUTHAL angles *
+ }; // for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
+
+
 
 printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
 
