@@ -367,6 +367,9 @@ doub rx=exp(coord[nx-1][0][0]),  //radius at nx
 printf(YELLOW"[init.cpp]:"RESET" HARDWIRED r[nx=%d]=%e (radius where mdot is evaluated)\n",nx,rx);
 rate=0.;
 
+// k=10 is nan
+printf(YELLOW"[init.cpp]: "RESET"(*uu[0])[0][0][0][0]=%f (*uu[0])[0][0][10][0]=%f\n",(*uu[0])[0][0][0][0],(*uu[0])[0][0][10][0]);
+
 //computing the accretion rate in code units
 for(k=0;k<thlen-1;k++)
 	for(i=0;i<phlen;i++)

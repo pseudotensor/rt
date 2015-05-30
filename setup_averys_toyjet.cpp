@@ -25,6 +25,7 @@
         int isum=r_index+theta_index+phi_index;
 
         if (isum==0) printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" Get coordinates in here...\n");
+        //doub r     = exp(coord[r_index][theta_index][0]);
         doub r     = coord[r_index][theta_index][0]; 
         doub costh = coord[r_index][theta_index][1]; //RG:CHECK theta or cos(th)?
         rr=r;
@@ -189,8 +190,9 @@
 
   // for(m=0;m<11;m++) rest[m]=(*uu[fdiff])[np][nt][xrn][m];
 
-  for (int var=0;var<=10;var++){
-    rest[var] = (*uu[0])[phi_index][theta_index][r_index][var];
+  for (int var_index=0;var_index<=10;var_index++){
+    if (var_index<0 || var_index >10) printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"var_index=%d\n"RESET,var_index);
+    rest[var_index] = (*uu[0])[phi_index][theta_index][r_index][var_index];
     rho=rest[0]*rhonor;              //density
     rest[1]*=mp*cc*cc/3/kb/(rest[0]);//temperature
     u[0]=rest[4];                    //4-velocity
@@ -201,17 +203,27 @@
     Bi[2]=Bnor*rest[9];
     Bi[3]=Bnor*rest[10];
 
-    float *tmp=(uu[0])[phi_index][theta_index][r_index][var];
+    float tmp=(*uu[0])[phi_index][theta_index][r_index][var_index];
     //if (isum==0) printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" tmp=%f\n",tmp);
-    if (tmp!=tmp) { //CHECK FOR NAN
-      printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"FOUND NAN IN ID (var=%d,r_index=%d,th_index=%d,ph_index=%d)\n"RESET,var,r_index,theta_index,phi_index);
-      // exit(1);
+
+    if (phi_index==0 && theta_index==0 && r_index==10) { // nan in rho,8 & 10
+      printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"tmp=%f var_index=%d\n"RESET,tmp,var_index);
+      printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"(*uu[0])[phi_index][theta_index][r_index][var_index]=%f var_index=%d\n"RESET,(*uu[0])[phi_index][theta_index][r_index][var_index],var_index);
     }
-  }
+
+    // if (tmp!=tmp) { //CHECK FOR NAN // unsafe in -Ofast or -ffast-math
+    if (isnan(tmp)) { //CHECK FOR NAN
+      printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"FOUND NAN IN ID (var_index=%d,r_index=%d,th_index=%d,ph_index=%d)\n"RESET,var_index,r_index,theta_index,phi_index);
+      exit(1);
+    }
+
+  } //   for (int var_index=0;var_index<=10;var_index++){
 
   // exit(1);
 
   } //for r,theta,phi
+
+  printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"(*uu[0])[0][0][10][0]=%f\n"RESET,(*uu[0])[0][0][10][0]); // -nan why does nan checker above does not catch it?!
 
   //if (isum==0) 
   printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" YO9\n");
