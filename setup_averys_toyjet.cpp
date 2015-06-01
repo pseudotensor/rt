@@ -38,26 +38,45 @@
         sinsq=1-cossq;
         sinth=sqrt(sinsq);
         rsq=rr*rr;
-        rhosq=rsq+asq*cossq;
-        Del=rsq-2.*rr+asq; // Lambda_squared in http://grwiki.physics.ncsu.edu/wiki/Kerr_Black_Hole                       
+        rhosq=rsq+asq*cossq; // akas Sigma
+        Delta=rsq-2.*rr+asq; // Lambda_squared in http://grwiki.physics.ncsu.edu/wiki/Kerr_Black_Hole
         doub temp=2.*rr/rhosq;
 
-        // contravariant BL metric matrix                                                                                 
-        iBL[0][0]=-(Del/rhosq) - a*sinsq/rhosq;
-        iBL[0][1]=0.;
-        iBL[0][2]=0.;
-        iBL[0][3]=Del/rhosq * a *sinsq - sinsq/rhosq*(rsq+asq)*a;
-        iBL[1][0]=iBL[0][1];
-        iBL[1][1]=rhosq/Del;
-        iBL[1][2]=0.;iBL[1][3]=0.;
-        iBL[2][0]=iBL[0][2];
-        iBL[2][1]=iBL[1][2];
-        iBL[2][2]=rhosq;
-        iBL[2][3]=0.;
-        iBL[3][0]=iBL[0][3];
-        iBL[3][1]=iBL[1][3];
-        iBL[3][2]=iBL[2][3];
-        iBL[3][3]=Del/rhosq*a*sinsq + sinsq/rhosq*(rsq+asq);
+        // covariant (lower indices) BL metric matrix
+        BL[0][0]=-(Delta/rhosq) - a*sinsq/rhosq;
+        BL[0][1]=0.;
+        BL[0][2]=0.;
+        BL[0][3]=Delta/rhosq * a *sinsq - sinsq/rhosq*(rsq+asq)*a;
+        BL[1][0]=iBL[0][1];
+        BL[1][1]=rhosq/Delta;
+        BL[1][2]=0.;
+        BL[1][3]=0.;
+        BL[2][0]=iBL[0][2];
+        BL[2][1]=iBL[1][2];
+        BL[2][2]=rhosq;
+        BL[2][3]=0.;
+        BL[3][0]=iBL[0][3];
+        BL[3][1]=iBL[1][3];
+        BL[3][2]=iBL[2][3];
+        BL[3][3]=Delta/rhosq*a*sinsq + sinsq/rhosq*(rsq+asq);
+
+        // contravariant (upper indices) BL metric matrix
+        iBL[0][0] = -(1./Delta) * ( rsq + asq + 2.*r*asq*sinsq/rhosq );
+        iBL[0][1] = 0.;
+        iBL[0][2] = 0.;
+        iBL[0][3] = -2.*r*a/Delta/rhosq;
+        iBL[1][0] = iBL[0][1];
+        iBL[1][1] = Delta/rhosq; // iBL[1][1] = 1 / BL[1][1]
+        iBL[1][2] = 0.;
+        iBL[1][3] = 0.;
+        iBL[2][0] = iBL[0][2];
+        iBL[2][1] = iBL[1][2];
+        iBL[2][2] = 1./rhosq; // iBL[2][2] = 1/BL[2][2]
+        iBL[2][3] = 0.;
+        iBL[3][0] = iBL[0][3];
+        iBL[3][1] = iBL[1][3];
+        iBL[3][2] = iBL[2][3];
+        iBL[3][3] = (Delta - asq*sinsq) / (rhosq*Delta*sinsq);
 
 
   if (isum==0) printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" YO0\n");
@@ -81,10 +100,10 @@
   /*********************************/
   doub n0_th_RIAF  = 1.23e4; // 1.23x10^4 cm^-3 see main text after eq (4)
   doub n0_nth_RIAF = 3.8e2;  // 6.1 x10^2 cm^-3 see main text after eq (4)
-  doub Te_RIAF=8.1e9;        // Te_0 = 8.1x10^9K in eq (2) see main text after eq (4)
+  doub Te_RIAF=8.1e9;        // Te_0 = 8.1x10^9K in eq (2) see main text after eq (4) actually not used here but in [evalpointzero.cpp]
   doub Rb=20; // Needed to reproduce for M87 (disk subdominant@7mm), see main text after eq (4)
   doub plasma_beta = 10;     // beta=10 see main text between eq (3) and (4)
-  doub xi_toyjet = 1.; // eq.(5) xi=0: cylindrical xi=1: conical determines collimation rate
+  doub xi_toyjet = 0.5; // eq.(5) xi=0: cylindrical xi=1: conical determines collimation rate
   doub r_fp = 10.; // foot point of the jet where particles are injected
   doub p_toyjet = 2.-2.*xi_toyjet; // powerlaw-index in stream fct eq (A12) determines collimation rate 
   doub psi_toyjet = pow(r,p_toyjet) * (1. - costh); // stream fct eq.(5),(A42)
@@ -93,15 +112,24 @@
 
   // metric
   doub sigma=-1.; if (isum==0)printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET"[CHECK:]sigma=%f\n",sigma); // sigma=u_F.u_F=+/-1 see between eq.(6),(7)
-  doub gtt=iBL[0][0];doub gtphi=iBL[0][3];doub gphiphi=iBL[1][1];
-  doub grr=iBL[1][1];doub gthth=iBL[2][2];
+
+  // covariant metric components
+  doub g_down_tt=BL[0][0];doub g_down_tph=BL[0][3];doub g_down_phph=BL[1][1];
+  doub g_down_rr=BL[1][1];doub g_down_thth=BL[2][2];
   doub detg=-sinsq*pow(rsq+asq*cossq,2); // See e.g. arXiv:0706.0622v3 eq(70)
 
+  // contravariant metric components
+  doub g_up_tt   = iBL[0][0];
+  doub g_up_rr   = iBL[1][1]; // g^rr   = 1/g_rr
+  doub g_up_thth = iBL[2][2]; // g^thth = 1/g_thth
+  doub g_up_phph = iBL[3][3];
+  doub g_up_tph = iBL[0][3];
+
   // plasma
-  // $ u^t_F $ eq.(A43)
-  doub u_F_upt     = 1./sqrt( fabs(gtt + 2.*gtphi + gphiphi*pow(OmegaOfPsi,2)) );
+  // $ u^t_F $ eq.(A43) //WRONG g_down_tt,g_down_tph,phph are lower indices here, but later need to be upper
+  doub u_F_upt     = 1./sqrt( fabs(g_down_tt + 2.*g_down_tph + g_down_phph*pow(OmegaOfPsi,2)) );
   // JET:
-  // BUT u_f.u_F=sigma -> u_F^t = Omega gtph/gtt +/- sqrt( (Omega gtph/gtt)^2 -Omega^2 gphph/gtt )
+  // BUT u_f.u_F=sigma -> u_F^t = Omega gtph/g_down_tt +/- sqrt( (Omega gtph/g_down_tt)^2 -Omega^2 gphph/g_down_tt )
   doub u_F_upr     = 0.;                 //eq (6)
   doub u_F_uptheta = 0.;                 //eq (6)
   doub u_F_upphi   = u_F_upt*OmegaOfPsi; // follows from Omega definition just before eq.(A30)
@@ -115,17 +143,38 @@
   // $ b^\mu_F $ eq.(7,A44) and some simple algebra
   doub b_F_upr     = -sigma * pow(r,p_toyjet)*sinth / (u_F_upt * sqrt(-detg));
   doub b_F_uptheta = -sigma*p_toyjet * pow(r,p_toyjet-1)*(1.-costh) / (u_F_upt * sqrt(-detg));
-  doub b_F_upphi   = gtphi * b_F_downt + gphiphi * b_F_downphi;
-  doub b_F_upt     = gtt * b_F_downt + gtphi * b_F_downphi;
+  doub b_F_upphi   = g_up_tph * b_F_downt + g_up_phph * b_F_downphi;
+  doub b_F_upt     = g_up_tt * b_F_downt + g_up_tph * b_F_downphi;
 
-  doub b_F_downr     = grr*b_F_upr;
-  doub b_F_downtheta = gthth*b_F_uptheta;
+  doub b_F_downr     = g_down_rr*b_F_upr;
+  doub b_F_downtheta = g_down_thth*b_F_uptheta;
 
-  doub beta = sigma * b_F_upt / ( u_F_upt); // eq.(A46)
   // b_F^2 mostly cancels with beta^2 except for density...
   doub b_F_sq = b_F_downr*b_F_upr + b_F_downtheta*b_F_uptheta + b_F_downphi/u_F_upt*(u_F_upt*b_F_upphi - u_F_upphi*b_F_upt); // eq(A40)
-  doub gamma = -sigma / sqrt( -(sigma + beta*beta*b_F_sq ) ); // eq.(A24)
 
+  doub beta = sigma * b_F_upt / (b_F_sq * u_F_upt); // eq.(10,A46)
+
+  // sometimes: beta*beta*b_Fsq >> sigma  => gamma=nan !
+  doub gamma = -sigma / sqrt( -(sigma + beta*beta*b_F_sq ) ); // eq.(A24)
+  if isnan(gamma) { //FIXME: need to recompute other things too
+      printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"gamma=nan ! -> change sigma ...WIP...\n"RESET);
+      sigma         *= -1;
+      beta          *= -1;
+      b_F_upr       *= -1;
+      b_F_uptheta   *= -1;
+      b_F_downr     *= -1;
+      b_F_downtheta *= -1;
+      // b_F_sq invariant under sigma*=-1 [CHECK]
+      b_F_sq = b_F_downr*b_F_upr + b_F_downtheta*b_F_uptheta + b_F_downphi/u_F_upt*(u_F_upt*b_F_upphi - u_F_upphi*b_F_upt); // eq(A40)
+      
+      gamma = -sigma / sqrt( -(sigma + beta*beta*b_F_sq ) ); // eq.(A24)
+      if isnan(gamma) {
+          cout<<YELLOW"[setup_averys_toyjet.cpp]: "RED"gamma still nan!"RESET<<endl;
+          printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"beta=%f b_F_sq=%f!\n"RESET,beta,b_F_sq);
+}
+      else
+          cout<<YELLOW"[setup_averys_toyjet.cpp]: "GREEN"gamma cured!"RESET<<endl;
+    }
 
   // u_F,b_F -> u,b : eqs (9,11,A46)
   doub u_RIAFtoyjet[4];
@@ -146,9 +195,12 @@
   doub rho_RIAF = (n_th_RIAF + n_nth_RIAF)*mp;
 
   // JET (Sec. ?) & Appendix A <-> free fct F  eq.(13)
-  rest[0]  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (gtt + gtphi/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
-  rho/*[phi_index][theta_index][r_index]*/  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (gtt + gtphi/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
-  (*uu[0])[phi_index][theta_index][r_index][0]  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (gtt + gtphi/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
+  rest[0]  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (g_up_tt + g_up_tph/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
+  rho/*[phi_index][theta_index][r_index]*/      = rest[0];
+  (*uu[0])[phi_index][theta_index][r_index][0]  = rest[0];
+
+  // rho/*[phi_index][theta_index][r_index]*/  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (g_up_tt + g_up_tphi/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
+  // (*uu[0])[phi_index][theta_index][r_index][0]  = rho_RIAF + rhonor * u_F_upt * b_F_sq / gamma / (g_up_tt + g_up_tphi/OmegaOfPsi) * (1- exp(-pow(r/r_fp,2)/2.)); //eq.(13) F=1?
 
   // (*uu[0])[phi_index][theta_index][r_index][0]  = 1.;
   // if (isum==0) printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" FIXME: ...density=1...\n");
@@ -186,12 +238,16 @@
   //  return 0; // setup_averys_toyjet()
 
   if (isum==0) printf(YELLOW"[setup_averys_toyjet.cpp]:"RESET" (*uu[0])[0][0][0][0]=%f\n",(*uu[0])[phi_index][theta_index][r_index][0]);
-
+  int r_inspect=3; int theta_inspect=0; int phi_inspect=0;
+  if(r_index==r_inspect && theta_index==theta_inspect && phi_index==phi_inspect){
+    printf(YELLOW"[setup_averys_toyjet.cpp]:"RED" (*uu[0])[%d][%d][%d][0]=%f\n"RESET,phi_index,theta_index,r_index,(*uu[0])[phi_index][theta_index][r_index][0]);
+    printf(YELLOW"[setup_averys_toyjet.cpp]:"RED" (*uu[0])[%d][%d][%d][0]=%f, u_F_upt=%f,b_F_sq=%f,gamma=%f,g_down_tt=%f,g_down_tph=%f,OmegaOfPsi=%f\n"RESET,phi_index,theta_index,r_index,(*uu[0])[phi_index][theta_index][r_index][0],u_F_upt,b_F_sq,gamma,g_down_tt,g_down_tph,OmegaOfPsi);
+  }
 
   // for(m=0;m<11;m++) rest[m]=(*uu[fdiff])[np][nt][xrn][m];
 
   for (int var_index=0;var_index<=10;var_index++){
-    if (var_index<0 || var_index >10) printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"var_index=%d\n"RESET,var_index);
+    if (var_index<0 || var_index >10) printf(YELLOW"[setup_averys_toyjet.cpp]: "RED"var_index=%d\n"RESET,var_index); // var_index had crazy values when I used (uu) instead of (*uu)
     rest[var_index] = (*uu[0])[phi_index][theta_index][r_index][var_index];
     rho=rest[0]*rhonor;              //density
     rest[1]*=mp*cc*cc/3/kb/(rest[0]);//temperature

@@ -13,13 +13,14 @@ doub rr,               //radius
 	 cossq,            //cos^2(polar angle)
 	 sinsq,            //sin^2(polar angle) - to make the code nicer
 	 rsq,              //rr*rr
-	 Del,              //rsq-2.*rr+asq
-	 rhosq;            //rsq+asq*cossq
+	 Delta,            //rsq-2.*rr+asq
+	 rhosq;            //rsq+asq*cossq //akas Sigma
 doub rest[11],         //single record in a fluid simulation file
 	 rho,              //physical number density
 	 r_T_u[rlen][dd];  //for reading internal energy density radial profile from file
 doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild metric
-     iBL[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr metric in Boyer-Lindquist coordinates
+     BL[4][4],         //-,+,+,+ signature covariant (lower indices) Kerr metric in Boyer-Lindquist coordinates
+     iBL[4][4],        //-,+,+,+ signature contravariant/inverse (upper indices) Kerr metric in Boyer-Lindquist coordinates
 	 iMKS[4][4],       //modified Kerr-Schild metric (code coordinates)
 	 MKStoKS[4][4],    //(covariant) vector transformation from MKS to KS
 	 u[4],             //4-velocity in MKS
@@ -473,25 +474,8 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
     sinth=sqrt(sinsq);
 	rsq=rr*rr;
 	rhosq=rsq+asq*cossq;
-	Del=rsq-2.*rr+asq; // Lambda_squared in http://grwiki.physics.ncsu.edu/wiki/Kerr_Black_Hole
+	Delta=rsq-2.*rr+asq; // Lambda_squared in http://grwiki.physics.ncsu.edu/wiki/Kerr_Black_Hole
 	doub temp=2.*rr/rhosq;
-
-	// contravariant BL metric matrix
-	// iBL[0][0]=-(Del/rhosq) - a*sinsq/rhosq;
-	// iBL[0][1]=0.;
-    // iBL[0][2]=0.;
-	// iBL[0][3]=Del/rhosq * a *sinsq - sinsq/rhosq*(rsq+asq)*a;
-	// iBL[1][0]=iBL[0][1];
-	// iBL[1][1]=rhosq/Del;
-	// iBL[1][2]=0.;iBL[1][3]=0.;
-	// iBL[2][0]=iBL[0][2];
-	// iBL[2][1]=iBL[1][2];
-	// iBL[2][2]=rhosq;
-	// iBL[2][3]=0.;
-	// iBL[3][0]=iBL[0][3];
-	// iBL[3][1]=iBL[1][3];
-	// iBL[3][2]=iBL[2][3];
-	// iBL[3][3]=Del/rhosq*a*sinsq + sinsq/rhosq*(rsq+asq);
 
 	//-,+,+,+ signature covariant KS metric matrix
 	iKS[0][0]=temp-1.;
