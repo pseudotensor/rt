@@ -7,11 +7,13 @@
 # \( image3 image4 -append \) +append result
 
 spin=93.75
-th=118
+th=117
 f=230
 N=199
+iter_start=2150
+iter_end=2150
 
-for snapshot in `seq 6000 1 6000`; do
+for snapshot in `seq $iter_start 1 $iter_end`; do
   for case in `seq 100 1 100`; do
 
     upper_left_panel=shotimag$spin\th$th\f$f\fn$snapshot\_$N\_IQUV_xy.png

@@ -75,6 +75,11 @@ using namespace std;
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;//geodesic object
      poinx ppy[nthreads]; //define 1 geodesic object per OpenMP thread
 
+// typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} geodesics[nxy*nxy][maxco][12];//geodesic object
+// geodesics geodesic_info;
+
+//doub geodesics[nxy*nxy][maxco][12]; //RG: TRULY GLOBAL ARRAY TO STORE GEODESIC INFO
+
 //geodesic solver
 extern int solvegeodesic(doub t, const doub y[], doub f[], void *params);//line can be commented out
 #include "geodes.cpp"
@@ -90,6 +95,12 @@ extern int solvetemperature (doub rz, const doub zz[],doub ff[],void *pas);
 //extern int setup_averys_toyjet(int i,int j,int k);//, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
 //extern int setup_averys_toyjet(doub coord, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
 //extern int setup_averys_toyjet();//, float restL);
+
+// extern doub F_intp_lin(double F[2][rlen], double target_point); //FIXME
+extern doub F_intp_lin(doub F[][rlen], doub target_point);
+extern void BL_metric(doub gmunu[][4], doub ginvmunu[][4], doub r, doub costh);
+extern void KS_metric(doub gmunu[][4], doub ginvmunu[][4], doub r, doub costh);
+
 extern int init(int sp, int fmin, int fmax, int sep); //RG:CLEANUP/INVESTIGATE sep not used
 #include "init.cpp"
 
@@ -98,6 +109,9 @@ extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
 //extern int trans (doub llog, const doub yyy[], doub ff[], void *pas, int stNx); //RG:WIP
 #include "transnew.cpp"
 
+// AVERY's TOY-JET+RIAF MODEL
+//extern void setup_averys_toyjet(doub rr, doub costh, float* uu, int isum);
+#include "setup_averys_toyjet.cpp"
 
 
 /**********************************
@@ -203,8 +217,10 @@ int main(int argc, char* argv[]) {
     //printf ("RUNTIME RT SOLVER         = % .1f secs (%.0f%% %.1f across all threads)\n", ans*t_fudge, ans/t_total*nthreads, ans*t_fudge);
     printf(YELLOW"[ASTRORAY_main.cpp]"RESET" Total iterations          = %d\n", ittot);
     printf(YELLOW"[ASTRORAY_main.cpp]"RESET" Computational performance = %.0f iterations/sec\n", doub(ittot)/t_total/t_fudge);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME INITIALIZATION    = %g secs (%.0f%%)\n", t_init *t_fudge, t_init/t_total/nthreads*100);
     printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME GEODESICS         = %.1f secs (%.0f%%)\n", t_geodesics *t_fudge, t_geodesics/t_total/nthreads*100);
-    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
+    printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME SOLVETRANS        = %g secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
+    //printf(YELLOW"[ASTRORAY_main.cpp]"RESET" RUNTIME SOLVETRANS        = %.1f secs (%.0f%%)\n", t_solvetrans*t_fudge, t_solvetrans/t_total/nthreads*100);
     printf(YELLOW"[ASTRORAY_main.cpp]"BLUE"============PROFILING INFO END============\n"RESET);
 
 

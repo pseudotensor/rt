@@ -6,7 +6,7 @@
 #define MAGENTA "\x1b[35m"
 #define CYAN    "\x1b[36m"
 #define RESET   "\x1b[0m"
-// UNCOMMENT BELOW TO DEACTIVATE IN CASE IT DOES NOT WORK FOR YOU
+// UNCOMMENT BELOW TO DEACTIVATE IN CASE IT DOES NOT WORK FOR YOU OR YOU WANT TO REDIRECT OUTPUT TO FILE (YOU WILL GET THINGS LIKE "ESC[33m" IN THERE. SIMPLE TO REMOVE THOUGH...)
 // #define RED     ""
 // #define GREEN   ""
 // #define YELLOW  ""
@@ -15,47 +15,76 @@
 // #define CYAN    ""
 // #define RESET   ""
 
+// DEBUG STUFF
+int count_nan_gamma = 0;              // ~~~> [setup_avery_toyjet.cpp]
+int count_cured_nan_gamma = 0;        // ~~~> [setup_avery_toyjet.cpp]
+doub smallest_radius_where_nan = 1e9; // ~~~> [setup_avery_toyjet.cpp]
+doub largest_radius_where_nan  = 0.;  // ~~~> [setup_avery_toyjet.cpp]
+
+// GEODESIC DIAGNOSTIC
+int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
+int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
 const doub PI = 4.0*atan(1.0);
 
+const bool avoid_pole=false; // grep for critan ~> [evalpointzero.cpp]
+
+//Sgr A see math/checks_GRMHD_code.nb->Intensity functions->Check definitions of distance to Sgr A*, percentages, position angles
+doub Jy2cgs        = 1e23; // 1Jy=10^23 erg/(s cm^2 Hz) [cgs]
+// doub ang_size_norm = 66.4648/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc // M=4.5e6Msun 
+doub ang_size_norm = 196.5443582815904/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc=3e22cm // M=4.5e6Msun 
+
 // MODELS
-//const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+// const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
 const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+bool turn_off_radial_extension=true; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
 
 // THICKDISK7
-const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
-//const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+//const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+// OTHER MODELS
+const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=288+1,           //radial dimension of coordinate/coordinate transformation matrices
   sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
   thn=50,            //number of polar angle values to search for 
   dd=3,              //record size of average temperature & density file
 
 // THICKDISK7,THICKDISKHR3?,DIPOLE3DFIDUCIALA,QUADRUPOLE
-  wdd=11,            //record size of fluid simulations dump file
+//  wdd=11,            //record size of fluid simulations dump file
 // a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
-//  wdd=11+3,          //record size of fluid simulations dump file
+  wdd=11+3,          //record size of fluid simulations dump file
 
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
-  maxco=3000,        //maximum number of points on a geodesic
-  maxst=12000,       //maximum number of points for radial temperature profile
+//maxco=3000,        //maximum number of points on a geodesic
+// on bh01 maxco=80000 is ok, but maxco=90000 the code just silently quits ~> exceed heap size limit??
+//  maxco=50000,        //maximum number of points on a geodesic
+  maxco=80000,        //maximum number of points on a geodesic
+  maxst=40000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
+  nxy=99 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=99 /*301*/;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
+//RG:TEST units in M ~> SEG-FAULT in init.cpp
+// const doub rgrav=2.66e+12,    // Gravitational radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
+// const doub rgrav=1.33e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~4.4e9 Msun RG:TODO RENAME TO rs!
+// const doub rgrav=1.099e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~3.4e9 Msun RG:TODO RENAME TO rs! // Broderick & Loeb 2009
 	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
 	       rhoout=130.,       //outer density for Sgr A*
 		   Tout=1.5e+7,       //outer temperature for Sgr A*
-		   mp=1.67e-24,       //proton mass
-		   me=9.1e-28,        //electron mass
+		   mp=1.67e-24,       //proton mass [g]
+		   me=9.1e-28,        //electron mass [g]
 		   cc=3.e+10,         //speed of light
 		   kb=1.38e-16,       //Boltzmann constant 
 		   ee=4.8e-10,        //electron charge
 		   The=me*cc*cc/kb,   //rest mass temperature of electron
 		   year=86400.*365.25,//year in seconds
-		   Msun=2.00e+33;     //solar mass
-const doub r0=20000.;         //maximum radius of each light ray
+           Msun=2.00e+33,     //solar mass [g]
+//r0=20000.;         //maximum radius of each light ray
+//r0=500.;         //maximum radius of each light ray // RG: (coordinate?) distance of image plane to BH (Horizon?)
+ r0=1000.;         //maximum radius of each light ray // RG: (coordinate?) distance of image plane to BH (Horizon?) // in rgrav units?
+
 
 // Temperature sampling & range for propagation effects for THERMAL
 const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
@@ -75,7 +104,11 @@ const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=1
 //half-size of the square in a picture plane for each frequency - for flux and image calculations
 // RG: frequencies are: 8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857., 1500., 3000., 5000. GHz?
 // RG: {{frequency1, half-screen-size@frequency1?}, {frequency2, half-screen-size@frequency2?}, ...}
+
+//DEFAULT (SGR A*)
 const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
+//M87 WIP: STARTED MODIFYING 230Ghz entry... but bizarre code behavior...
+//const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 5.0}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 
 // polarized spectrum of Sgr A*, each array element is 
 // {frequency, Fnu, LP, EVPA, CP}
@@ -121,7 +154,7 @@ int fnum,              //fluid simulation dump file number
 /********* CMD-LINE-ARGS *********/
 /*********************************/
 
-	ncut,              //the last radial grid point, where the simulation is considered converged
+	ncut,              //the last radial grid point, where the simulation is considered to be in the final/relaxed/asymptotic state
 	fdiff=200,           //loading fluid simulation dump files from XXXX-fdiff to XXXX+fdiff to consider simulation evolution as light propagates; fdiff=0 => fast light approximation
 	mintim, maxtim,    //physical times of XXXX-fdiff and XXXX+fdiff dump files
 	stNt,              //index of electron/ion temperature calculations; is eventually set at 6M radius 
@@ -131,6 +164,7 @@ int fnum,              //fluid simulation dump file number
 //Yes, these are (RG: non-constant) global. At least 2 routines use each of those => not always trivial to refactor
 doub Bpo,              //third command line argument, often magnetic field strength
      rg,               //horizon radius in units of M
+//fact=1.,          //relative size of integration region, good for tests
 	 fact=1.,          //relative size of integration region, good for tests
 	 ans,              //execution time. 
 	 a, asq,           //BH spin and its square

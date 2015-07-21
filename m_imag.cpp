@@ -8,8 +8,9 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 xsnxy=9,  //5. number of points N along one side in the picture plane for N x N intensity grid
-	 xstep=1e-2,   //6. step size in geodesic computation
+  //xsnxy=9,  //5. number of points N along one side in the picture plane for N x N intensity grid
+  xstep=1e-2,   //6. step size in geodesic computation
+  //xstep=1e-3,   //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
 	 xIint=1e-10,  //8. initial intensity along each ray for radiative transfer
 	 xIang=0.1;    //9. initial polarized phases along each ray for radiative transfer
@@ -77,14 +78,14 @@ int fnum_step=10;
 for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenMP
   
   //RG:
-  printf("[m_imag.cpp]: fnum=%d,sep=%d\n",fnum,sep);
+  printf(YELLOW"[m_imag.cpp]: "RESET"fnum=%d,sep=%d\n",fnum,sep);
   
   init(sp,fmin,fmax,sep); //RG: sep not used in init()... remove!
-	#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
-	#include "imaging.cpp"	
 
-  //RG: every new should be match with delete or we leak memory
-  //delete[] uu; // ERROR why?
+  // RG: IS DYNAMIC SCHEDULING REALLY NEEDED?
+  #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
+  #include "imaging.cpp"	
+
 }
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 

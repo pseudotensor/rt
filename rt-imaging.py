@@ -116,7 +116,7 @@ rg = G*M/c**2
 d_SagA = 8.3e3*pc
 rad2microarcsec = 360/(2*pi)*3600*1e6
 observing_frequency = float(filename.split('f')[1].split('fn')[0]) # Ghz [file *th*.dat
-image_size_astroray = 8.+(600./observing_frequency)**1.5 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
+image_size_astroray = 8.+(600./observing_frequency)**1.5 # @230Ghz see sftab array in [ASTRORAY_main.cpp] and eq(18) SPM12 ApJ
 #image_size_astroray = 12.2 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
 image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
 image_size_rad = image_size_astroray * (2*rg)/d_SagA
@@ -605,16 +605,19 @@ figure(9)
 # scale_quiver=0.2
 # width_quiver=0.002
 
-## WORKS WELL FOR 230Ghz
+## WORKS WELL FOR 230Ghz (SGR A*)
 every=6
 I_threshold=0.05 
 scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
 width_quiver=0.01 # 0.01 good for LP/I
-## WORKS WELL FOR 102Ghz
+## WORKS WELL FOR 102Ghz (SGR A*)
 # every=6
 # I_threshold=0.05 
 # scale_quiver=1e-2*amax(I_xy)  # 0.2  good for LP/I
 # width_quiver=0.01 # 0.01 good for LP/I
+
+# M87 & AVERY's MODEL
+scale_quiver=1e-5
 
 Q_masked=(Q_xy/I_xy)
 Q_masked[I_xy < I_threshold*amax(I_xy)] = 0. # None # 0.
@@ -628,7 +631,9 @@ U_masked[I_xy < I_threshold*amax(I_xy)] = 0. # None # 0.
 # quiver_fake_inst= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="uv",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
 #figure(10)
 NIRVANA=1000
-quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+#DEFAULT
+#quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",scale_units="xy",angles="xy") # ,angles=EVPA_xy[::every,::every])
 #figure(9)
 #cla()
 # subplot(121)
@@ -728,8 +733,11 @@ colorbar()
 # quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,width=width_quiver*2,pivot="tip",scale_units="xy",angles="uv",scale=1)
 # Michael, angles=xy
 #quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
-quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
 
+# DEFAULT
+#quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
+# NEW (WIP)
+quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})

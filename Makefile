@@ -1,7 +1,12 @@
 CC=g++
 CXX=g++
-CFLAGS=-fopenmp -Ofast
-CXXFLAGS=-fopenmp -Ofast # -pg -fprofile-arcs -ftest-coverage
+WARP=2 # can be: 1,2,3,fast # SEG-FAULTS with 0 :-S
+# CFLAGS=-fopenmp -Ofast
+# CXXFLAGS=-fopenmp -Ofast # -pg -fprofile-arcs -ftest-coverage
+CFLAGS=-fopenmp -O${WARP}
+CXXFLAGS=-fopenmp -O${WARP} # -pg -fprofile-arcs -ftest-coverage
+# CFLAGS=-fopenmp 
+# CXXFLAGS=-fopenmp # -pg -fprofile-arcs -ftest-coverage
 LIBS=
 RM=/bin/rm
 

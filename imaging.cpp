@@ -8,24 +8,46 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 		iix=(int)ix/(snxy+1);
 	for(kk=kmin;kk<=kmax;kk+=kstep){                           //cycle over chosen frequencies
 		doub t,
-			 maxy=fact*sftab[kk][1],                           //get a size in picture plane for each frequency
+             maxy=fact*sftab[kk][1],                           //get a size in picture plane for each frequency
 			 xg=-maxy+2.*maxy/nxy*doub(iix),                   //offset of current geodesic in x direction
 			 yg=-maxy+2.*maxy/nxy*doub(iiy),                   //offset of current geodesic in y direction
 			 b=sqrt(xg*xg+yg*yg),                              //impact parameter
 			 beta=atan2(yg,xg);                                //polar angle in picture plane
-		//new geodesic integration for each ray
+
+
+
+        /*****************************************
+		 * new geodesic integration for each ray *
+         *****************************************/
+
 		#include "geoint.cpp"
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
-		//new radiative transfer is solved for each ray
-		#include "solvetrans.cpp"
-		
+
+
+        // if (currth==1) printf(YELLOW"[imaging.cpp]: "RESET"affine parameter t=%f r=y[4]=%f stN=%d\n",t,y[4],stN);
+
+        //clock_t t_b4_solvetrans = clock();
+        /*************************************************
+		 * new radiative transfer is solved for each ray *
+         *************************************************/
+        #include "solvetrans.cpp"
+        //t_solvetrans += (clock() - t_b4_solvetrans) / (float)CLOCKS_PER_SEC;
+
+
 		(*ausin)[iix][iiy][kk][0]=II[0];                       //total intensity I
 		(*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]); //linearly polarized intensity Q
 		(*ausin)[iix][iiy][kk][2]=II[1]*sin(II[2])*sin(II[3]); //linearly polarized intensity U
 		(*ausin)[iix][iiy][kk][3]=II[1]*cos(II[3]);            //circularly polarized intensity V
+        //DEFAULT
 		(*ausin)[iix][iiy][kk][4]=II[4];                       //any other quantity integrated over a geodesic, i.e., approximate total intensity
-	};
-};
+		//(*ausin)[iix][iiy][kk][4]=rho; //rho: unknown to this scope...      // column density (rho integrated along a geodesic)
+
+	}; // for(kk=kmin;kk<=kmax;kk+=kstep){
+
+}; // for(ix=0;ix<(nxy+1)*(nxy+1);ix++){
+          
+
+
 
 typedef double (*arra)[nxy+1][nxy+1][5];                       //array of intensities
    arra intab = (arra) new double[nxy+1][nxy+1][5];
@@ -58,11 +80,11 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 
 	for(il=0;il<5;il++)
 		in[kk][il]*=maxy*maxy;                                //normalization over integration region size
-	totin[kk]=66.4648*in[kk][0];                              //normalization for angular size of Sgr A* region - recompute for your object!
+	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                              //normalization for angular size of Sgr A* region - recompute for your object!
 	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0];//compute total LP fraction
 	CP[kk]=100.*in[kk][3]/in[kk][0];                                     //compute CP fraction
 	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);        //compute EVPA
-	err[kk]=66.4648*in[kk][4];                                           //normalize 5-th intensity as total intensity
+	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                              //normalize 5-th intensity as total intensity
 	printf("%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 
 	//setting parameters to be written in file
@@ -101,6 +123,16 @@ if(iswrite){
 	for(kk=kmin;kk<=kmax;kk+=kstep)                                                //write full spectra into "poliresa" files
 		fprintf(pFile,"%d %.2f %.5f %.4f %.4f %.4f %.4f %.5f %.4f %.4f %.2f %.4e %.4f\n", fnum,sftab[kk][0],totin[kk],LPo[kk],EVPA[kk],CP[kk],err[kk],heat,rhonor,0.,TpTe,rate*year/Msun,th);
 	fclose(pFile);
+
+    // GEODESIC DIAGNOSTIC
+	// stringstream geodesic_sstr;
+	// geodesic_sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum;
+	// /*string */stra = geodesic_sstr.str();
+	// //FILE * pFile; 
+	// pFile=fopen ((dir+"geodesic_"+currth+"_"+stra+fif+".dat").c_str(),"a");
+	// fprintf(pFile,"%d %f\n", currth, y[4]); //RG:FIXME currth & y[4] unknown here
+	// fclose(pFile);
+
 };
 delete [] intab;                                                                   //delete dynamic variable
 delete [] params;                                                                  //delete parameters

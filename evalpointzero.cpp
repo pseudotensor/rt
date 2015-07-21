@@ -1,6 +1,9 @@
 /**********************************************************************************************/
 /* main routine for computing light emission/absorption/propagation properties through plasma */
 /**********************************************************************************************/
+//time_t t_b4_solvetrans=clock();
+//time_t t_b4_solvetrans=0.;
+//time_t t_b4_solvetrans;
 
 bool fast_light;       //whether to do the fast light or full evolution of simulation as the light ray propagates 
 doub rr,               //radius
@@ -14,8 +17,8 @@ doub rr,               //radius
 	 lrman,            //weight of closest cell in interpolation over radial grid
 	 thman,            //weight of closest cell in interpolation over theta grid for given radius
 	 phman,            //weight of closest cell in interpolation over phi grid
-	 phfrac,           //mapping of phi coordinate to a (continuous) cell number in phi direction for fluid simulation
-	 timfrac,          //mapping of proper time coordinate to a (continuous) fluid simulation snapshot ID
+	 phfrac,           //mapping of phi coordinate to a (continuous) cell number in phi direction for fluid simulation //RG: continuous->integer valued??
+	 timfrac,          //mapping of proper time coordinate to a (continuous) fluid simulation snapshot ID //RG: continuous->integer valued??
 	 timman,           //weight of the fluid simulation snapshot with the closest ID in interpolation over time
 	 temp;             //temp
 doub rest[11],         //single record in a fluid simulation file
@@ -32,7 +35,7 @@ doub ly[4],            //coordinate vector along the geodesic
 	 e1xx[4]={0.,0.,0.,0.}, //perpendicular vector in LFCRF
 	 e2xx[4]={0.,0.,0.,0.}, //second perpendicular vector in LFCRF
 	 uxx[4]={0.,0.,0.,0.},  //velocity vector in LFCRF  - should be {1.,0.,0.,0.}
-     iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild metric
+     iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild metric //RG: *contra*variant (probably also for other quantities)
 	 iMKS[4][4],       //modified Kerr-Schild (MKS) metric (code coordinates)
 	 MKStoKS[4][4],    //(covariant) vector transformation from MKS to KS
 	 u[4],             //4-velocity in MKS
@@ -91,6 +94,7 @@ int  m, k, j, n, i,
 int curr=*(int*)pas;   //thread number passed by address to current thread
 if((curr>=nthreads)||(curr<0)){ //check the bounds of thread number
 	printf(YELLOW"[evalpointzero.cpp]:"RED" Error in thread number \n Exiting \n"RESET);
+    //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
 	exit(-1);
 };
 doub nu=ppy[curr].nu;               //define frequency in current thread
@@ -101,22 +105,24 @@ doub lz=t,                          //affine parameter of interest = proper time
      lx;                            //affine parameter at the closest point on a geodesic
 int  ia=0,                          //min index of a point on a geodesic
 	 ib=indx,                       //max index of a point on a geodesic
-	 ix;                            //index of the closest point on a geodesic
+	 geod_pt_idx;                   //index of the closest point on a geodesic
 
 //given the proper time find where on a geodesic we are
+//RG: THIS IS A BISECTION SEARCH WHICH IS USED / COPIED MORE THAN ONCE (4x in this file!) ~> SHOULD BE A FCT
 if((lz<=lb) && (la<=lz)){
 	while(ib>ia+1){
-		ix=(ia+ib)>>1;
-		lx=ppy[curr].lamx[ix];
+      geod_pt_idx=(ia+ib)>>1; // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
+		lx=ppy[curr].lamx[geod_pt_idx];
 		if(lz<lx){
-			ib=ix;
+			ib=geod_pt_idx;
 		} else {
-			ia=ix;
+			ia=geod_pt_idx;
 		};
 	};
 } else {
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Lookup error of closest geodesic point \nEXITING\n"RESET);
-	exit(-1);
+  printf(YELLOW"[evalpointzero.cpp]:"RED" Lookup error of closest geodesic point la=%f lz=%f lb=%f\nEXITING\n"RESET,la,lz,lb);
+  //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
+  exit(-1);
 };
 
 la=ppy[curr].lamx[ia];              //closest points on a geodesic
@@ -141,6 +147,7 @@ if((fabs(rr)>100000.) || (rr<1.)) {
   printf(YELLOW"[evalpointzero.cpp]:"RED" Radial coordinate on a geodesic rr=%f is out of bounds \nEXITING\n"RESET,rr);
   // RG: FIXME: DOES NOT WORK. 
   // if (rr<1.) rr=rmin;
+  //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
   exit(-1);
 };
 
@@ -155,48 +162,51 @@ ib=indr;                           //max index of radial coordinates array
 //find the closest radial cells of the fluid simulation/its radial extension
 if((lrz<=lrb) && (lra<=lrz)){
 	while(ib>ia+1){
-		ix=(ia+ib)>>1;
-		lrx=coord[ix][0][0];
+		geod_pt_idx=(ia+ib)>>1; // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
+		lrx=coord[geod_pt_idx][0][0];
 		if(lrz<lrx){
-			ib=ix;
+			ib=geod_pt_idx;
 		} else {
-			ia=ix;
+			ia=geod_pt_idx;
 		};
 	};
 } else {
-  printf(YELLOW"[evalpointzero.cpp]:"RED" Requested radius lrz=%lf coord[%d][0][0]=%lf outside of array of radial coordinates\n...EXITING...\n"RESET,lrz,ix,coord[ix][0][0]);
-	exit(-1);
+  printf(YELLOW"[evalpointzero.cpp]:"RED" Requested radius lrz=%lf coord[%d][0][0]=%lf outside of array of radial coordinates\n...EXITING...\n"RESET,lrz,geod_pt_idx,coord[geod_pt_idx][0][0]);
+  //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
+  exit(-1);
 };
 lra=coord[ia][0][0];               //closest log of radius
 lrb=coord[ib][0][0];
 rn=ia;                             //closest radial cell index
 lrman=(lrz-lra)/(lrb-lra);         //weight of closest cell in interpolation over radial grid
 
-//RG:TODO: LOOK INTO THIS AND DIAGNOSE
-//find maximum/minimum theta for a given radius on a simulation grid
-const doub critan=-((1.-lrman)*theta[rn][0]+lrman*theta[rn+1][0]); 
-//if computed theta is too close to the poles, then set it at the maximum theta on a simulation grid - might lead to image artefacts!
-if(costh>critan){
+if (avoid_pole==true) {
+  //find maximum/minimum theta for a given radius on a simulation grid
+  // const doub critan=-((1.-lrman)*theta[rn][0]+lrman*theta[rn+1][0]); 
+  const doub critan=0.;
+  //if computed theta is too close to the poles, then set it at the maximum theta on a simulation grid - leads to image artefacts!
+  if(costh>critan){
 	costh=critan;
-};
-if(costh<-critan){
+  };
+  if(costh<-critan){
 	costh=-critan;
-};
+  };
+}
 
 int indth=thlen-1;                 //maximum index of theta coordinates array
 doub costhx,                       //cos(theta) for given radial and theta coordinates
 	 tha,                          //closest to costh of interest cos(theta) on the grid
 	 thb;                          
-ia=0;                              //indices of on cos(theta) grid //RG:?
+ia=0;                              //indices of on cos(theta) grid 
 ib=indth;
 //find the closest theta cells of the fluid simulation/its radial extension
 while(ib>ia+1){
-	ix=(ia+ib)>>1;
-	costhx=(1.-lrman)*theta[rn][ix]+lrman*theta[rn+1][ix];
+	geod_pt_idx=(ia+ib)>>1;  // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
+	costhx=(1.-lrman)*theta[rn][geod_pt_idx]+lrman*theta[rn+1][geod_pt_idx];
 	if(costh<costhx){
-		ib=ix;
+		ib=geod_pt_idx;
 	} else {
-		ia=ix;
+		ia=geod_pt_idx;
 	};
 };
 tha=(1.-lrman)*theta[rn][ia]+lrman*theta[rn+1][ia];
@@ -255,6 +265,7 @@ iKS[3][1]=iKS[1][3];
 iKS[3][2]=iKS[2][3];
 iKS[3][3]=sinsq*(rhosq+asq*(1+temp)*sinsq);
 
+//RG: given location on geodesic <-> array indices ak,tn,rn,m
 //determine physical quantities at a point with given coordinates
 if(rr<=rcut){                          //inside the convergence radius do interpolation
 	if(fast_light)                           //fast light approximation - no time axis
@@ -270,9 +281,14 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 			(1-lrman)*thman*phman*(*uu[sn+1])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn+1])[ak][tn+1][rn+1][m]);
 
 	rho=rest[0]*rhonor;                //physical density
-	Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
+    if (rho>0.) Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
+    else Ttot=0.;
+
+    if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+
 	//testing k values
 	//if((40<k)&&(k<80)){rho/=50.;}//test results - the sense of rotation is clockwise for 1.57<th<3.14
+
 	u[0]=rest[4];                      //Lorentz factor
 	u[1]=u[0]*rest[5];                 //u^r
 	u[2]=u[0]*rest[6];                 //u^\theta
@@ -280,6 +296,8 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	Bi[1]=Bnor*rest[8];                //magnetic field 3-vector
 	Bi[2]=Bnor*rest[9];
 	Bi[3]=Bnor*rest[10];
+
+    // for (int var=0; var<=10; var++) printf(YELLOW"[evalpointzero.cpp]: "RED"rest[%d]=%f\n",var,rest[var]);
 
 	for(i=0;i<4;i++)
 		for(k=0;k<4;k++){              //interpolated transformation matrix from MKS to KS
@@ -404,7 +422,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	};
 	m=1;
 } else {                 //outside of the convergence radius do radial extension
-	uKS[0]=1.;           //calculations partially repeat those for the inner region
+	uKS[0]=1.;           //calculations partially mirror those for the inner region
 	uKS[1]=0.;
 	uKS[2]=0.;
 	uKS[3]=0.;
@@ -484,12 +502,41 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 		yyloKS[1][j]/=sc[1];
 		yyKS[1][j]/=sc[1];
 	};
-	//"else" code is different from this point
+
+
+
+    /********************************************
+	 * "else" code is different from this point *
+     ********************************************/
+
+    //RG:FIXME WHAT's GOING HERE? rest[] array changed its meaning! rest[0]<->B[1] etc ?! Previously rest[0]=rho ! ...MAMMA MIA...
+
 	//radial extension of quantities out of r=rcut sphere
 	for(m=0;m<5;m++)                  //using the quantites at the sphere r=rcut we find quantities at larger radius by a power-law extension
 		rest[m]=(1-thman)*(1-phman)*uext[k][tn][m]+thman*(1-phman)*uext[k][tn+1][m]+(1-thman)*phman*uext[ak][tn][m]+thman*phman*uext[ak][tn+1][m];
 	rho=rest[3]*pow(rr/rcut,-rhopo);  //density is extended with power-law index "-rhopo"
+    
+
+    // MODIFYING RADIAL EXTENSION ~> AVERY's MODEL
+    if ( !strcmp(avery_toy_jet,"yes") ) {
+      rho=pow(0.5*rr,-1.5); // rr=exp(coord[][]) // looks reasonable
+      // rho=pow(0.5*coord[rn][tn][0],-1.5); // r=coord[][] //image looks all wrong
+      rho*=rest[3];
+    }
+    if (turn_off_radial_extension) rho=0.;
+
+
+
+
+    if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO2: Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+
 	Ttot=rest[4]*pow(rr/rcut,-1.0);   //temperature is extended with power-law index "-1.0"
+
+    if isnan(Ttot) {
+        Ttot=0.;
+        //printf(YELLOW"[evalpointzero.cpp]: "RED"Ttot=nan (in radial extension) setting to zero...\n"RESET);
+      }
+
 	Bpo=0.5*(1.+rhopo);               //magnetic field extension slope - NOT synchronized with command line arguments!
 	temp=pow(rr/rcut,-Bpo);           //magnetic field is extended with a power-law index "-0.5*(1+rhopo)" to preserve equipartition
 	B[1]=rest[0]*temp;
@@ -502,9 +549,19 @@ if(rr<=rcut){                          //inside the convergence radius do interp
  * block of modifications of fluid simulation quantities *
  *********************************************************/
 
-double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+doub magn;
+//if (rho>0.) {
+  magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+ // }
+ // else {
+ //   magn=0.;
+ //   if (geod_pt_idx==1) printf(YELLOW"[evalpointzero.cpp]: "RED"Set magn=0 because rho=%g rr=%g costh=%g !!!\n"RESET,rho,rr,costh);
+ // }
 
-int limit_temperature=0;
+if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO3: Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+
+
+int limit_temperature=1;
 if (limit_temperature) {
 if(1-fabs(costh)<thlimit)            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	Ttot=minT;
@@ -515,7 +572,7 @@ if(isBred)                           //temperature reduction in high magnetizati
 	Ttot*=exp(-magn/10.);
  }
 
-int zero_out_rho=1;
+int zero_out_rho=0;
 if (zero_out_rho) {
   if(1-fabs(costh)<thlimit){            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	rho=0.;
@@ -528,7 +585,7 @@ if(isBcut)                           //set temperature to zero in high magnetiza
 		rho=0.;
         //cout << "Zero out rho due isBcut...\n";}
   }
- if(isBred){                           //temperature reduction in high magnetization regions
+if(isBred){                           //temperature reduction in high magnetization regions
 
 
    /*************************************************************/
@@ -580,16 +637,18 @@ ia=0;
 ib=indT;
 if((Ta<=Tz) && (Tz<=Tb)){
 	while(ib>ia+1){
-		ix=(ia+ib)>>1;
-		Tx=ts[ix];
+		geod_pt_idx=(ia+ib)>>1;  // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
+		Tx=ts[geod_pt_idx];
 		if(Tz<Tx){
-			ib=ix;
+			ib=geod_pt_idx;
 		} else {
-			ia=ix;
+			ia=geod_pt_idx;
 		};
 	};
 } else {
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \n Exiting"RESET);
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f Ttot=%f\n"RESET,Ta,Tb,Tz,Ttot);
+    //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
 	exit(-1);
 };
 Ta=ts[ia];
@@ -619,21 +678,22 @@ doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
 
 if ( !strcmp(avery_toy_jet,"yes") ) {
-  doub Te_RIAF=8.1e9;
+  doub Rb=20;
+  doub Te_RIAF=8.1e9*pow(rr/Rb,-0.84);
   tet = Te_RIAF;
  }
 
 
 
 for(m=0;m<4;m++)
-	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF 
-      kxx[m]+=yyloKS[m][j]*kupKS[j]; // RG: xx?
+	for(j=0;j<4;j++)                //geodesic tangential vector in LFCRF
+      kxx[m]+=yyloKS[m][j]*kupKS[j]; // xx? // RG: kxx = dx^mu/dlambda ?
 for(m=0;m<4;m++)
 	for(j=0;j<4;j++)                //perpendicular vector in LFCRF
-		e1xx[m]+=yyloKS[m][j]*e1upKS[j];
+      e1xx[m]+=yyloKS[m][j]*e1upKS[j]; //RG: perpendicular to what? to kxx?
 for(m=0;m<4;m++)
 	for(j=0;j<4;j++)                //velocity vector in LFCRF (should be {1,0,0,0} )
-		uxx[m]+=yyloKS[m][j]*uKS[j];
+      uxx[m]+=yyloKS[m][j]*uKS[j]; // RG: OUTPUT THIS AS A DIAGNOSTIC
 
 knorm=0.;
 e1norm=0.;                          
@@ -659,6 +719,8 @@ fr=kxx[0];                                              //redshift/Doppler shift
 if(fr<0){                                               //plug for negative frequency. Such problem happens rarely and doesn't interfere with spectrum calculation
   fr=-fr; // RG: HMM... MAYBE "BETTER" TO FLOOR THE FREQUENCY...
 	printf(YELLOW"[evalpointzero.cpp]:"RED" Negative frequency encountered. Increase accuracy or/and precision. May typically still continue with evaluation...\n"RESET);
+    printf(YELLOW"[evalpointzero.cpp]:"RED" CHECK WHETHER u.k goes negative\n"RESET);
+    printf(YELLOW"[evalpointzero.cpp]:"RESET" (rr, costh) = (%lf, %lf)\n",rr,costh);
     printf(YELLOW"[evalpointzero.cpp]:"RESET" (kxx[0],kxx[1],kxx[2],kxx[3]) = (%lf, %lf, %lf, %lf)\n",kxx[0],kxx[1],kxx[2],kxx[3]);
     printf(YELLOW"[evalpointzero.cpp]:"RESET" yyloKS[1][0]*kupKS[0]=%lf, yyloKS[1][1]*kupKS[1]=%lf, yyloKS[2][1]*kupKS[2]=%lf, yyloKS[3][1]*kupKS[3]=%lf\n",yyloKS[1][0]*kupKS[0],yyloKS[1][1]*kupKS[1],yyloKS[2][1]*kupKS[2],yyloKS[3][1]*kupKS[3]); // RG: xx?
 
@@ -782,8 +844,11 @@ Be1=B[1]*e1xx[1]+B[2]*e1xx[2]+B[3]*e1xx[3];                        //scalar prod
 Be2=B[1]*e2xx[1]+B[2]*e2xx[2]+B[3]*e2xx[3];                        //scalar product of B.e2
 sin2k=-2.*Be1*Be2/(Be1*Be1+Be2*Be2);                               //sine of double angle of B vector projected onto e1, e2 plane with respect to (-e1) vector - helps in radiative transfer
 cos2k=(Be2*Be2-Be1*Be1)/(Be1*Be1+Be2*Be2);                         //cosine of double angle of B vector projected onto e1, e2 plane with respect to (-e1) vector - helps in radiative transfer
-
-
+if (Be1*Be1+Be2*Be2==0) {
+  if (geod_pt_idx==0) printf(YELLOW"[evalpointzero.cpp]: "RED"curing vanishing denominator in sin2k & cos2k\n"RESET);
+  sin2k=0.;
+  cos2k=0.;
+ }
 
 /****************************
  * NON-THERMAL emissivities *
@@ -825,6 +890,7 @@ if (absorption=="kirchhoff"){
 
   if (false) {//((rr>6. && rr<6.1) || tet==12000.) {
     printf(YELLOW"[evalpointzero.cpp]"RED"jIc=%g, jIc_nth=%g tet=%g"RESET"\n",jIc,jIc_nth,tet);
+    //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
     exit(1);
   }
 
@@ -863,12 +929,13 @@ if (absorption=="kirchhoff"){
    aIc=sqrt(3.)/24./cc /*WIP-> *f*omega_P**2 */ *omega /*<-WIP*/ *pow(3.*Omega_0/omega*sinkb,(b+2)/2.); // see eqn (5.47) Broderick PhD thesis (2004) assume plasma frequency ~ nu
    aQc=3.1e-4*(b+2)*tgamma((3.*b+2)/12.)*tgamma((3.*b+10)/12.)*(b-1.)/pow(gamma_min,1.-b)*pow(3.*Omega_0/omega*sinkb,(b+2)/2.)/nu; // Gamma fct: tgamma() needs cmath
    aVc=4.1e-4*(b+3)/(b+1)*tgamma((3.*b+7)/12.)*tgamma((3.*b+11)/12.)*(b-1.)/pow(gamma_min,1.-b)*coskb/sinkb*pow(3.*Omega_0/omega*sinkb,(b+3)/2.)/nu; // Gamma fct: tgamma() needs cmath;
-
+   //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
    exit(1);
  }
 else{
   cout << YELLOW"[evalpointzero.cpp]:"RESET" CHOOSE YOUR ABSORPTION. Possible choices are: absorption=\"kirchhoff\" or absorption=\"powerlaw_approximate\" (yet unsupported)"<<endl;
-   exit(1);
+  //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
+  exit(1);
 }
 
 
@@ -882,6 +949,14 @@ Be1=B[1]*e1xx[1]+B[2]*e1xx[2]+B[3]*e1xx[3];                        //scalar prod
 Be2=B[1]*e2xx[1]+B[2]*e2xx[2]+B[3]*e2xx[3];                        //scalar product of B.e2
 sin2k=-2.*Be1*Be2/(Be1*Be1+Be2*Be2);                               //sine of double angle of B vector projected onto e1, e2 plane with respect to (-e1) vector - helps in radiative transfer
 cos2k=(Be2*Be2-Be1*Be1)/(Be1*Be1+Be2*Be2);                         //cosine of double angle of B vector projected onto e1, e2 plane with respect to (-e1) vector - helps in radiative transfer
+if (Be1*Be1+Be2*Be2==0) {
+
+  if (true) /*search better onetime criterion to suppress output*/
+    printf(YELLOW"[evalpointzero.cpp]: "RED"curing vanishing denominator in sin2k & cos2k\n"RESET);
+
+  sin2k=0.;
+  cos2k=0.;  
+}
 
 doub The=kb*tet/me/cc/cc,                                          //rest mass temperature of electron
 	 nuc=ee*kbperp/me/cc/2./PI,                                    //cyclotron frequency
@@ -915,7 +990,9 @@ if (nth) {
 
 
 
-if(jIc!=jIc || jQc!=jQc || jVc!=jVc ){ //check for NANs
-	printf("Uncaught otherwise error in radiative transfer...\n Exiting");
-	exit(-1);
+if( isnan(jIc) || isnan(jQc) || isnan(jVc) ){ //check for NANs
+  printf(YELLOW"[evalpointzero.cpp]: "RED"NANs in emissivity...\nEXITING"RESET"\n");
+  for (int var=0; var<=10; var++) printf(YELLOW"[evalpointzero.cpp]: "RED"rest[%d]=%f\n",var,rest[var]);
+  //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
+  exit(-1);
 };

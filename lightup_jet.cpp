@@ -10,6 +10,7 @@ case 710: fmin=6000;fmax=6000;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.
 case 711: fmin=5880;fmax=5980;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=10;break;
 case 712: fmin=5450;fmax=5950;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
 case 713: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
 // THICKDISK7: m_search yields xisq=10.451
 //case 100: fmin=3655;fmax=6000;sep=5;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
 
@@ -37,7 +38,7 @@ case 230: fmin=1500;fmax=1500;sep=1;kmin=7;kmax=7;sp=0;rhonor=1e8; heat=0.25; th
 
 // a=0 MAD
 // very good fit to observed SED fn=3000
-//case 100: fmin=1000;fmax=2000;sep=5;kmin=7;kmax=7;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
+case 10000: fmin=1000;fmax=2000;sep=5;kmin=7;kmax=7;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
 //case 100: fmin=3000;fmax=3000;sep=5;kmin=0;kmax=12;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;break;//changing azimuthal camera angle - 4*PI/3
 
 // a=0.9 thinner MAD 
@@ -131,8 +132,9 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
  case 668: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
 
 
-
- case 108120366: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=1; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+// viewing angle th=0.43633 as in M0 Broderick & Loeb 2009
+ case 108120366: fmin=2150;fmax=2150;sep=1;kmin=4;kmax=4;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; accur=1e-6; /* step=1e-4;*/ss=1e-2; break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+// case 108120366: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=1; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
 
 
 // FLAGGED/PATHOLOGICAL CASES TO BE INVESTIGATES
