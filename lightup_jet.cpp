@@ -133,7 +133,9 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
 
 
 // viewing angle th=0.43633 as in M0 Broderick & Loeb 2009
- case 108120366: fmin=2150;fmax=2150;sep=1;kmin=4;kmax=4;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; accur=1e-6; /* step=1e-4;*/ss=1e-2; break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+ case 108120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; /*accur=1e-6; step=1e-4;ss=1e-2;*/ break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+ case 208120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; accur=1e-6; step=1e-4; ss=1e-2; break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+
 // case 108120366: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=1; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
 
 

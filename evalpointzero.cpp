@@ -422,6 +422,10 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	};
 	m=1;
 } else {                 //outside of the convergence radius do radial extension
+
+  // if (turn_off_radial_extension==false) { // crashes when turn_off_radial_extension==true
+    // if (true) {
+
 	uKS[0]=1.;           //calculations partially mirror those for the inner region
 	uKS[1]=0.;
 	uKS[2]=0.;
@@ -514,15 +518,18 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	//radial extension of quantities out of r=rcut sphere
 	for(m=0;m<5;m++)                  //using the quantites at the sphere r=rcut we find quantities at larger radius by a power-law extension
 		rest[m]=(1-thman)*(1-phman)*uext[k][tn][m]+thman*(1-phman)*uext[k][tn+1][m]+(1-thman)*phman*uext[ak][tn][m]+thman*phman*uext[ak][tn+1][m];
+
 	rho=rest[3]*pow(rr/rcut,-rhopo);  //density is extended with power-law index "-rhopo"
+	// rho=rest[3]*pow(exp(rr)/rcut,-rhopo);  //density is extended with power-law index "-rhopo"
     
 
     // MODIFYING RADIAL EXTENSION ~> AVERY's MODEL
     if ( !strcmp(avery_toy_jet,"yes") ) {
       rho=pow(0.5*rr,-1.5); // rr=exp(coord[][]) // looks reasonable
-      // rho=pow(0.5*coord[rn][tn][0],-1.5); // r=coord[][] //image looks all wrong
-      rho*=rest[3];
+
+      // rho*=rest[3]; // This seems inconsistent for this test
     }
+
     if (turn_off_radial_extension) rho=0.;
 
 
@@ -542,6 +549,9 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	B[1]=rest[0]*temp;
 	B[2]=rest[1]*temp;
 	B[3]=rest[2]*temp;
+
+    //  } // if (turn_off_radial_extension==false) {
+
 }
 
 

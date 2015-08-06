@@ -27,7 +27,7 @@ int geodesic_output_every_y = 5; // output geodesic information for every 20th g
 
 const doub PI = 4.0*atan(1.0);
 
-const bool avoid_pole=false; // grep for critan ~> [evalpointzero.cpp]
+const bool avoid_pole=true; // grep for critan ~> [evalpointzero.cpp]
 
 //Sgr A see math/checks_GRMHD_code.nb->Intensity functions->Check definitions of distance to Sgr A*, percentages, position angles
 doub Jy2cgs        = 1e23; // 1Jy=10^23 erg/(s cm^2 Hz) [cgs]
@@ -36,8 +36,10 @@ doub ang_size_norm = 196.5443582815904/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc=3
 
 // MODELS
 // const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
-const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
-bool turn_off_radial_extension=true; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
+const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+
+// bool turn_off_radial_extension=true; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
+bool turn_off_radial_extension=false; //RG: USE radial extension outside rcut
 
 // THICKDISK7
 //const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
@@ -62,8 +64,8 @@ const int ndd=350,           //radial dimension of coordinate/coordinate transfo
   maxst=40000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=99 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=99 /*301*/;          //maximum resolution in picture plane for flux calculations
+  nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 //RG:TEST units in M ~> SEG-FAULT in init.cpp

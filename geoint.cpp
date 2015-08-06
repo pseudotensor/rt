@@ -203,7 +203,12 @@ if(stN>maxco){
 	exit(-1);
 }
 tmax=lam[stN];                //maximum affine parameter on a geodesic
-txx=r0/3.;                    //auxiliary affine parameter at t=0.
+
+// RG: give equation ref 
+// 1 + 3*Sinh[llog]/r0 == t // solve for llog
+// l <-> t
+// see [checks_GRMHD_code.nb] section: "Correct Dsolve, definition of lmin, lmax, interpolation"
+txx=r0/3.;                    //auxiliary affine parameter at t=0. // r0 distance to picture plane=maximum distance to BH of point on geodesic
 ppy[currth].llmin=-log(txx+sqrt(1+txx*txx));//sinh^(-1) transformation at t=0. - correspondent minimum log-parameter
 txx=r0*(tmax-1.)/3.;          //auxiliary affine parameter at t=tmax
 ppy[currth].llmax=log(txx+sqrt(1+txx*txx));//sinh^(-1) transformation - correspondent maximum log-parameter

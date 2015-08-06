@@ -468,13 +468,14 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
 
         //if (phi_index+theta_index==0) printf(YELLOW"[init.cpp]: "RESET"r_index=%d theta_index=%d phi_index=%d isum=%d\n",r_index,theta_index,phi_index,isum);
 
-        // doub r     = exp(coord[r_index][theta_index][0]);
-        doub r     = coord[r_index][theta_index][0]; 
+        doub r     = exp(coord[r_index][theta_index][0]);
+        // doub r     = coord[r_index][theta_index][0]; 
 
         doub costh = coord[r_index][theta_index][1]; //RG:CHECK theta or cos(th)?
         doub z    = costh*r;
-        doub Rc=sqrt(r*r-z*z); //cylindrical radius
+        doub Rc   = sqrt(r*r-z*z); //cylindrical radius
         doub Rb   = 20.;
+
         doub n0_th_RIAF  = 1.23e4; // 1.23x10^4 cm^-3 see main text after eq (4)
         doub n0_nth_RIAF = 3.8e2;  // 6.1 x10^2 cm^-3 see main text after eq (4)
         //doub n_th_RIAF  = n0_th_RIAF  * exp(-z*z/(2.*Rc*Rc)) * pow(r/Rb,-0.7);
@@ -602,7 +603,7 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
         (*uu[fdiff])[phi_index][theta_index][r_index][5] = 0.;
         //(*uu[fdiff])[phi_index][theta_index][r_index][5] = -1e-2;
         (*uu[fdiff])[phi_index][theta_index][r_index][6] = 0.;
-                                    (*uu[fdiff])[phi_index][theta_index][r_index][7] = 0.; // u_upphi;
+        (*uu[fdiff])[phi_index][theta_index][r_index][7] = 0.; // u_upphi;
         //(*uu[fdiff])[phi_index][theta_index][r_index][7] = 0.;
         (*uu[fdiff])[phi_index][theta_index][r_index][8] = 0.;
         (*uu[fdiff])[phi_index][theta_index][r_index][9] = 0.;
@@ -879,6 +880,17 @@ gsl_odeiv_step_free (sz);
 
 
 
+// RG: CODE EXITS WHEN UNCOMMENTING BELOW CODE BLOCK
+// if (turn_off_radial_extension=true) {
+//   t_init += (clock() - t_b4_init) / (doub)CLOCKS_PER_SEC;
+  
+//   printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
+
+//   return 0; // init()
+//  }
+
+
+
 /*************************
  * OUTER RADIAL BOUNDARY *
  *************************/
@@ -965,6 +977,8 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
         
         // AVERY's model
         if (np+nt==0) printf(YELLOW"[init.cpp]: "RESET"Setting AVERY's model in radial extension zone...\n");
+
+        // doub n_avery_RIAF=pow(0.5*exp(rcut),-1.5);
         doub n_avery_RIAF=pow(0.5*rcut,-1.5);
         // doub n_avery_RIAF=pow(0.5*coord[ncut][0][0],-1.5);
         rho=n_avery_RIAF;
@@ -1095,9 +1109,6 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
 
 
 t_init += (clock() - t_b4_init) / (doub)CLOCKS_PER_SEC;
-
-
-//exit(1);
 
 printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
 

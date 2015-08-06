@@ -397,12 +397,18 @@ if string.lower(SED)=="yes":
 
 ####################################################
 ## CORRELATED FLUX DENSITY / EMISSION REGION SIZE ##
+
+# Doeleman et al 2008 : F=(2.4+/-0.5)Jy |uv|=3.5Glambda f=?Ghz FWHM=(43+14/-8) muarcsec FWHM-scatter=(37+16/-10) muarcsec errors are 3sigma
+# baselines range: 0.5Glambda - 3.5Glambda
+# F(3.5Glambda)=0.35Jy simultaneously with F(0)=2.4Jy\pm0.5 at 230Ghz
+
 figure(6)
 I_uv_max = amax(abs(I_uv))
 uv_idx = shape(I_uv)[0]/2
 plot(v,abs(I_uv[uv_idx,:])/I_uv_max,label=r"$u=0$")
 plot(u,abs(I_uv[:,uv_idx])/I_uv_max,label=r"$v=0$")
-I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]])
+# I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]])
+I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
 I_uv_err = array([0.2,0.03,0.05,0.05])
 errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
 xlim(0,10);xlabel(r"$\|uv\|$");ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");legend();tight_layout()

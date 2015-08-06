@@ -78,8 +78,8 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 // RG: thinner MAD GRMHD models
 // ORIGINAL
-// const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32,
-const int ncuttab[1] = {130}, rlen=288, thlen=128,phlen=32,
+const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32,
+// const int ncuttab[1] = {130}, rlen=288, thlen=128,phlen=32,
 // const int ncuttab[1] = {288}, rlen=288, thlen=128,phlen=32,
      // actually no usgdump2d file but for consistency
 	 usgsize=69 /*record size*/,usgoff=156 /*offset*/;
