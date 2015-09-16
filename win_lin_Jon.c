@@ -27,21 +27,21 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 /* 	 usgsize=69/\*record size in usgdump2d*\/,usgoff=156/\*offset in usgdump2d file*\/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations */
 
 // RG: THICKDISK7 GRMHD model
-/* const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/"; */
+const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/";
 
-/* //RG: WHY "int"? */
-/* const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX */
-/* // RG: THICKDISK7 */
-/* // DEFAULT:  */
-/* // const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency */
-/* const int ncuttab[1] = {272}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency */
+//RG: WHY "int"?
+const int dtimdf=4;//time difference (M) between fieldlineXXXX files within consecutive numbers XXXX
+// RG: THICKDISK7
+// DEFAULT:
+const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
+// const int ncuttab[1] = {272}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
 
-/* //RG:WIP */
-/* //const int ncuttab[1] = {250}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency */
+//RG:WIP
+//const int ncuttab[1] = {250}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
 
-/* const string astr[1]={"thermal"}; */
-/* const doub atab[1]={0.9375}; */
-/* //const doub atab[1]={0}; //TESTING */
+const string astr[1]={"thermal"};
+const doub atab[1]={0.9375};
+//const doub atab[1]={0}; //TESTING
 
 // THICKDISKHR3
 /* const string dir="/home/rgold/rt/thickdiskhr3/", adir=dir, fieldstr="/dumps/", xstr="/"; */
@@ -78,17 +78,17 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 // RG: thinner MAD GRMHD models
 // ORIGINAL
-const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32,
-// const int ncuttab[1] = {130}, rlen=288, thlen=128,phlen=32,
-// const int ncuttab[1] = {288}, rlen=288, thlen=128,phlen=32,
-     // actually no usgdump2d file but for consistency
-	 usgsize=69 /*record size*/,usgoff=156 /*offset*/;
-const string astr[1]={""};
-const int dtimdf=5;
+/* const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32, */
+/* // const int ncuttab[1] = {130}, rlen=288, thlen=128,phlen=32, */
+/* // const int ncuttab[1] = {288}, rlen=288, thlen=128,phlen=32, */
+/*      // actually no usgdump2d file but for consistency */
+/* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
+/* const string astr[1]={""}; */
+/* const int dtimdf=5; */
 
-// a0mad or thinnermad0
-const doub atab[1]={0.0};
-const string dir="/home/rgold/rt/a0mad/", adir=dir, fieldstr="/dumps/", xstr="/";
+/* // a0mad or thinnermad0 */
+/* const doub atab[1]={0.0}; */
+/* const string dir="/home/rgold/rt/a0mad/", adir=dir, fieldstr="/dumps/", xstr="/"; */
 
 // thinnermad9beta25 
 /* const doub atab[1]={0.9}; */

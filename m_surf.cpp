@@ -1,4 +1,5 @@
-{//surf region close to best fit
+{ // surf region close to best fit
+
 doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
 	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
@@ -26,6 +27,14 @@ if(sp==2){rhonor= 817113.52; heat=0.37239;  th=2.0159;}
 if(sp==3){rhonor= 656228.94; heat=0.39849;  th=2.2074;}
 if(sp==4){rhonor= 397281.19; heat=0.41343;  th=2.1439;}
 
+  //fmin=6950,      //specify the minimum and maximum fluid simulation snapshot ID
+  //fmax=9950,
+
+// #include "lightup_jet.cpp"
+// case 71914: 
+
+ doub fmin=5500,fmax=5520;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1;
+
 int nnx=40;         //number of steps along each variable for models slightly different from the best-fitting
 doub cheat=heat,    //auxiliary heating constant, density normalization, and viewing angle
 	 crhonor=rhonor,
@@ -38,15 +47,15 @@ kmin=4; kmax=10;    //standard subset of frequencies for spectrum evaluation
 doub ch=0.,         //step variables
 	 cr=0.,
 	 cth=0.,
-	 delta=1e-10,   //small delta ensures last value of step variable is still within the range
-	 xth=th;
+     delta=1e-10;   //small delta ensures last value of step variable is still within the range
 
-int ind=atoi(descr),//job array ID = number of fluid simulation snapshots
-	fmin=6950,      //specify the minimum and maximum fluid simulation snapshot ID
-	fmax=9950,
-	sep=(fmax-fmin)/(ind-1);//calculate ID difference between consecutive snapshots
+ int ind=atoi(descr);//job array ID = number of fluid simulation snapshots
 
-//three man cycles - surfing three planes of two pairs of model parameters
+doub xth=th;
+
+int	sep=(fmax-fmin)/(ind-1);//calculate ID difference between consecutive snapshots
+
+//three main cycles - surfing three planes of two pairs of model parameters
 if(co==1){// accretion rate & viewing angle theta
 	fif="cr_th";
 	for(cr=-crmax;cr<=crmax;cr+=2.*crmax/(nnx-1)-delta)
@@ -76,8 +85,14 @@ if(co==2){// accretion rate & heating constant
 				#pragma omp parallel for schedule(dynamic,1) shared(ittot)
 				#include "intensity.cpp"
 			};
-		};
-};
+
+            //RG:FLAG CALL Chi^2 routine (2b written) here
+
+		}; // for(cr=-crmax;cr<=crmax;cr+=2.*crmax/(nnx-1)-delta){
+
+}; // if(co==2){// accretion rate & heating constant
+
+
 
 if(co==3){// heating constant & viewing angle theta
 	fif="ch_th";
@@ -92,6 +107,11 @@ if(co==3){// heating constant & viewing angle theta
 				#pragma omp parallel for schedule(dynamic,1) shared(ittot)
 				#include "intensity.cpp"
 			};
-		};
-};
-};
+
+		}; // for(cth=-cthmax;cth<=cthmax;th+=2.*cthmax/(nnx-1)-delta){
+
+ }; // if(co==3){// heating constant & viewing angle theta
+
+
+}; // { // surf region close to best fit
+

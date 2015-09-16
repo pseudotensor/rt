@@ -37,6 +37,7 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
 
     //char emissivity[16]="th"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c
     //if (emissivity=="nth"){
+
     if (nth){
       // CHANGE += -> -= for TESTING PURPOSES 
       // use new thermal and subtract from old thermal (expect small values)
@@ -55,8 +56,8 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
       if(isnan(ff[index])) {
         printf(YELLOW"[transnew.cpp]: "RED"Error in radiative transfer ff[%d] is NAN.\n...Exiting...\n"RESET,index); 
         //RG: for thickdisk7 iteration fieldline0001.bin sin2k is nan (->k->B?)
-        printf(YELLOW"[transnew.cpp]: "RED"NAN search: det=%e,jIc=%e,frcu=%e,aIc=%e,yyy[0]=%e,aVc=%e,cosths=%e,aQc=%e,cos2k=%e,cosqs=%e,sinths=%e,aQc=%e,sin2k=%e,sinsq=%e,yyy[1]=%e,frsq=%e\n",det,jIc,frcu,aIc,yyy[0],aVc,cosths,aQc,cos2k,cosqs,sinths,aQc,sin2k,sinqs,yyy[1],frsq);
-        printf(YELLOW"[transnew.cpp]: "RED"NAN search: sin2k=-2.*Be1*Be2/(Be1*Be1+Be2*Be2): Be1=%e Be2=%e B[1]=%e B[2]=%e B[3]=%e\n",Be1,Be2,B[1],B[2],B[3]);
+        printf(YELLOW"[transnew.cpp]: "RED"NAN search: det=%e,jIc=%e,frcu=%e,aIc=%e,yyy[0]=%e,aVc=%e,cosths=%e,aQc=%e,cos2k=%e,cosqs=%e,sinths=%e,aQc=%e,sin2k=%e,sinsq=%e,yyy[1]=%e,frsq=%e\n"RESET,det,jIc,frcu,aIc,yyy[0],aVc,cosths,aQc,cos2k,cosqs,sinths,aQc,sin2k,sinqs,yyy[1],frsq);
+        printf(YELLOW"[transnew.cpp]: "RED"NAN search: sin2k=-2.*Be1*Be2/(Be1*Be1+Be2*Be2): Be1=%e Be2=%e B[1]=%e B[2]=%e B[3]=%e\n"RESET,Be1,Be2,B[1],B[2],B[3]);
         //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
 	    exit(1);
       };

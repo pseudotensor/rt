@@ -162,7 +162,12 @@ int main(int argc, char* argv[]) {
 /*********************************/
 /********* CMD-LINE-ARGS *********/
     sp=atoi(argv[1])-1;   //first command line argument - index for spin ID
-	co=atoi(argv[2]);     // argv[4]=6:fmin [m_ts.cpp]
+
+    // [m_space.cpp]: argv[4]=0: ind=co,        //number of snapshots over which to compute mean intensity = 2-nd command line argument
+    // [m_ts.cpp]:    argv[4]=6: fmin
+    // [m_surf.cpp]:  argv[4]=3: choice of parameters to vary: co=1: accretion rate & viewing angle theta
+	co=atoi(argv[2]);
+
 	Bpo=atof(argv[3]);    // 
 	//mco=floor(Bpo+0.001); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
 	mco=atoi(argv[3]); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
@@ -210,7 +215,8 @@ int main(int argc, char* argv[]) {
     // time_t t_test=clock();
     // sleep(1);
     // printf(YELLOW"[ASTRORAY_main.cpp]:"RESET" TEST TIMER: %f",(clock()-t_test)/(doub)CLOCKS_PER_SEC);
-    doub t_fudge=0.01; // test with sleep(1)
+    // doub t_fudge=0.01; // test with sleep(1)
+    doub t_fudge=1; // test with sleep(1)
     doub t_total = (clock()-start)/(doub)CLOCKS_PER_SEC;
     printf(YELLOW"[ASTRORAY_main.cpp]"RESET" TOTAL RUNTIME             = %.1f secs (%.1f secs across all threads)\n", t_total* t_fudge, t_total *t_fudge * nthreads);
     //printf ("===================RT=====================\n");

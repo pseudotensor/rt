@@ -7,15 +7,51 @@
 // THICKDISK7: m_search yields xisq=10.451 
 //case 710: fmin=3655;fmax=3655;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
 case 710: fmin=6000;fmax=6000;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
-case 711: fmin=5880;fmax=5980;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=10;break;
+case 711: fmin=5880;fmax=5920;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=10;break;
 case 712: fmin=5450;fmax=5950;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
 case 713: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
 case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
+ case 715: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=0; break; // SCS // F too low
+ case 7150: fmin=5500;fmax=5500;sep=1;kmin=2;kmax=12;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=0; break; // SCS // F too low
+ case 716: fmin=5500;fmax=5520;sep=21;kmin=1;kmax=10;sp=0;rhonor=70000.; heat=0.0601; th=1.3; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 7160: fmin=5500;fmax=5520;sep=21;kmin=1;kmax=10;sp=0;rhonor=70000.; heat=0.0601; th=1.3; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 717: fmin=5500;fmax=5520;sep=21;kmin=1;kmax=10;sp=0;rhonor=80000.; heat=0.0601; th=1.3; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+// case 717 produced this best-fit using routine ...?... :
+ case 71700: fmin=5500;fmax=5520;sep=21;kmin=1;kmax=10;sp=0;rhonor=80731.681; heat=0.0238; th=1.54905; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+//same as case 71700 but with fdiff=0
+ case 71701: fmin=5500;fmax=5520;sep=21;kmin=1;kmax=10;sp=0;rhonor=80731.681; heat=0.0238; th=1.54905; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+
+// case 717 ~>m_space produced this best-fit. Now use local routine:
+ case 71800: fmin=5500;fmax=5520;sep=21;kmin=0;kmax=10;sp=0;rhonor=368669.60830; heat=0.24911; th=1.3; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+
+// ~>m_space produced this best-fit. Now use local routine:
+ case 71900: fmin=5500;fmax=5520;sep=21;kmin=0;kmax=10;sp=0;rhonor=369157.54519; heat=0.24911; th=1.3; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 71914: fmin=5500;fmax=5520;sep=21;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+
+ case 72000: fmin=5500;fmax=5520;sep=21;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=0.6457718232379019; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+
+// # a  th  xisq  0.[?]  heat  rhonor  rate*year/Msun 
+// 0.94  0.646  0.77  0.0  0.49862  374783.34203  5.774e-08
+ case 72001: fmin=5500;fmax=5520;sep=1;kmin=4;kmax=10;sp=0;rhonor=374783.34203; heat=0.49862; th=0.646; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 72002: fmin=5500;fmax=5520;sep=1;kmin=0;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=0.7; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+// yields m_search ~> xisq/dof~13
+ case 72003: fmin=5500;fmax=5520;sep=1;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 72011: fmin=5500;fmax=5600;sep=5;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=1.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+ case 72006: fmin=5500;fmax=5600;sep=5;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=0.646; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1; break; // SCS // F too low
+
+ case 70006: fmin=5500;fmax=5600;sep=5;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=0.646; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.; include_jet=0; break; // SCS // F too low
+
 // THICKDISK7: m_search yields xisq=10.451
 //case 100: fmin=3655;fmax=6000;sep=5;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;
 
 //case 100: fmin=6200;fmax=6200;kmin=2;kmax=8;sp=0;rhonor=136834.; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=0.1;break;//changing azimuthal camera angle - 4*PI/3
 //case 100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;break;//changing azimuthal camera angle - 4*PI/3
+
+ case 8100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz
+ case 8101: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;Te_jet_par=10.;include_jet=0;break; // still peak near 40Ghz
+ case 8102: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz
+ case 8103: fmin=5000;fmax=5000;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz
+ case 8104: fmin=5000;fmax=5000;kmin=7;kmax=7;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz ~> kmin=kmax=7
 
 //THICKDISKHR3 31000 SED has small low frequency peak 
 // case 100: fmin=25360;fmax=25420;kmin=7;kmax=7;sep=1;sp=0;rhonor=136834; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // DEFAULT
@@ -38,8 +74,9 @@ case 230: fmin=1500;fmax=1500;sep=1;kmin=7;kmax=7;sp=0;rhonor=1e8; heat=0.25; th
 
 // a=0 MAD
 // very good fit to observed SED fn=3000
-case 10000: fmin=1000;fmax=2000;sep=5;kmin=7;kmax=7;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
-//case 100: fmin=3000;fmax=3000;sep=5;kmin=0;kmax=12;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;break;//changing azimuthal camera angle - 4*PI/3
+case 10000: fmin=1000;fmax=2000;sep=5;kmin=0;kmax=12;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
+case 10001: fmin=1000;fmax=2000;sep=5;kmin=0;kmax=12;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;break;//changing azimuthal camera angle - 4*PI/3
+case 10002: fmin=3000;fmax=3000;sep=5;kmin=0;kmax=12;sp=0;rhonor=1e6; heat=0.5; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;break;//changing azimuthal camera angle - 4*PI/3
 
 // a=0.9 thinner MAD 
 // pretty good SED
@@ -133,8 +170,8 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
 
 
 // viewing angle th=0.43633 as in M0 Broderick & Loeb 2009
- case 108120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; /*accur=1e-6; step=1e-4;ss=1e-2;*/ break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
- case 208120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=0.;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; accur=1e-6; step=1e-4; ss=1e-2; break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+ case 108120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=PI;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; /*accur=1e-6; step=1e-4;ss=1e-2;*/ break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
+ case 208120366: fmin=2150;fmax=2150;sep=1;kmin=5;kmax=5;kstep=4;sp=0;rhonor=1; heat=0.46; th=PI/2.; dphi=PI;thlimit=0.05;fdiff=0;isBcut=false;isBred=false;magn_cap=10; fact=1.; accur=1e-6; step=1e-4; ss=1e-2; break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
 
 // case 108120366: fmin=2150;fmax=2150;sep=1;kmin=7;kmax=7;sp=0;rhonor=1; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // Avery's toy jet: arXiv:08120366 leading "1" needed to make c compiler happy
 

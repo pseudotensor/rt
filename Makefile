@@ -1,6 +1,6 @@
 CC=g++
 CXX=g++
-WARP=2 # can be: 1,2,3,fast # SEG-FAULTS with 0 :-S
+WARP=fast # can be: 1,2,3,fast # SEG-FAULTS with 0 :-S
 # CFLAGS=-fopenmp -Ofast
 # CXXFLAGS=-fopenmp -Ofast # -pg -fprofile-arcs -ftest-coverage
 CFLAGS=-fopenmp -O${WARP}

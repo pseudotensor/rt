@@ -180,10 +180,10 @@ lrb=coord[ib][0][0];
 rn=ia;                             //closest radial cell index
 lrman=(lrz-lra)/(lrb-lra);         //weight of closest cell in interpolation over radial grid
 
-if (avoid_pole==true) {
-  //find maximum/minimum theta for a given radius on a simulation grid
-  // const doub critan=-((1.-lrman)*theta[rn][0]+lrman*theta[rn+1][0]); 
-  const doub critan=0.;
+//find maximum/minimum theta for a given radius on a simulation grid
+doub critan=-((1.-lrman)*theta[rn][0]+lrman*theta[rn+1][0]); 
+if (avoid_pole==false) critan=0.;
+
   //if computed theta is too close to the poles, then set it at the maximum theta on a simulation grid - leads to image artefacts!
   if(costh>critan){
 	costh=critan;
@@ -191,7 +191,7 @@ if (avoid_pole==true) {
   if(costh<-critan){
 	costh=-critan;
   };
-}
+
 
 int indth=thlen-1;                 //maximum index of theta coordinates array
 doub costhx,                       //cos(theta) for given radial and theta coordinates
@@ -423,7 +423,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	m=1;
 } else {                 //outside of the convergence radius do radial extension
 
-  // if (turn_off_radial_extension==false) { // crashes when turn_off_radial_extension==true
+  // if (use_radial_extension==true) { // crashes when use_radial_extension==false
     // if (true) {
 
 	uKS[0]=1.;           //calculations partially mirror those for the inner region
@@ -530,7 +530,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
       // rho*=rest[3]; // This seems inconsistent for this test
     }
 
-    if (turn_off_radial_extension) rho=0.;
+    if (!use_radial_extension) rho=0.;
 
 
 
@@ -550,7 +550,7 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 	B[2]=rest[1]*temp;
 	B[3]=rest[2]*temp;
 
-    //  } // if (turn_off_radial_extension==false) {
+    //  } // if (use_radial_extension==true) {
 
 }
 
@@ -571,7 +571,7 @@ doub magn;
 if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO3: Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
 
 
-int limit_temperature=1;
+bool limit_temperature=false;
 if (limit_temperature) {
 if(1-fabs(costh)<thlimit)            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	Ttot=minT;
@@ -582,7 +582,7 @@ if(isBred)                           //temperature reduction in high magnetizati
 	Ttot*=exp(-magn/10.);
  }
 
-int zero_out_rho=0;
+bool zero_out_rho=true;
 if (zero_out_rho) {
   if(1-fabs(costh)<thlimit){            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
 	rho=0.;
@@ -607,8 +607,8 @@ if(isBred){                           //temperature reduction in high magnetizat
    /*************************************************************/
 
    // limit emission / absorption in jet?
-   double rho_jet=1.;
-   rho = rho*exp(-magn/magn_cap) + rho*rho_jet*(1.-exp(-magn/magn_cap));
+   // double rho_jet=1.;
+   rho = rho*exp(-magn/magn_cap) + rho*include_jet*(1.-exp(-magn/magn_cap));
 
    // rho*=exp(-magn/10.);
    // rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
@@ -672,9 +672,10 @@ tet=(1-drman)*te[ia]+drman*te[ib];
  * ADJUST ELECTRON TEMPERATURE *
  *******************************/
 
-doub Te_jet_par = 35.; // make this a global parameter and include it in fitting procedures
-
+// doub Te_jet_par = 35.; // make this a global parameter and include it in fitting procedures
+// doub Te_jet_par = 0.; // make this a global parameter and include it in fitting procedures
 //doub Te_jet_par = 20.; // make this a global parameter and include it in fitting procedures
+// doub Te_jet_par = 10.; // make this a global parameter and include it in fitting procedures
 doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 
 // if (magn > magn_cap) {

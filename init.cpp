@@ -46,7 +46,7 @@ doub iKS[4][4],        //-,+,+,+ signature covariant (upper indices) Kerr-Schild
 a=atab[sp]; asq=a*a;                 //define spin value for chosen fluid simulation
 ncut=ncuttab[sp];                    //define radial index at the point, where the fluid simulation is barely converged
 string fdir=adir+astr[sp]+fieldstr;  //location of fluid simulation dumps
-cout << YELLOW"[init.cpp]:"RESET" location of fluid simulation dumps"+fdir+"\n";
+cout << YELLOW"[init.cpp]: "RESET"location of fluid simulation dumps"+fdir+"\n";
 
 //RG:    vvvvvvv HARDWIRE-WARNING, should be a parameter
 mintim=1-0.00005*dtimdf*fdiff;       //minimum and maximum proper time at infinity, when the simulation is still evolved together with light ray propagation
@@ -56,10 +56,10 @@ maxtim=1+0.00005*dtimdf*fdiff;
 if(!inited){
     //single record of fluid simulation dump files consists of: rho, u, -u^t, -T^r_t/(rho u^r), u^t, v^r, v^theta, v^phi, B^r, B^theta, B^phi 
 	
-  cout << YELLOW"[init.cpp]:"RESET" dir="+dir+",astr[sp]="+astr[sp]+",xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
+    cout << YELLOW"[init.cpp]: "RESET"dir="+dir+",astr[sp]="+astr[sp]+",xstr="+xstr+" :"+dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat\n";
 	//reading mean density & temperature radial profiles
     //RG:
-    cout << YELLOW"[init.cpp]:"RESET"location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
+    cout << YELLOW"[init.cpp]: "RESET"location of Tsmap file: "+dir+xstr+"Tsmap"+astr[sp]+".dat\n";
 
 	ifstream r_T_u_file ((dir+astr[sp]+xstr+"Tsmap"+astr[sp]+".dat").c_str(), ios::in);
 	for(k=0;k<rlen;k++)
@@ -300,11 +300,13 @@ for(i=-fdiff;i<=fdiff;i++) {
     /***************/
 
 	fline.read(reinterpret_cast<char *>(uu[ioff]), tosize); //reading as binary
-    if(fline.good())
-		printf(YELLOW"[init.cpp]:"RESET" fieldline %d read\n",fx);
+    if(fline.good()) {
+      if (fx==fmin) printf(YELLOW"[init.cpp]:"RESET" Reading in fieldline %d-%d ...",fx,fmax);
+      if (fx==fmax) printf("DONE!\n");
+    }
 	else { 
-      printf(YELLOW"[init.cpp]:"RED" Something is wrong loading fluid simulation dumps\n...EXITING...\n"RESET);
-		exit(-1);
+      printf(YELLOW"[init.cpp]:"RED" Something is wrong loading fluid simulation dump: fieldline %d\n...EXITING...\n"RESET,fx);
+      exit(-1);
 	};
 	fline.close();
 	loaded[ioff]=fx;
@@ -881,7 +883,7 @@ gsl_odeiv_step_free (sz);
 
 
 // RG: CODE EXITS WHEN UNCOMMENTING BELOW CODE BLOCK
-// if (turn_off_radial_extension=true) {
+// if (use_radial_extension=false) {
 //   t_init += (clock() - t_b4_init) / (doub)CLOCKS_PER_SEC;
   
 //   printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
@@ -976,12 +978,15 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
 		Bi[3]=Bnor*rest[10];
         
         // AVERY's model
-        if (np+nt==0) printf(YELLOW"[init.cpp]: "RESET"Setting AVERY's model in radial extension zone...\n");
-
-        // doub n_avery_RIAF=pow(0.5*exp(rcut),-1.5);
-        doub n_avery_RIAF=pow(0.5*rcut,-1.5);
-        // doub n_avery_RIAF=pow(0.5*coord[ncut][0][0],-1.5);
-        rho=n_avery_RIAF;
+        if ( !strcmp(avery_toy_jet,"yes") ) {
+          
+          if (np+nt==0) printf(YELLOW"[init.cpp]: "RESET"Setting AVERY's model in radial extension zone...\n");
+          
+          // doub n_avery_RIAF=pow(0.5*exp(rcut),-1.5);
+          doub n_avery_RIAF=pow(0.5*rcut,-1.5);
+          // doub n_avery_RIAF=pow(0.5*coord[ncut][0][0],-1.5);
+          rho=n_avery_RIAF;
+        }
 
 		//writing into a collector variable
 		uext[np][nt][3]=rho;
@@ -1110,7 +1115,7 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
 
 t_init += (clock() - t_b4_init) / (doub)CLOCKS_PER_SEC;
 
-printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
+// printf("\n"YELLOW"[init.cpp]:"RESET" Exiting [init.cpp]\n");
 
 return 0; // init()
 }

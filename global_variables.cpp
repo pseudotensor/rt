@@ -22,29 +22,33 @@ doub smallest_radius_where_nan = 1e9; // ~~~> [setup_avery_toyjet.cpp]
 doub largest_radius_where_nan  = 0.;  // ~~~> [setup_avery_toyjet.cpp]
 
 // GEODESIC DIAGNOSTIC
+// #DEFINE GEODESIC_DIAGNOSTIC true ?
+bool GEODESIC_DIAGNOSTIC=false;
+
 int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
 const doub PI = 4.0*atan(1.0);
 
 const bool avoid_pole=true; // grep for critan ~> [evalpointzero.cpp]
+// const bool avoid_pole=false; // grep for critan ~> [evalpointzero.cpp]
 
 //Sgr A see math/checks_GRMHD_code.nb->Intensity functions->Check definitions of distance to Sgr A*, percentages, position angles
 doub Jy2cgs        = 1e23; // 1Jy=10^23 erg/(s cm^2 Hz) [cgs]
-// doub ang_size_norm = 66.4648/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc // M=4.5e6Msun 
-doub ang_size_norm = 196.5443582815904/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc=3e22cm // M=4.5e6Msun 
+doub ang_size_norm = 66.4648/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc // M=4.5e6Msun 
+// doub ang_size_norm = 196.5443582815904/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc=3e22cm // M=4.5e6Msun 
 
 // MODELS
 // const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
-const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
+const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
 
-// bool turn_off_radial_extension=true; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
-bool turn_off_radial_extension=false; //RG: USE radial extension outside rcut
+// bool use_radial_extension=false; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
+bool use_radial_extension=true; //RG: USE radial extension outside rcut
 
 // THICKDISK7
-//const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
 // OTHER MODELS
-const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
 // const int ndd=288+1,           //radial dimension of coordinate/coordinate transformation matrices
   sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -52,9 +56,9 @@ const int ndd=350,           //radial dimension of coordinate/coordinate transfo
   dd=3,              //record size of average temperature & density file
 
 // THICKDISK7,THICKDISKHR3?,DIPOLE3DFIDUCIALA,QUADRUPOLE
-//  wdd=11,            //record size of fluid simulations dump file
+  wdd=11,            //record size of fluid simulations dump file
 // a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
-  wdd=11+3,          //record size of fluid simulations dump file
+//  wdd=11+3,          //record size of fluid simulations dump file
 
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
 //maxco=3000,        //maximum number of points on a geodesic
@@ -64,8 +68,8 @@ const int ndd=350,           //radial dimension of coordinate/coordinate transfo
   maxst=40000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=199 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=199 /*301*/;          //maximum resolution in picture plane for flux calculations
+  nxy=101 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=101 /*301*/;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 //RG:TEST units in M ~> SEG-FAULT in init.cpp
@@ -83,9 +87,10 @@ const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corre
 		   The=me*cc*cc/kb,   //rest mass temperature of electron
 		   year=86400.*365.25,//year in seconds
            Msun=2.00e+33,     //solar mass [g]
-//r0=20000.;         //maximum radius of each light ray
-//r0=500.;         //maximum radius of each light ray // RG: (coordinate?) distance of image plane to BH (Horizon?)
- r0=1000.;         //maximum radius of each light ray // RG: (coordinate?) distance of image plane to BH (Horizon?) // in rgrav units?
+
+r0=20000.;         //maximum radius of each light ray: DEFAULT ASTRORAY v1.0
+// r0=500.;         //maximum radius of each light ray // RG: coordinate distance (in rgrav units) of image plane to BH (Horizon)?
+// r0=1000.;         //maximum radius of each light ray 
 
 
 // Temperature sampling & range for propagation effects for THERMAL
@@ -127,7 +132,7 @@ const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.141
            dCP=0.30, //at 230GHz and 345GHz
 		   dLP[3]={0.50, 0.658, 0.605}, //at 87GHz, 230GHz, and 345GHz
 		   dEVPA[3]={11.,5.4,2.21};     //at 87GHz, 230GHz, and 345GHz
-const bool isLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
+const bool trustLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
 
 bool nth=false,                                          // include non-thermal electrons?
 //bool nth=true,                                          // include non-thermal electrons?
@@ -136,6 +141,8 @@ bool nth=false,                                          // include non-thermal 
 	 echeck1=false, echeck2=false, echeck3=false,       //markers for testing (see init.cpp)
 	 isBcut=false,                                      //whether to set temperature to zero in certain region close to the BH near polar axis (see evalpointzero.cpp)
 	 isBred=false;                                      //whether to reduce temperature in regions of high magnetization (see evalpointzero.cpp)
+doub include_jet = 1.;
+doub Te_jet_par = 10.; // isothermal jet temperature in [me*cc*cc/kb]
 doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
 doub magn_floor=0.; //used to lighten-up the jet and turn off the disk (see [evalpointzero.cpp])
 doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]

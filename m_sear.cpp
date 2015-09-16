@@ -3,7 +3,7 @@ doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
 	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
 	 xss=1e-2,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 xsnxy=111,    //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xsnxy=101,    //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=0.1,    //6. step size in geodesic computation
 	 xsstep=-0.09, //7. step size in radiative transfer computation
 	 xIint=2e-9,   //8. initial intensity along each ray for radiative transfer
@@ -39,21 +39,27 @@ ss=xss;
 //selecting one model to test
 sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
 cas=atoi(descr);
- switch (cas){
+
+ fmin=5500;fmax=5525;fdiff=20;
+
+switch (cas){
 #include "lightup_jet.cpp"
  }
- cout << "fnum:" << fnum << endl;
+ cout<<YELLOW"[m_sear.cpp]: "RESET<<"fnum:"<<fnum<<" cas: "<<cas<<endl;
 
 ind=co;               //number of snapshots = 2nd command line argument
 testN=atoi(descr);    //ID of initial deviation from global defined model = job array ID
-nP=12;                //fit at most for 7 total fluxes, 3 LP fractions, 2 CP fractions
-if(isLP87)            //either include or not include in the fit the LP fraction at 87GHz
+
+//RG:FLAG ~> const global ?
+nP=12;                //fit at most for 7 total fluxes, 3 LP fractions, 2 CP fractions 
+
+if(trustLP87)            //either include or not include in the fit the LP fraction at 87GHz
 	nPeff=nP; 
 else 
 	nPeff=nP-1;
 
 //if (ind<2) sep=2;
-//sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
+sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
 if (sep==0) sep=1;
 
 dheat=0.;             //initialize local model (w/ deviation) = global model
@@ -72,7 +78,7 @@ heat*=(1+dheat);      //compute model parameters for a local model
 rhonor*=(1+drho);
 th+=dtheta;
 
-printf("in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d\n",co,sp,th,heat,rhonor,fdiff);
+printf(YELLOW"[m_sear.cpp] "RESET"in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d\n",co,sp,th,heat,rhonor,fdiff);
 doub ddr=1.,          //differences of basic model parameters over 1 steepest descent iteration
 	 ddh=0.02, 
 	 dth=0.01;
@@ -85,6 +91,7 @@ dtheta=0.01;
 
 while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is stated if ALL model parameters change only slightly over 1 iteration
 	niter++;          //iteration counter
+    printf(YELLOW"[m_sear.cpp]: "RESET"niter=%d heat=%f rhonor=%f th=%f\n",niter,heat,rhonor,th);
 	inp[0][0]=heat;   //0-th model + small deviations along "heat" axis, "rhonor" axis, and "theta" axis
 	inp[0][1]=rhonor;
 	inp[0][2]=th;
@@ -117,7 +124,7 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 			th=inp[oo][2];
             
             //RG: 
-            //printf("sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
+            printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
 
 			init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
 			#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
@@ -138,33 +145,57 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	};
 
 //end of integration block 
-	
-	for(oo=0;oo<4;oo++){                //compute normalized residuals with respect to the observed spectra
-		for(il=4;il<=10;il++)
-			resid[il-4][oo]=(ytotin[il][oo]-tofit[il][1])/dFnu[il];
-		resid[7][oo]=(yLPo[4][oo]-tofit[4][2])/dLP[0];
-		resid[8][oo]=(yLPo[7][oo]-tofit[7][2])/dLP[1];
-		resid[9][oo]=(yLPo[8][oo]-tofit[8][2])/dLP[2];
-		resid[10][oo]=(yCP[7][oo]-tofit[7][4])/dCP;
-		resid[11][oo]=(yCP[8][oo]-tofit[8][4])/dCP;
-	}
-	{doub xisq=0.;
-	for(il=0;il<nP;il++)                //calculate reduced \chi^2
-		xisq+=resid[il][0]*resid[il][0]/(nPeff-3);
-	printf("heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",inp[0][0], inp[0][1], inp[0][2], xisq);
 
-	stringstream sss;                   //write into "xisqa" file 0-th model parameters and correspondent reduced \chi^2
-	sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;
-	string outstr=dir+"xisqa"+sss.str(); 
-	outstr+=".dat";
-	FILE * xFile; 
-	xFile = fopen (outstr.c_str(),"a");
-	fprintf(xFile,"%.2f %.4f %.4f %.5f %.5f %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
-	fclose(xFile);
+
+
+    // Chi^2
+    //compute normalized residuals with respect to the observed spectra
+	
+	for(oo=0;oo<4;oo++){              // LOOP over 4 models
+      for(il=4;il<=10;il++)           // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
+        resid[il-4][oo]=(ytotin[il][oo]-tofit[il][1])/dFnu[il]; // F 
+
+      resid[7][oo]=(yLPo[4][oo]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
+      resid[8][oo]=(yLPo[7][oo]-tofit[7][2])/dLP[1]; // LP nu=230Ghz
+      resid[9][oo]=(yLPo[8][oo]-tofit[8][2])/dLP[2]; // LP nu=345Ghz
+      resid[10][oo]=(yCP[7][oo]-tofit[7][4])/dCP;    // CP nu=230Ghz
+      resid[11][oo]=(yCP[8][oo]-tofit[8][4])/dCP;    // CP nu=345Ghz
+
+      //RG:COULD ADD EVPA HERE...
+	}
+
+	{
+      doub xisq=0.;
+      for(il=0;il<nP;il++)
+        //RG:WHY model oo=0 ?
+		xisq+=resid[il][0]*resid[il][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
+      //RG:FLAG SHOULD INCORPORATE
+      //if(trustLP87)            //either include or not include in the fit the LP fraction at 87GHz
+
+
+
+      // OUTPUT
+
+      printf(YELLOW"[m_sear.cpp] "RESET"heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",inp[0][0], inp[0][1], inp[0][2], xisq);
+
+      stringstream sss;                   //write into "xisqa" file 0-th model parameters and correspondent reduced \chi^2
+      sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;
+      string outstr=dir+"xisqa"+sss.str(); 
+      outstr+=".dat";
+      FILE * xFile; 
+      xFile = fopen (outstr.c_str(),"a");
+      if (niter==1) fprintf(xFile,"a \t xisq \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
+      fprintf(xFile,"%.2f \t %.4f %.4f \t %.4f \t %.4f \t %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
+      fclose(xFile);
 	};
 
 	ans=(clock() - start ) / (doub)CLOCKS_PER_SEC;//timing
-	printf ("Time = %.2f s; finished %d iterations; th=%.3f; heat=%.3f\n", ans,niter,th,heat);
+	printf (YELLOW"[m_sear.cpp] "RESET"Time = %.2f s; finished %d iterations; th=%.3f; heat=%.3f\n", ans,niter,th,heat);
+
+
+
+    // NEXT STEP ~> JACOBIAN
+
 	int ij, ii;
 	for(il=0;il<nP;il++){                         //compute a Jacobian based on differences in residuals
 		Jac[il][0]=(resid[il][1]-resid[il][0])/dheat;
@@ -190,7 +221,7 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	ddh=(bb[2]*matr[0][2]*matr[1][1] - bb[2]*matr[0][1]*matr[1][2] - bb[1]*matr[0][2]*matr[2][1] + bb[0]*matr[1][2]*matr[2][1] + (bb[1]*matr[0][1] - bb[0]*matr[1][1])*matr[2][2])/det;
 	ddr=(bb[2]*(-(matr[0][2]*matr[1][0]) + matr[0][0]*matr[1][2]) + bb[1]*(matr[0][2]*matr[2][0] - matr[0][0]*matr[2][2]) + bb[0]*(-(matr[1][2]*matr[2][0]) + matr[1][0]*matr[2][2]))/det;
 	dth=(bb[2]*matr[0][1]*matr[1][0] - bb[2]*matr[0][0]*matr[1][1] - bb[1]*matr[0][1]*matr[2][0] + bb[0]*matr[1][1]*matr[2][0] + (bb[1]*matr[0][0] - bb[0]*matr[1][0])*matr[2][1])/det;
-	printf("Iterated ddr=%.4f, ddh=%.4f, dth=%.4f\n",ddr,ddh,dth);
+	printf(YELLOW"[m_sear.cpp] "RESET"Iterated ddr=%.4f, ddh=%.4f, dth=%.4f\n",ddr,ddh,dth);
 //done till here
 	while((fabs(ddh)>0.10) || (fabs(ddr)>0.2) || (fabs(dth)>0.05)){//while changes over 1 iteration are too large, then halve these changes
 		ddh/=2.;
@@ -210,8 +241,13 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 };
 
 
-//compute spectrum for the final best-fitting solution
-stringstream sss;sss<<(int)100*a;
+
+// BEST-FIT: 
+// compute spectrum for the final best-fitting solution
+
+stringstream sss;
+//sss<<(int)100*a;
+sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;
 //beginning of integration block
 for(kk=kmin;kk<=kmax;kk++){
 	xtotin[kk]=0.;
@@ -250,7 +286,7 @@ pFile = fopen ((dir+"bestfita"+stra+".dat").c_str(),"a");
 fprintf(pFile,"# sftab[kk][0],\t xtotin[kk],\t xLPo[kk],\t xCP[kk],\t xEVPA[kk],\t th,\t heat,\t rhonor,\t Bpo \n");
 
 for(kk=kmin;kk<=kmax;kk++){
-	printf("avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2fdeg\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
+	printf(YELLOW"[m_sear.cpp] "RESET"avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2fdeg\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
 	fprintf(pFile,"%.1f %.3f %.3f %.3f %.2f %.5f %.4f %.4f %.4f\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk],th,heat,rhonor,Bpo);
 };
 fclose(pFile);

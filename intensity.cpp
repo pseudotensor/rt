@@ -24,7 +24,8 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
         //struct rusage t_b4_geodesics;
         //getrusage(RUSAGE_SELF, &t_b4_geodesics);
         //printf("[intensity.cpp]: t_b4_geodesics=%ld\n",t_b4_geodesics.ru_stime.tv_usec);
-        #include "geoint.cpp"
+
+        #include "geoint.cpp" // MUST DO FOR EACH FREQUENCY ONLY BECAUSE IMAGE PLANE SIZE IS FREQUENCY DEPENDENT
 
         //RG:Now moved inside geoint.cpp ~> more general
         // t_geodesics += (clock() - t_b4_geodesics) / (doub)CLOCKS_PER_SEC;
@@ -80,9 +81,14 @@ for(kk=kmin;kk<=kmax;kk++){
 	printf(YELLOW"[intensity.cpp]:"RESET" fnum=%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 };
 
+
+// Chi^2
+//RG:FLAG Chi^2/dof should be computed by a single fct! Different (w/o nu[5-10]) Chi^2 in m_search e.g.
+
 doub xisq,                                                               //\chi^2
-	 dof=7.;                                                             //degrees of freedom
-     //compute chi^2 
+	 dof=7.;                                                             //degrees of freedom //RG:FLAG:HARDCODED
+
+// totin[4] ~> F@84Ghz
 xisq=pow((doub)(totin[4]-tofit[4][1])/dFnu[4],2)+pow((doub)(totin[5]-tofit[5][1])/dFnu[5],2)+pow((doub)(totin[6]-tofit[6][1])/dFnu[6],2)+
 	 pow((doub)(totin[7]-tofit[7][1])/dFnu[7],2)+pow((doub)(totin[8]-tofit[8][1])/dFnu[8],2)+pow((doub)(totin[9]-tofit[9][1])/dFnu[9],2)+
 	 pow((doub)(totin[10]-tofit[10][1])/dFnu[10],2);
@@ -98,9 +104,11 @@ if(iswrite){
 		printf("Cannot open poliresa output file \n Exiting \n");
 		exit(-1);
 	};
+
+    // HEADER (with xisq)
+    fprintf(pFile,"# Chi^2/dof = %f [Based on SED only]\n# fnum,sftab[kk][0],totin[kk],LPo[kk],EVPA[kk],CP[kk],err[kk],heat,rhonor,xisq,TpTe,rate*year/Msun,th \n",xisq);
+
 	for(kk=kmin;kk<=kmax;kk++)                                          //write full spectra into "poliresa" files
 		fprintf(pFile,"%d %.2f %.5f %.3f %.3f %.3f %.3f %.5f %.4f %.4f %.2f %.4e %.4f\n",fnum,sftab[kk][0],totin[kk],LPo[kk],EVPA[kk],CP[kk],err[kk],heat,rhonor,xisq,TpTe,rate*year/Msun,th);
 	fclose(pFile);
 };
-
-printf(YELLOW"[intensity.cpp]: "RESET"YO9 ix=%d\n",ix);

@@ -218,38 +218,40 @@ ppy[currth].indx=stN;         //number of points on geodesic written into global
 /***************************/
 /* RG:OUTPUT GEODESIC INFO */
 
-// GEODESIC DIAGNOSTIC
-stringstream geodesic_sstr;
-FILE * pFile; 
+if (GEODESIC_DIAGNOSTIC) { // GEODESIC DIAGNOSTIC
 
-geodesic_sstr<<"geodesics"<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"geodesic";
-string append_label;
-append_label=geodesic_sstr.str();
+  stringstream geodesic_sstr;
+  FILE * pFile; 
 
-// if (iix%geodesic_output_every_x==0 && iiy%geodesic_output_every_y==0) { // sample full 2d picture plane
-// if (iix%geodesic_output_every_x==0 && iiy==nxy/2) { // sample y=const slice of picture plane
-if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
+  geodesic_sstr<<"geodesics"<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"geodesic";
+  string append_label;
+  append_label=geodesic_sstr.str();
 
-  int geodesic_label=ix;
-  stringstream geodesic_sstr_append;
-  geodesic_sstr_append<<append_label<<geodesic_label;
-  string stra = geodesic_sstr_append.str();
-
-  pFile=fopen ((dir+stra+".dat").c_str(),"a");
-
-  //for (int geo_idx=0; geo_idx<=maxco; geo_idx++) { // maxco
-  for (int geo_idx=0; geo_idx<=stN; geo_idx++) { // maxco
-    for (int p=0; p<=7; p++) { // r:p-> costh: ph:
-      fprintf(pFile,"%f ",ppy[currth].cooxx[p][geo_idx]);
+  // if (iix%geodesic_output_every_x==0 && iiy%geodesic_output_every_y==0) { // sample full 2d picture plane
+  // if (iix%geodesic_output_every_x==0 && iiy==nxy/2) { // sample y=const slice of picture plane
+  if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
+    
+    int geodesic_label=ix;
+    stringstream geodesic_sstr_append;
+    geodesic_sstr_append<<append_label<<geodesic_label;
+    string stra = geodesic_sstr_append.str();
+    
+    pFile=fopen ((dir+stra+".dat").c_str(),"a");
+    
+    //for (int geo_idx=0; geo_idx<=maxco; geo_idx++) { // maxco
+    for (int geo_idx=0; geo_idx<=stN; geo_idx++) { // maxco
+      for (int p=0; p<=7; p++) { // r:p-> costh: ph:
+        fprintf(pFile,"%f ",ppy[currth].cooxx[p][geo_idx]);
+      }
+      // lamx[] vs lam[]?
+      fprintf(pFile,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
     }
-    // lamx[] vs lam[]?
-    fprintf(pFile,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
-  }
+    
+    fclose(pFile);
 
-  fclose(pFile);
+  } //for (int geodesic_label=0; geo_idx<=maxco; geo_idx+=1000) { // if (currth)
 
-} //for (int geodesic_label=0; geo_idx<=maxco; geo_idx+=1000) { // if (currth)
-
+} // if GEODESIC_DIAGNOSTIC
 
 /********* END OF GEODESIC DIAGNOSTIC ************/
 

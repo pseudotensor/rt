@@ -65,15 +65,13 @@ switch (cas){      //selection of a model (only few examples are shown)
 	case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
 
       #include "lightup_jet.cpp"
-
 };
 
-printf(YELLOW"[m_quick.cpp]:"RESET" Bpo=%.3f, fdiff=%d\n",Bpo,fdiff);
 
 //sep=1;                                           //take each fluid simulation snapshot within the range
 ind=(fmax-fmin)/sep+1;                           //number of fluid simulation snapshots
 
-printf(YELLOW"[m_quick.cpp]:"RESET" ind=%d,fmin=%d,fmax=%d,sep=%d\n",ind,fmin,fmax,sep);
+printf(YELLOW"[m_quick.cpp]: "RESET"cas=%d,th=%f,rhonor=%f,heat=%f,ind=%d,fmin=%d,fmax=%d,sep=%d,Bpo=%.3f, fdiff=%d\n",cas,th,rhonor,heat,ind,fmin,fmax,sep,Bpo,fdiff);
 
 
 
@@ -110,7 +108,7 @@ pFile = fopen ((dir+"quicka"+stra+qadd+".dat").c_str(),"a");
 
 
 for(kk=kmin;kk<=kmax;kk++){                     //actual writing into "quicka" file
-	printf(YELLOW"[m_quick.cpp]:"RESET"  avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2f \n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
+  	printf(YELLOW"[m_quick.cpp]:"RESET"  avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2f \n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
 	fprintf(pFile,"%.1f %.3f %.2f %.3f %.2f %.3f %.3e %.2f %.3e\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk], xEVPA[kk],1.*cas,avrate*year/Msun,avTpTe,avTe6);
 };
 fclose(pFile);
