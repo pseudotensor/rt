@@ -94,15 +94,15 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation s
 	avTe6+=Te6/ind;
 };
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;
-printf(YELLOW"[m_quick.cpp]:"RESET" Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
+// printf(YELLOW"[m_quick.cpp]:"RESET" Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 
 stringstream ytr;                               //writing average spectrum into "quicka" file, specifying "ind"
-ytr<<(int)100*a<<"in"<<ind;
+ytr<<(int)100*a<<"in"<<ind<<"case"<<cas;
 string stra = ytr.str();
 FILE * pFile; 
 
 //RG: 
-cout << YELLOW"[m_quick.cpp]:"RESET" FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
+//cout << YELLOW"[m_quick.cpp]:"RESET" FILE:"+dir+"quicka"+stra+qadd+".dat" << "\n";
 
 pFile = fopen ((dir+"quicka"+stra+qadd+".dat").c_str(),"a");
 

@@ -59,7 +59,11 @@ drho=0.02;            //density relative offset to compute Jacobian
 // fmin=5500;fmax=5520;kmin=4;kmax=10;sp=0;rhonor=500000.; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1;
 
 // case 70006: 
-fmin=5500;fmax=5600;sep=5;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=0.646; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.; include_jet=0; 
+// fmin=5500;fmax=5600;sep=5;kmin=4;kmax=10;sp=0;rhonor=120304.04439; heat=0.15599; th=0.646; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.; include_jet=0; 
+
+// case 42300: 
+fmin=2140;fmax=2160;sep=1;kmin=0;kmax=10;sp=0;rhonor=2.0e8; heat=0.1; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;
+
 
 
 sep=(fmax-fmin)/(ind-1);//ID difference between consecutive considered fluid simulation snapshots
@@ -146,7 +150,7 @@ for(heat=heat_min;heat>0.1;heat*=0.96){               //choose a set of heat par
 	FILE * xFile; 
 	xFile=fopen(outstr.c_str(),"a");   //writing the "best-fitting" model parameters & spectra to disk
 	if (heat==heat_min) fprintf(xFile,"# a \t th \t xisq \t 0.[?] \t heat \t rhonor \t rate*year/Msun \n");
-	fprintf(xFile,"%.2f \t %.3f \t %.2f \t %.1f \t %.5f  %.5f \t %.3e\n",a,th,xisq,0.,heat,rhonor,rate*year/Msun);
+	fprintf(xFile,"%.2f \t %.3f \t %.2f \t %.1f \t %.5f %.5f  %.3e\n",a,th,xisq,0.,heat,rhonor,rate*year/Msun);
 	fclose(xFile);
 	doub span=1.12;                    //ratio of consecutive density normalizations
 	iswrite=true;                      //write output for a range of densities to disk

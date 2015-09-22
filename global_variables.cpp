@@ -46,9 +46,9 @@ const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
 
 // THICKDISK7
-const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
 // OTHER MODELS
-// const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
 // const int ndd=288+1,           //radial dimension of coordinate/coordinate transformation matrices
   sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -123,15 +123,25 @@ const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46
 // LP:   linear polarization fraction (image-averaged/zero-baseline) at frequency nu
 // EVPA: Electric vector position angle (image-averaged/zero-baseline)
 // CP:   circular polarization fraction (image-averaged/zero-baseline) at frequency nu 
-const doub tofit[sflen][5]={{8.450, 0.683, 0., 0., -0.2500}, {14.90, 0.871, 0., 0., -0.6200}, {22.50, 0.979, 0.1900, 131.0, 0.}, {43.00, 1.135, 0.5500, 94.25, 0.}, {87.73, 1.841, 1.420, -4., 0.}, 
-                  {102.0, 1.908, 0., 0., 0.}, {145.0, 2.275, 0., 0., 0.}, {230.9, 2.637, 7.398, 111.5, -1.200}, {349.0, 3.181, 6.499, 146.9, -1.500}, {674.0, 3.286, 0., 0., 0.}, {857.0, 2.867, 0., 0., 0.}, 
-                  {1500., 1., 0., 0., 0.}, {3000., 1., 0., 0., 0.}, {5000., 1., 0., 0., 0.}};
+const doub tofit[sflen][5]={
+  {8.450, 0.683, 0., 0., -0.2500}, 
+  {14.90, 0.871, 0., 0., -0.6200}, 
+  {22.50, 0.979, 0.1900, 131.0, 0.}, 
+  {43.00, 1.135, 0.5500, 94.25, 0.}, 
+  {87.73, 1.841, 1.420, -4., 0.}, 
+  {102.0, 1.908, 0., 0., 0.}, 
+  {145.0, 2.275, 0., 0., 0.}, 
+  {230.9, 2.637, 7.398, 111.5, -1.200}, 
+  {349.0, 3.181, 6.499, 146.9, -1.500}, 
+  {674.0, 3.286, 0., 0., 0.},
+  {857.0, 2.867, 0., 0., 0.},
+  {1500., 1., 0., 0., 0.},{3000., 1., 0., 0., 0.},{5000., 1., 0., 0., 0.}};
 
-//measurement errors of mean fluxes, CP fractions, LP fractions, and EVPAs
-const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0., 0., 0.}, //no measurements at highest frequencies
-           dCP=0.30, //at 230GHz and 345GHz
-		   dLP[3]={0.50, 0.658, 0.605}, //at 87GHz, 230GHz, and 345GHz
-		   dEVPA[3]={11.,5.4,2.21};     //at 87GHz, 230GHz, and 345GHz
+// measurement errors of mean fluxes, CP fractions, LP fractions, and EVPAs (no measurements at highest frequencies)
+const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0., 0., 0.}, 
+           dCP=0.30,                    // at 230GHz and 345GHz
+           dLP[3]={0.50, 0.658, 0.605}, // at 87GHz, 230GHz, and 345GHz
+           dEVPA[3]={11.,5.4,2.21};     // at 87GHz, 230GHz, and 345GHz
 const bool trustLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
 
 bool nth=false,                                          // include non-thermal electrons?

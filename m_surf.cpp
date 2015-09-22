@@ -33,7 +33,11 @@ if(sp==4){rhonor= 397281.19; heat=0.41343;  th=2.1439;}
 // #include "lightup_jet.cpp"
 // case 71914: 
 
- doub fmin=5500,fmax=5520;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1;
+// doub fmin=5500,fmax=5520;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1;
+
+// case 42300: 
+doub fmin=2140;doub fmax=2160;sep=1;kmin=0;kmax=10;sp=0;rhonor=2.0e8; heat=0.1; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;
+
 
 int nnx=40;         //number of steps along each variable for models slightly different from the best-fitting
 doub cheat=heat,    //auxiliary heating constant, density normalization, and viewing angle

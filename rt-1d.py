@@ -22,6 +22,15 @@ from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
+HOME=commands.getoutput("echo $HOME")
+# assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
+try:
+    eht_obs_uv = loadtxt(HOME+'/rt/obs.txt',usecols=[4,5],comments='#')
+except:
+    pass
+# scatter(obs[:,0],obs[:,1])
+
+
 ## USER SPECS ##
 mbreve="yes"
 dEVPA="no"
@@ -35,9 +44,12 @@ FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE or "ava" in FILE]
 
 PLOT_SED="no"
-#PLOT_CORRELATED_FLUX="no"
 PLOT_CORRELATED_FLUX="yes"
 PLOT_I_vs_mbreve="yes"
+
+if size(FILES_2D)==0:
+    PLOT_CORRELATED_FLUX="no"
+    PLOT_I_vs_mbreve="no"
 
 col_SED=[1,2]
 if len(FILES_1D)>0:
@@ -86,7 +98,10 @@ M = 4.3e6 * Msun # SAG A*
 rg = G*M/c**2
 d_SagA = 8.3e3*pc
 rad2microarcsec = 360/(2*pi)*3600*1e6
+
 observing_frequency = 230. # in Ghz
+print "HARDCODED frequency=",observing_frequency,"Ghz"
+
 image_size_astroray = 8.+(600./observing_frequency)**1.5 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
 #image_size_astroray = 12.2 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
 image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
@@ -400,7 +415,7 @@ if string.lower(PLOT_SED)=="yes":
     savefig("SED.pdf")
 
 if string.lower(PLOT_SED)=="yes":
-    FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE][0]
+    FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE][0]
     SED=loadtxt(FILE)
 
     figure(5)
@@ -463,20 +478,28 @@ if PLOT_CORRELATED_FLUX=="yes":
             mbreve_uv_rphi[r_idx][phi_idx] = mbreve_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
             CP_uv_rphi[r_idx][phi_idx]      = CP_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
     I_uv_1d = mean(abs(I_uv_rphi),axis=1)
+    I_uv_1d_min = amin(abs(I_uv_rphi),axis=1)
+    I_uv_1d_max = amax(abs(I_uv_rphi),axis=1)
     mbreve_uv_1d = mean(abs(mbreve_uv_rphi),axis=1)
+    mbreve_uv_1d_min = amin(abs(mbreve_uv_rphi),axis=1)
+    mbreve_uv_1d_max = amax(abs(mbreve_uv_rphi),axis=1)
     CP_uv_1d = mean(abs(CP_uv_rphi),axis=1)
 
     plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$I:\phi-avg$")
+    fill_between(r_uv,I_uv_1d_min/I_uv_1d[0],I_uv_1d_max/I_uv_1d[0],color='cyan',alpha=0.5)
+
     plot(r_uv,mbreve_uv_1d,'rd-',label=r"$\breve{m}:\phi-avg$")
+    fill_between(r_uv,mbreve_uv_1d_min,mbreve_uv_1d_max,color='red',alpha=0.25)
+
     plot(r_uv,CP_uv_1d,'o-',color='gray',label=r"$CP:\phi-avg$")
-    plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
-    plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
+    # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
+    # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
     I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]])
     #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
     I_uv_err = array([0.2,0.03,0.05,0.05])
     errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
-    xlim(0,10);xlabel(r"$\|uv\|$");ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");legend=legend(labelspacing=0.1);tight_layout()
+    axis((0,10,0,1.1));xlabel(r"$\|uv\|$");ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");legend=legend(labelspacing=0.1);tight_layout()
     legend.get_frame().set_alpha(0.5)
     plt.setp(gca().get_legend().get_texts(), fontsize='18')
 
@@ -485,6 +508,7 @@ if PLOT_CORRELATED_FLUX=="yes":
     dt_GRMHD
     t=(float(iter)-t_ref)*dt_GRMHD * (G*M/c**3) /60./60.  # in hours
     title(r"$t="+str(round(t,1))+"$h")
+    tight_layout()
     savefig("Fnu-vs-uv_"+string.zfill(iter,4)+".png")
 
 

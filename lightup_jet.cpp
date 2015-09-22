@@ -10,6 +10,22 @@ case 710: fmin=6000;fmax=6000;sep=5;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.
 case 711: fmin=5880;fmax=5920;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=10;break;
 case 712: fmin=5450;fmax=5950;sep=10;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
 case 713: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+case 7130: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=160000.; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+case 7131: fmin=5940;fmax=5960;sep=1;kmin=7;kmax=7;sp=0;rhonor=160000.; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+case 7132: fmin=5960;fmax=6000;sep=1;kmin=7;kmax=7;sp=0;rhonor=160000.; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+case 7133: fmin=5900;fmax=5960;sep=5;kmin=0;kmax=10;sp=0;rhonor=140000.; heat=0.1; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+ case 7134: fmin=5900;fmax=5960;sep=5;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.1; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // pretty good but can we bent that k=10 flux further down with heat? -> 7135
+ case 7135: fmin=5900;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.15; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 7136: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.15; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 7137: fmin=5900;fmax=5960;sep=5;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.15; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 7138: fmin=5940;fmax=5960;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.12; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 7139: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 7239: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=160000.; heat=0.08; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+
+ case 71390: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+ case 71391: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
+
+
 case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
  case 715: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=0; break; // SCS // F too low
  case 7150: fmin=5500;fmax=5500;sep=1;kmin=2;kmax=12;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=0; break; // SCS // F too low
@@ -46,6 +62,10 @@ case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0
 
 //case 100: fmin=6200;fmax=6200;kmin=2;kmax=8;sp=0;rhonor=136834.; heat=0.25; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=0.1;break;//changing azimuthal camera angle - 4*PI/3
 //case 100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;break;//changing azimuthal camera angle - 4*PI/3
+
+// thickdisk7 disk dominated
+ case 771390: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;break; // here a low frequency peak starts piling up
+
 
  case 8100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz
  case 8101: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;Te_jet_par=10.;include_jet=0;break; // still peak near 40Ghz
@@ -152,12 +172,16 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
  case 421: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=9;sp=0;rhonor=4.7e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break; // PICKING MORE REPRESENTATIVE (LP) SNAPSHOT 
  case 422: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=9;sp=0;rhonor=4.7e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break; // fdiff makes massive difference for f>230Ghz
 
-// QUADRUPOLE: Te FITS MANY THINGS WELL ! KEEPER!
+// QUADRUPOLE: Te FITS MANY THINGS RATHER WELL ! KEEPER!
  case 423: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
+
+ case 42300: fmin=2140;fmax=2160;sep=1;kmin=0;kmax=10;sp=0;rhonor=2.0e8; heat=0.1; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;break;
 
  case 424: fmin=2150;fmax=2150;sep=1;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
 
  case 425: fmin=2100;fmax=2200;sep=10;kmin=0;kmax=10;sp=0;rhonor=4.5e7; heat=0.47; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break; // f=230.9; I=2.936Jy LP=3.06% CP=-1.288%
+
+
 
 
  case 665: fmin=6900;fmax=6900;sep=1;kmin=7;kmax=7;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10; fljVc=0.; flrQc=0.; flrVc=0.;break; // TEST NEW TABLE COEFFS

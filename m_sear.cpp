@@ -37,10 +37,14 @@ fact=xfact;
 ss=xss;
 
 //selecting one model to test
-sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
-cas=atoi(descr);
+// sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
+// cas=atoi(descr);
 
- fmin=5500;fmax=5525;fdiff=20;
+//  fmin=5500;fmax=5525;fdiff=20;
+
+// case 771390: 
+fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;
+
 
 switch (cas){
 #include "lightup_jet.cpp"
@@ -185,7 +189,7 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
       FILE * xFile; 
       xFile = fopen (outstr.c_str(),"a");
       if (niter==1) fprintf(xFile,"a \t xisq \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
-      fprintf(xFile,"%.2f \t %.4f %.4f \t %.4f \t %.4f \t %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
+      fprintf(xFile,"%.5f \t %.1f %.4f \t %.4f %.4f \t %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
       fclose(xFile);
 	};
 

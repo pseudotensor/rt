@@ -23,12 +23,23 @@ try:
 except:
     matplotlib.use("Agg") # produces png without X
 
-import pylab,string,scipy
+import pylab,string,scipy,commands
 from pylab import *
 from scipy import *
 from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
+
+HOME=commands.getoutput("echo $HOME")
+
+# assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
+# SOMEWHAT HARDWIRED DIRECTORY...
+try:
+    eht_obs_uv = loadtxt(HOME+'/rt/obs.txt',usecols=[4,5],comments='#')
+    print "SUCCESSFULLY READ IN EHT uv-TRACKS"
+except:
+    pass
+# scatter(obs[:,0],obs[:,1])
 
 
 ## Taken from Michael's Notebook ##
@@ -469,6 +480,7 @@ for plot in range(len(titles)):
     #colorbar()
     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_uv[plot][0],limits_colors_uv[plot][1],5)])
     #clim(limits_colors_uv[plot])
+    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
     plot_shadows("uv")
 
@@ -540,6 +552,8 @@ for plot in range(len(titles)):
         colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5)])
     clim(limits_colors_4panel_uv[plot])
 
+    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
+
     plot_shadows("uv")
 
     if plot in [2,3]:
@@ -578,6 +592,8 @@ if miniversion: #
         colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5)])
 
     clim(limits_colors_miniversion_4panel_uv[plot])
+
+    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
     plot_shadows("uv")
 
