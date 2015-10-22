@@ -72,6 +72,8 @@ using namespace std;
 #include "profiling.cpp"
 #include "global_variables.cpp" // contains most global variables
 
+#include "chisquare.cpp"
+
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;//geodesic object
      poinx ppy[nthreads]; //define 1 geodesic object per OpenMP thread
 
@@ -141,7 +143,7 @@ int main(int argc, char* argv[]) {
 		kmin=4, 
 		kmax=10,    //minimum and maximum frequency array indices of interest
 		kstep;      //stepping over frequency array indices
-    doub inp[4][3], //variables for chi^2 minimization
+    doub inp[4][3], //variables for chi^2 minimization: 1st dim stores different models; 2nd dim stores free parameters: heat,rhonor,th
 		dheat,      //relative variation of heating coefficient
 		drho,       //relative vatiation of density
 		dtheta;     //absolute variation of (polar) viewing angle of BH spin/disk axis
