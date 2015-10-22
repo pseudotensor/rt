@@ -415,7 +415,7 @@ if string.lower(PLOT_SED)=="yes":
     savefig("SED.pdf")
 
 if string.lower(PLOT_SED)=="yes":
-    FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE][0]
+    FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE or "poli" in FILE][0]
     SED=loadtxt(FILE)
 
     figure(5)
