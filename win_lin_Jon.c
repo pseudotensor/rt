@@ -33,7 +33,7 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 /* const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/"; */
 /* //RG: WHY "int"? */
-/* const int dtimdf=4; // time difference (in M) between fieldlineXXXX files  */
+/* const int dtimdf=4; // time difference (in M) between fieldlineXXXX files */
 /* const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency */
 /* const string astr[1]={"thermal"}; */
 /* const doub atab[1]={0.9375}; */

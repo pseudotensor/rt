@@ -881,6 +881,10 @@ if (absorption=="kirchhoff"){
   aQc=jQc/Bnu;
   aVc=jVc/Bnu;
 
+  if (Bnu==0) {
+    aIc=0.;aQc=0.;aVc=0.;
+  }
+
   // if (nu==12000) {
   //   printf(YELLOW"[evalpointzero.cpp]:"RESET" jI=%f, jI_nth=%f\n",jIc,jIc_nth);
   // }
@@ -897,7 +901,7 @@ if (absorption=="kirchhoff"){
   // if (jQc_nth < tolerance) jQc_nth = 0.;//aQc; //0.;
   // if (jVc_nth < tolerance) jVc_nth = 0.;//aVc; //0.;
 
-  if (aIc_nth<0) cout<<"aIc_nth="<<aIc_nth<<endl;
+  if (aIc_nth<0) cout<<YELLOW"[evalpointzero.cpp]: "RED"aIc_nth="<<aIc_nth<<RESET<<endl;
 
   if (false) {//((rr>6. && rr<6.1) || tet==12000.) {
     printf(YELLOW"[evalpointzero.cpp]"RED"jIc=%g, jIc_nth=%g tet=%g"RESET"\n",jIc,jIc_nth,tet);

@@ -84,6 +84,15 @@ for(kk=kmin;kk<=kmax;kk++){
 
 // Chi^2
 //RG:FLAG Chi^2/dof should be computed by a single fct! Different (w/o nu[5-10]) Chi^2 in m_search e.g.
+// ~> FCT WRITTEN 2B INCORPORATED... Oct 21st 2015
+doub chi=0.,chi_I=0.;
+chisquare(totin,LPo,CP,chi,chi_I); // ~> see [chisquare.cpp]
+printf(YELLOW"[intensity.cpp]: "MAGENTA"chi=%f,chi_I=%f"RESET"\n",chi,chi_I);
+
+// Hm something is diffent...
+// chisquare(): chi^2/dof=9.856375 chi^2_I/dof=13.966356
+//              [intensity.cpp]: chi=9.856375,chi_I=13.966356
+// # Chi^2/dof = 8.267417 [Based on SED only] poliresa file
 
 doub xisq,                                                               //\chi^2
 	 dof=7.;                                                             //degrees of freedom //RG:FLAG:HARDCODED
@@ -96,7 +105,8 @@ xisq/=dof;//compute reduced \chi^2
 
 if(iswrite){
 	stringstream sstr;                                                  //prepare to write full spectra into "poliresa" files
-	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"boo"; //"boo" is a legacy string
+	// sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"boo"; //"boo" is a legacy string
+	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"case"<<cas<<"boo"; //"boo" is a legacy string
 	string stra = sstr.str();
 	FILE * pFile;
 	pFile=fopen ((dir+"poliresa"+stra+fif+".dat").c_str(),"a");         //"fopen" is unsafe, but it works. If done w/ streams, then no flexibility of "fprintf"
