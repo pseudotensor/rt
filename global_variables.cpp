@@ -153,7 +153,8 @@ bool nth=false,                                          // include non-thermal 
 	 isBred=false;                                      //whether to reduce temperature in regions of high magnetization (see evalpointzero.cpp)
 doub include_jet = 1.;
 doub Te_jet_par = 10.; // isothermal jet temperature in [me*cc*cc/kb]
-doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
+doub magn_cap=10.; //used to reduce temperature/rho/emission/absorption in
+doub magn_cap_rho=4.; //used to reduce temperature/rho/emission/absorption in regions of high magnetization (see evalpointzero.cpp)
 doub magn_floor=0.; //used to lighten-up the jet and turn off the disk (see [evalpointzero.cpp])
 doub trace_theta_slice_width=10.*PI/100.; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]
 doub trace_theta_slice_angle; // used to trace geodesics arising from a thin slice in the theta direction. Reduce temperature/rho/emission/absorption in all other regions [see evalpointzero.cpp]

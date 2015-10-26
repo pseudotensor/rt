@@ -591,7 +591,7 @@ if (zero_out_rho) {
 //double magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
 if(isBcut)                           //set temperature to zero in high magnetization region
   //if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) {// boundary is in accordance with McKinney et al. (2012)
-  if(magn>magn_cap) {// full chop case
+  if(magn>magn_cap_rho) {// full chop case
 		rho=0.;
         //cout << "Zero out rho due isBcut...\n";}
   }
@@ -608,11 +608,11 @@ if(isBred){                           //temperature reduction in high magnetizat
 
    // limit emission / absorption in jet?
    // double rho_jet=1.;
-   rho = rho*exp(-magn/magn_cap) + rho*include_jet*(1.-exp(-magn/magn_cap));
+   rho = rho*exp(-magn/magn_cap_rho) + rho*include_jet*(1.-exp(-magn/magn_cap_rho));
 
    // rho*=exp(-magn/10.);
-   // rho*=exp(-magn/magn_cap); // Limit jet  emission => Lightup disk
-   // rho*=(1-exp(-magn/magn_cap)); // Limit disk emission => Lightup jet
+   // rho*=exp(-magn/magn_cap_rho); // Limit jet  emission => Lightup disk
+   // rho*=(1-exp(-magn/magn_cap_rho)); // Limit disk emission => Lightup jet
   }
 }
 
