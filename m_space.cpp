@@ -59,7 +59,7 @@ printf(YELLOW"[m_space.cpp]: "RESET"in=%d shots; sp=%d; angle th=%f\n",co,sp,th)
 
 
 doub heat_min=0.3, heat_max=0.75;
-// for(heat=heat_max; heat>heat_min; heat*=0.95){     // choose a set of heat parameter
+
 for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat parameter
 
 	doub ddr=1.;                                   // relative adjustment of density for next iteration
@@ -92,10 +92,6 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 			};
 
 
-            // case 42351: fmin=2140;fmax=2160;sep=1;kmin=4;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=10.;Te_jet_par=35.;break;
-            // fmin=2140;fmax=2160;sep=1;kmin=4;kmax=10;sp=0;rhonor=4.5e7; heat=0.46; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=10.;Te_jet_par=35.;
-
-
 			for(fnum=fmin;fnum<=fmax;fnum+=sep){
 
                 // ID; QUERY GRMHD DATA
@@ -121,6 +117,7 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 
 
             // RESIDUALS
+			//RG:FLAG WHY ONLY UNPOLARIZED RESIDUALS?
 
 			for(il=4;il<=10;il++)resid[il-4][oo]=(xtotin[il]-tofit[il][1])/dFnu[il]; //compute residuals with 1/dFnu weights
 		};
@@ -164,20 +161,13 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
      ******************************************************************/
 
 
-	// doub rho_scan_factor=1.12;                    //ratio of consecutive density normalizations
 	doub rho_scan_factor=1.1;                    // steps/increments in density normalizations to scan for
 	iswrite=true;                      //write output for a range of densities to disk
 
-    //vary density between [rhonor/rho_scan_factor^3 , rhonor*rho_scan_factor^3]
-	// rhonor/=rho_scan_factor*rho_scan_factor*rho_scan_factor*rho_scan_factor;
-    doub rho_scan_min=pow(rhonor,-3*rho_scan_factor);
-    doub rho_scan_max=pow(rhonor,+3*rho_scan_factor);
+	doub rho_scan_min=rhonor*pow(rho_scan_factor,-3);
+	doub rho_scan_max=rhonor*pow(rho_scan_factor,+3);
 
-    //RG:FLAG WHAT IS "w"? hardcoded nr of iterations in rhonor scan?! Does not appear anywhere after...
-	// for(w=0;w<7;w++){ // in [ASTRORAY_main.cpp]: "int w; //thread number (for testing)"
-	// 	rhonor*=rho_scan_factor;
-
-    for(doub rho_scan=rho_scan_min; rho_scan>=rho_scan_max; rho_scan*=rho_scan_factor){ // Why not this way??
+    for(doub rho_scan=rho_scan_min; rho_scan<=rho_scan_max; rho_scan*=rho_scan_factor){
         rhonor=rho_scan;
 		//beginning of spectrum calculation block
 		for(kk=kmin;kk<=kmax;kk++){
@@ -198,11 +188,15 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 			};
 		};
 		//end of block
+
+		// compute chi^2
+		// ...WIP...
+
 		//writing spectra into files and on screen
 		string stra = sss.str();
 		FILE * pFile;
 		pFile = fopen ((dir+"ava"+stra+".dat").c_str(),"a");
-        fprintf(pFile,"# nu\t <I>\t<LP> <CP> <EVPA> heat \t rhonor Bpo\n");
+		fprintf(pFile,"# nu\t <I>\t<LP> <CP> <EVPA> heat \t rhonor Bpo\n");
 		for(kk=kmin;kk<=kmax;kk++){
 			printf(YELLOW"[m_space.cpp]: "RESET"avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2fdeg\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
 			fprintf(pFile,"%.1f\t\t %.3f\t\t %.3f\t %.3f\t %.2f\t %.5f\t %.4f\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk],heat,rhonor,Bpo);
@@ -210,7 +204,5 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 		fclose(pFile);
 	};
 
-    //RG:FLAG WHY DIVIDE *THREE TIMES* BY "rho_scan_factor" ?
-	rhonor/=rho_scan_factor*rho_scan_factor*rho_scan_factor;//return rhonor to the best-fitting value
 };
 }
