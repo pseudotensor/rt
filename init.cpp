@@ -809,7 +809,7 @@ for(k=0;k<thlen-1;k++)
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1); // accretion rate in physical units
 
 //initializing Te(Ts)+Tp(Ts) solver, standard for GSL
-cout << YELLOW"[init.cpp]:"RESET" Electron Temperature Solver..." << endl;
+// cout << YELLOW"[init.cpp]:"RESET" Electron Temperature Solver..." << endl;
 
 doub acc=2e-3,   //relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
 	 IT[2],      //ODE vector (Te+Tp)
@@ -897,7 +897,7 @@ gsl_odeiv_step_free (sz);
  * OUTER RADIAL BOUNDARY *
  *************************/
 
-printf(YELLOW"[init.cpp]: "RED"SETTING OUTER RADIAL EXTENSION...\n"RESET);
+// printf(YELLOW"[init.cpp]: "RED"SETTING OUTER RADIAL EXTENSION...\n"RESET);
 
 //compute quantities in the co-moving frame at the convergence boundary (given by rr=rcut=const)
 r_ext_boundary_idx=ncut-1; //point just inside convergence boundary

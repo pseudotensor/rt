@@ -249,8 +249,15 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
  case 444549: fmin=2130;fmax=2170;sep=2;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2-0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
  case 444550: fmin=2130;fmax=2170;sep=2;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
  case 444551: fmin=2130;fmax=2170;sep=2;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
-// same as 444551 just checking whether kmin=0->4 really makes no difference for chi^2 as expected
- case 4445514: fmin=2130;fmax=2170;sep=2;kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+// same as 444551 just checking chi^2 as expected
+ case 4445514: fmin=2150;fmax=2150;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+ case 4445515: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+
+ case 4445516: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2-0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+ case 4445517: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2-0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+ case 4445518: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+ case 4445519: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
+ case 4445520: fmin=2130;fmax=2170;     kmin=4;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
 
 
  case 424549: fmin=2110;fmax=2190;sep=4;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2+0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
