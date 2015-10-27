@@ -48,6 +48,7 @@ switch (cas){
 }
 
 sep=(fmax-fmin)/(ind-1);//ID difference between consecutive considered fluid simulation snapshots
+sep=max(sep,1); //sanity
 
 printf(YELLOW"[m_space.cpp]: "RESET"in=%d shots; sp=%d; angle th=%f\n",co,sp,th);
 
@@ -142,7 +143,13 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
     //RG:FLAG OK also when kmin!=0, but MUST HAVE kmin<5 !!!
 	for(il=4;il<=10;il++)              //compute \chi^2
 		xisq+=pow((doub)(xtotin[il]-tofit[il][1])/dFnu[il],(doub)2.);
-	xisq/=dof;                         //reduced \chi^2
+	xisq/=dof;                         //reduced \chi^2 //RG:FLAG dof~>dof-1! (fit heat/rhonor)
+
+	//RG: new fct to compute chi squared (TESTING)
+	doub chisq=0.,chisq_I=0.; 
+	chisquare(xtotin,xLPo,xCP,chisq,chisq_I,12,7,0);
+	printf(YELLOW"[m_space.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
+
 	stringstream sss;                  //filename for writing the "best-fitting" model parameters & spectra to disk
 	sss<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"in"<<ind<<"case"<<cas;
 	string outstr=dir+"xesa"+sss.str(); 

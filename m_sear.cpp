@@ -3,7 +3,7 @@ doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
 	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
 	 xss=1e-2,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 xsnxy=101,    //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xsnxy=151,    //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=0.1,    //6. step size in geodesic computation
 	 xsstep=-0.09, //7. step size in radiative transfer computation
 	 xIint=2e-9,   //8. initial intensity along each ray for radiative transfer
@@ -63,8 +63,8 @@ else
 	nPeff=nP-1;
 
 //if (ind<2) sep=2;
-sep=(fmax-fmin)/(ind-1);//compute difference of IDs of two consecutive snapshots
-if (sep==0) sep=1;
+sep=(fmax-fmin)/max(ind-1,1);//compute difference of IDs of two consecutive snapshots
+sep=max(sep,1); // sanity
 
 dheat=0.;             //initialize local model (w/ deviation) = global model
 drho=0.;
@@ -130,23 +130,23 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
             //RG: 
             printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
 
-			init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
-			#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
-			#include "intensity.cpp"
+	    init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
+            #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
+            #include "intensity.cpp"
 
             // RG: Free memory? Or is uu free
             //#pragma omp barrier //RG: DONT WE NEED TO SYNCH HERE?
             //delete[] uu; // GIVES ERROR (AT LEAST WITH openMP) WHY?
 
-			for(kk=kmin;kk<=kmax;kk++){ //add spectra up to get average spectra
-				ytotin[kk][oo]+=totin[kk]/ind;
-				yLPo[kk][oo]+=LPo[kk]/ind;
-				yCP[kk][oo]+=CP[kk]/ind;
-				yEVPA[kk][oo]+=EVPA[kk]/ind;
-			};
-
-		};
+	    for(kk=kmin;kk<=kmax;kk++){ //add spectra up to get average spectra
+	      ytotin[kk][oo]+=totin[kk]/ind;
+	      yLPo[kk][oo]+=LPo[kk]/ind;
+	      yCP[kk][oo]+=CP[kk]/ind;
+	      yEVPA[kk][oo]+=EVPA[kk]/ind;
+	    };
+	    
 	};
+    };
 
 //end of integration block 
 
@@ -155,7 +155,7 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
     // Chi^2
     //compute normalized residuals with respect to the observed spectra
 	
-	for(oo=0;oo<4;oo++){              // LOOP over 4 models
+    for(oo=0;oo<4;oo++){              // LOOP over 4 models
       for(il=4;il<=10;il++)           // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
         resid[il-4][oo]=(ytotin[il][oo]-tofit[il][1])/dFnu[il]; // F 
 
@@ -176,6 +176,18 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
       //RG:FLAG SHOULD INCORPORATE
       //if(trustLP87)            //either include or not include in the fit the LP fraction at 87GHz
 
+
+      //RG: new fct to compute chi squared (TESTING)
+      doub chisq=0.,chisq_I=0.; 
+      // chisquare(ytotin,yLPo,yCP,chisq,chisq_I,nP,7,3);
+      doub I[sflen],LP[sflen],CP[sflen];//=[0,0,0,0,0,0,0,0,0,0,0,0,0];
+      for(int i=0;i<nP;i++) {
+	I [i]=ytotin[i][0];
+	LP[i]=yLPo  [i][0];
+	CP[i]=yCP   [i][0];
+      }
+      chisquare(I,LP,CP,chisq,chisq_I);
+      printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
 
 
       // OUTPUT
