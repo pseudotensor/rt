@@ -457,7 +457,7 @@ for plot in range(len(titles)):
     ## image plane ##
     fig_xy.add_subplot(221+plot)
     pcolormesh(X,Y,data[:,:,plot],cmap=colormaps[plot],norm=[None,MidpointNormalize(midpoint=0)][plot>=1],vmin=limits_colors_xy[plot][0],vmax=limits_colors_xy[plot][1])
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_xy[plot][0],limits_colors_xy[plot][1],5)])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot][0],limits_colors_xy[plot][1],5) )
     #clim(limits_colors_xy[plot])
     plot_shadows("xy")
     if plot in [2,3]:
@@ -478,7 +478,7 @@ for plot in range(len(titles)):
     pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot]),cmap=colormaps_IQUV_uv[plot],vmin=limits_colors_uv[plot][0],vmax=limits_colors_uv[plot][1])
     #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot])
     #colorbar()
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_uv[plot][0],limits_colors_uv[plot][1],5)])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot][0],limits_colors_uv[plot][1],5))
     #clim(limits_colors_uv[plot])
     scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
@@ -516,9 +516,9 @@ for plot in range(len(titles)): #
     pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot],cmap=colormaps_4panel[plot])
     #pcolormesh(X,Y,[data[:,:,plot],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot],cmap=colormaps[plot])
     if plot==2:
-        colorbar(ticks=[linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5)],pad=0)
+        colorbar(ticks=linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5),pad=0)
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5)])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5))
     clim(limits_colors_4panel_xy[plot])
     plot_shadows("xy")
     if plot in [2,3]:
@@ -547,9 +547,9 @@ for plot in range(len(titles)):
 #    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot]),cmap=colormaps_4panel[plot])
     pcolormesh(u,v,[Pbreve_uv,mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot],cmap=colormaps_4panel[plot])
     if plot==2:
-        colorbar(ticks=[linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5)],pad=0)
+        colorbar(ticks=linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5),pad=0)
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5)])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5))
     clim(limits_colors_4panel_uv[plot])
 
     scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
@@ -587,9 +587,9 @@ if miniversion: #
 
     ## COLORBAR ##
     if plot==2:
-        colorbar(ticks=[linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5)],pad=0)
+        colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5),pad=0)
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=[linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5)])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5))
 
     clim(limits_colors_miniversion_4panel_uv[plot])
 
