@@ -31,13 +31,18 @@ from scipy import fftpack
 import matplotlib.ticker as ticker
 
 HOME=commands.getoutput("echo $HOME")
+# RT_DIR="/rt/"
+RT_DIR="/codes/rt-git/"
 
 # assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 # SOMEWHAT HARDWIRED DIRECTORY...
 try:
-    eht_obs_uv = loadtxt(HOME+'/rt/obs.txt',usecols=[4,5],comments='#')
+    EHT_config_file="obs.txt"
+    # EHT_config_file="obs-SMT-SMA.txt"
+    eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
     print "SUCCESSFULLY READ IN EHT uv-TRACKS"
 except:
+    print "Could not load EHT array configuration file! Ignore..."
     pass
 # scatter(obs[:,0],obs[:,1])
 
@@ -85,7 +90,7 @@ if "vary" in sys.argv: # use that for movies where parameter varies (adds curren
 else:
     VARY="" # can be "","magn_cap","theta","r"
 
-SCATTERING = "OFF"
+SCATTERING = "ON"
 if SCATTERING == "ON":
     try:
         from scipy import ndimage
@@ -452,45 +457,46 @@ limits_uv = [-6,6,-6,6]
 
 fig_xy = figure(0)
 fig_xy.subplots_adjust(wspace=0.35,hspace=0.22)
-for plot in range(len(titles)):
+for plot_loop in range(len(titles)):
 
     ## image plane ##
-    fig_xy.add_subplot(221+plot)
-    pcolormesh(X,Y,data[:,:,plot],cmap=colormaps[plot],norm=[None,MidpointNormalize(midpoint=0)][plot>=1],vmin=limits_colors_xy[plot][0],vmax=limits_colors_xy[plot][1])
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot][0],limits_colors_xy[plot][1],5) )
-    #clim(limits_colors_xy[plot])
+    fig_xy.add_subplot(221+plot_loop)
+    pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
+    #clim(limits_colors_xy[plot_loop])
+
     plot_shadows("xy")
-    if plot in [2,3]:
+    if plot_loop in [2,3]:
         gca().set(xlabel=r"$x\, \mu arcsec$")
-    if plot in [0,2]:
+    if plot_loop in [0,2]:
         gca().set(ylabel=r"$y\,\mu arcsec$")
     gca().axis(limits_xy)
-    title(titles[plot]+title_vary_string)
+    title(titles[plot_loop]+title_vary_string)
 
 savefig(filename_out.replace(".png","_IQUV_xy.png"))
 
 fig_uv_plane = figure(1)
 fig_uv_plane.subplots_adjust(wspace=0.35,hspace=0.22)
 
-for plot in range(len(titles)):
+for plot_loop in range(len(titles)):
     ## uv plane ##
-    fig_uv_plane.add_subplot(221+plot)
-    pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot]),cmap=colormaps_IQUV_uv[plot],vmin=limits_colors_uv[plot][0],vmax=limits_colors_uv[plot][1])
-    #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot])
+    fig_uv_plane.add_subplot(221+plot_loop)
+    pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot_loop]),cmap=colormaps_IQUV_uv[plot_loop],vmin=limits_colors_uv[plot_loop][0],vmax=limits_colors_uv[plot_loop][1])
+    #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot_loop],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot_loop])
     #colorbar()
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot][0],limits_colors_uv[plot][1],5))
-    #clim(limits_colors_uv[plot])
+    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
+    #clim(limits_colors_uv[plot_loop])
     scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
     plot_shadows("uv")
 
-    if plot in [2,3]:
+    if plot_loop in [2,3]:
         gca().set(xlabel=r"u $(G\lambda)$")
-    if plot in [0,2]:
+    if plot_loop in [0,2]:
         gca().set(ylabel=r"v $(G\lambda)$")
     axis(limits_uv)
-    title(titles_IQUV_uv[plot]+title_vary_string)
-    #title([r"$\rm\tilde{I}$",r"$\rm\tilde{Q}$",r"$\rm\tilde{U}$",r"$\rm\tilde{V}$"][plot]+title_vary_string)
+    title(titles_IQUV_uv[plot_loop]+title_vary_string)
+    #title([r"$\rm\tilde{I}$",r"$\rm\tilde{Q}$",r"$\rm\tilde{U}$",r"$\rm\tilde{V}$"][plot_loop]+title_vary_string)
 
 savefig(filename_out.replace(".png","_IQUV_uv.png"))
 
@@ -508,25 +514,26 @@ m_xy = (Q_xy+1j*U_xy)/I_xy
 # I_xy_masked[I_threshold_mask]=0
 
 #################################
-for plot in range(len(titles)): #
+for plot_loop in range(len(titles)): #
 
     ## image plane ##
-    fig_xy_4panel.add_subplot(221+plot)
+    fig_xy_4panel.add_subplot(221+plot_loop)
     
-    pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot],cmap=colormaps_4panel[plot])
-    #pcolormesh(X,Y,[data[:,:,plot],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot],cmap=colormaps[plot])
-    if plot==2:
-        colorbar(ticks=linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5),pad=0)
+    pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
+    #pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
+    if plot_loop==2:
+        colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot][0],limits_colors_4panel_xy[plot][1],5))
-    clim(limits_colors_4panel_xy[plot])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
+    clim(limits_colors_4panel_xy[plot_loop])
+
     plot_shadows("xy")
-    if plot in [2,3]:
+    if plot_loop in [2,3]:
         gca().set(xlabel=r"$x\,\mu arcsec$")
-    if plot in [0,2]:
+    if plot_loop in [0,2]:
         gca().set(ylabel=r"$y\,\mu arcsec$")
     gca().axis(limits_xy)
-    title(titles_4panel_xy[plot]+title_vary_string)
+    title(titles_4panel_xy[plot_loop]+title_vary_string)
 
 savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
 
@@ -541,68 +548,69 @@ mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
 large_mbreves = sum(mbreve_uv[u<=3.,v<=3.]>=1.) # within a square
 print "Fraction of mbreve>1 (within r_uv<3): ",large_mbreves,"/",size(mbreve_uv[u<=3.,v<=3.]),"=",float(large_mbreves) / size(mbreve_uv[u<=3.,v<=3.])
 
-for plot in range(len(titles)):
-    ## uv plane ##
-    fig_uv_4panel.add_subplot(221+plot)
-#    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot]),cmap=colormaps_4panel[plot])
-    pcolormesh(u,v,[Pbreve_uv,mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot],cmap=colormaps_4panel[plot])
-    if plot==2:
-        colorbar(ticks=linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5),pad=0)
-    else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_uv[plot][0],limits_colors_4panel_uv[plot][1],5))
-    clim(limits_colors_4panel_uv[plot])
+for plot_loop in range(len(titles)):
 
-    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
+    ## uv plane ##
+    fig_uv_4panel.add_subplot(221+plot_loop)
+#    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop]),cmap=colormaps_4panel[plot_loop])
+    pcolormesh(u,v,[Pbreve_uv,mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot_loop],cmap=colormaps_4panel[plot_loop])
+    if plot_loop==2:
+        colorbar(ticks=linspace(limits_colors_4panel_uv[plot_loop][0],limits_colors_4panel_uv[plot_loop][1],5),pad=0)
+    else:
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_uv[plot_loop][0],limits_colors_4panel_uv[plot_loop][1],5))
+    clim(limits_colors_4panel_uv[plot_loop])
+
+    scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
     plot_shadows("uv")
 
-    if plot in [2,3]:
+    if plot_loop in [2,3]:
         gca().set(xlabel=r"u $(G\lambda)$")
-    if plot in [0,2]:
+    if plot_loop in [0,2]:
         gca().set(ylabel=r"v $(G\lambda)$")
     axis(limits_uv)
-    title(titles_4panel_uv[plot]+title_vary_string)
+    title(titles_4panel_uv[plot_loop]+title_vary_string)
 
 savefig(filename_out.replace(".png","_4panel_uv.png"))
 
 #########################
-#manager.window.wm_geometry(fig_pos[plot]) # [WIP: need to understand the arg syntax]
-#savefig(filename_out.replace(".png","_"+titles[plot]+".png"))
+#manager.window.wm_geometry(fig_pos[plot_loop]) # [WIP: need to understand the arg syntax]
+#savefig(filename_out.replace(".png","_"+titles[plot_loop]+".png"))
 #################
 if miniversion: #
 
   fig_miniversion_uv_4panel = figure(2)
   fig_miniversion_uv_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
 
-  for plot in range(len(titles)):
+  for plot_loop in range(len(titles)):
     ## uv plane ##
-    fig_miniversion_uv_4panel.add_subplot(221+plot)
+    fig_miniversion_uv_4panel.add_subplot(221+plot_loop)
 
-    # pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot]),cmap=colormaps_4panel[plot])
+    # pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop]),cmap=colormaps_4panel[plot_loop])
     # mini-version showing just 4 panels: I, mpl, mbreve, EVPA(visibility version). 
     # RG: Why are ampplitudes of mtilde_uv so large?
-    # pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,log10(abs(mtilde_uv))][plot],cmap=colormaps_miniversion_4panel[plot])
+    # pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,log10(abs(mtilde_uv))][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop])
     # RG: Replace 4th panel with CP
-    pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot],cmap=colormaps_miniversion_4panel[plot])
+    pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop])
 
     ## COLORBAR ##
-    if plot==2:
-        colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5),pad=0)
+    if plot_loop==2:
+        colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5),pad=0)
     else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot][0],limits_colors_miniversion_4panel_uv[plot][1],5))
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5))
 
-    clim(limits_colors_miniversion_4panel_uv[plot])
+    clim(limits_colors_miniversion_4panel_uv[plot_loop])
 
-    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
+    scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
     plot_shadows("uv")
 
-    if plot in [2,3]:
+    if plot_loop in [2,3]:
         gca().set(xlabel=r"u $(G\lambda)$")
-    if plot in [0,2]:
+    if plot_loop in [0,2]:
         gca().set(ylabel=r"v $(G\lambda)$")
     axis(limits_uv)
-    title(titles_miniversion_4panel_uv[plot]+title_vary_string)
+    title(titles_miniversion_4panel_uv[plot_loop]+title_vary_string)
 
 savefig(filename_out.replace(".png","_miniversion_4panel_uv.png"))
 
