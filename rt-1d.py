@@ -44,12 +44,15 @@ FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE or "ava" in FILE]
 
 PLOT_SED="no"
-PLOT_CORRELATED_FLUX="yes"
+PLOT_CORRELATED_FLUX="no"
 PLOT_I_vs_mbreve="yes"
 
 if size(FILES_2D)==0:
     PLOT_CORRELATED_FLUX="no"
     PLOT_I_vs_mbreve="no"
+
+print "Found ",size(FILES_1D),"1d files and ",size(FILES_2D),"2d files\n"
+print "MODES: PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA",PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA,"\n"
 
 col_SED=[1,2]
 if len(FILES_1D)>0:
@@ -237,9 +240,9 @@ for snapshot in FILES_2D:
     ###################################################################
 
     # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    #dt = 4. ## thickdisk7
+    dt_GRMHD = 4. ## thickdisk7
     #t_ref = 6100 ## thickdisk7
-    dt_GRMHD = 5. ## a0mad
+    # dt_GRMHD = 5. ## a0mad
     t_ref = 2000
     print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
     t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]

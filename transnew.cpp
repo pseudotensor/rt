@@ -25,10 +25,16 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
     ff[1]= (det*((cos2k*cosqs + sin2k*sinqs)*sinths*(jQc - aQc*frcu*yyy[0]) + cosths*(jVc -aVc*frcu*yyy[0]) - aIc*frcu*yyy[1]))/frsq;
 
     ff[3]=(det*(-(jVc*sinths) + aVc*frcu*sinths*yyy[0] + cos2k*cosqs*cosths*(jQc - aQc*frcu*yyy[0]) + cosths*sin2k*sinqs*(jQc - aQc*frcu*yyy[0]) + cosqs*frcu*rQc*sin2k*yyy[1] -cos2k*frcu*rQc*sinqs*yyy[1]))/(frsq*yyy[1]);
-    //ff[4]= det*(-fr*aIc_approx*yyy[4] + jIc_approx/frsq);
 
-    //RG:
-    ff[4]= det*(rho/frsq); // ~> jIc=rho <=> column density image? // v5 // closest to Avery's code so far
+    if ( !strcmp(image_diagnostic,"column densities") ) {
+      ff[4]= det*(rho/frsq); // ~> jIc=rho <=> column density image? // v5 // closest to Avery's code so far
+    }
+    else if ( !strcmp(image_diagnostic,"melrose") ) {
+      ff[4]= det*(-fr*aIc_approx*yyy[4] + jIc_approx/frsq);
+    }
+    // else
+    //   printf(YELLOW"[transnew.cpp]: "RED"CHOOSE IMAGE DIAGNOSTICS in [global_variables.cpp]"RESET"\n");
+    //   exit(1);
 
     /*******************************/
     // ADD NON-THERMAL CONTRIBUTION 
