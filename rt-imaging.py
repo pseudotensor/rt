@@ -85,7 +85,7 @@ if "vary" in sys.argv: # use that for movies where parameter varies (adds curren
 else:
     VARY="" # can be "","magn_cap","theta","r"
 
-SCATTERING = "OFF"
+SCATTERING = "ON"
 if SCATTERING == "ON":
     try:
         from scipy import ndimage
