@@ -22,13 +22,32 @@ case 7133: fmin=5900;fmax=5960;sep=5;kmin=0;kmax=10;sp=0;rhonor=140000.; heat=0.
  case 7139: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
  case 7239: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=160000.; heat=0.08; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
 
- case 71390: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
+
+ case 71390: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; 
+ case 713904: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=51;fif="_51";break; 
+ case 713905: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=101;fif="_101";break; 
+ case 713906: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=151;fif="_151";break; 
+ case 713907: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=201;fif="_201";break; 
+ case 713908: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=301;fif="_301";break; 
+ case 713909: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;snxy_user=401;fif="_401";break; 
+
+
  case 71391: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
  case 71392: fmin=4000;fmax=5000;sep=5;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
  case 71393: fmin=4000;fmax=5940;sep=5;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=PI/2.; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
  case 71394: fmin=2174;fmax=2174;sep=5;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=PI/2.; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break;
  case 71395: fmin=2174;fmax=2174;sep=5;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.06; th=PI/2.-0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break;
 
+// same as 71390 but with different magn_cap's
+ case 7771390: fmin=5940;fmax=5960;sep=1;kmin=4;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;break; 
+
+ case 781590: fmin=5550;fmax=5950;sep=20;kmin=4;kmax=10;sp=0;rhonor=60000.; heat=0.10; th=1.0; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density 
+ case 781591: fmin=5550;fmax=5950;sep=20;kmin=4;kmax=10;sp=0;rhonor=100000.; heat=0.10; th=PI/2.; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density 
+ case 781592: fmin=5550;fmax=5950;sep=20;kmin=4;kmax=10;sp=0;rhonor=100000.; heat=0.10; th=PI/2.-0.2; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density 
+ case 781593: fmin=5550;fmax=5950;sep=20;kmin=4;kmax=10;sp=0;rhonor=100000.; heat=0.10; th=PI/2.+0.2; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density 
+
+// best-fit thickdisk-jet (from bh01) chi^2/dof~4.9
+ case 782000: fmin=5550;fmax=5950;sep=50;kmin=7;kmax=8;sp=0;rhonor=100193.4189; heat=0.0538; th=2.4264; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density 
 
 case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=10;break;
  case 715: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0601; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=0; break; // SCS // F too low
