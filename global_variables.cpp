@@ -44,11 +44,12 @@ const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet
 
 // bool use_radial_extension=false; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
+const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column densities": as the name suggests
 
 // THICKDISK7
-// const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
 // OTHER MODELS
-const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
 // const int ndd=288+1,           //radial dimension of coordinate/coordinate transformation matrices
   sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -68,8 +69,8 @@ const int ndd=350,           //radial dimension of coordinate/coordinate transfo
   maxst=40000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=101 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=101 /*301*/;          //maximum resolution in picture plane for flux calculations
+  nxy=151 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  snxy=151;          //maximum resolution in picture plane for flux calculations
 
 const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 //RG:TEST units in M ~> SEG-FAULT in init.cpp
@@ -143,6 +144,10 @@ const doub dFnu[sflen]={0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.141
            dLP[3]={0.50, 0.658, 0.605}, // at 87GHz, 230GHz, and 345GHz
            dEVPA[3]={11.,5.4,2.21};     // at 87GHz, 230GHz, and 345GHz
 const bool trustLP87=true;//whether to fit for LP fraction at 87GHz. Its observational value is controversial
+doub dof=7.;                            //degrees of freedom
+
+doub heat_min=0.3,                // range of heat constants probed in [m_space.cpp]
+  heat_max=0.75;
 
 bool nth=false,                                          // include non-thermal electrons?
 //bool nth=true,                                          // include non-thermal electrons?
