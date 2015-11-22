@@ -23,15 +23,21 @@ from scipy import fftpack
 import matplotlib.ticker as ticker
 
 HOME=commands.getoutput("echo $HOME")
+# RT_DIR="/rt/"
+RT_DIR="/codes/rt-git/"
+
 # assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 try:
-    eht_obs_uv = loadtxt(HOME+'/rt/obs.txt',usecols=[4,5],comments='#')
+    EHT_config_file="obs.txt"
+    # EHT_config_file="obs-SMT-SMA.txt"
+    eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
 except:
     pass
-# scatter(obs[:,0],obs[:,1])
+# scatter(obs[:,1],obs[:,2])
 
 
 ## USER SPECS ##
+FILE_EXT="png"
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
@@ -86,7 +92,7 @@ if SCATTERING == "ON":
 
 angle_unit="arcsec" # "rad"
 # This is used for enhancing smoother uv data at large scales: Warning not good for mtilde because the xy-data don't seem to decay to zero for large xy. Zeropadding then introducing strong artefacts.
-zeropadding_factor=4  
+zeropadding_factor=4
 
 pc = scipy.constants.parsec # SI
 G = scipy.constants.G # SI
@@ -150,8 +156,16 @@ for snapshot in FILES_2D:
     uv_maximally_spinning = 150.*1.4/(shadow_maximally_spinning /d_SagA * rad2microarcsec)
 
     if string.lower(SCATTERING)=="on" or string.lower(SCATTERING)=="yes":
-        sigma_in_microarcsec = 7.4 # valid for f=230Ghz
+        FWHM = 1e3*((c/observing_frequency*freq_unit)/1e-2)**2. # valid for general frequency
+        # sigma_in_microarcsec = 7.4 # valid for f=230Ghz
+        sigma_in_microarcsec = FWHM/2.3
+
+        # TESTING
+        # sigma_in_microarcsec *= 5. 
+        # sigma_in_microarcsec *= 2. 
         sigma_in_microarcsec *= 0.5 # Scattering can be partially undone, so... REF: http://adsabs.harvard.edu/abs/2014ApJ...795..134F
+
+
         #sigma_in_microarcsec = 1. # mild scattering to see jet but maybe kill off spurious pole features
         sigma = sigma_in_microarcsec / (image_size/nxy) # 10. # pixel units for ndimage.gaussian_filter
         for CHANNEL in range(shape(data)[-1]):
@@ -198,6 +212,7 @@ for snapshot in FILES_2D:
     UV = meshgrid(u,v)
 
     mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
+    vbreve_uv = abs(V_uv)/abs(I_uv)
     EVPA_uv = angle((Q_uv+1j*U_uv)/I_uv) * 90./pi 
 
 
@@ -216,9 +231,29 @@ for snapshot in FILES_2D:
         V_uv[UV_mbreve_mask] = 0
 ######################################################
 
+    # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
+    #dt = 4. ## thickdisk7
+    #t_ref = 6100 ## thickdisk7
+    dt_GRMHD = 5. ## a0mad
+    t_ref = 5500 # 2000
+    print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
+    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
+
+    # Given time in hr    NOW PICK UV point (along EHT uv tracks
+    try:
+        uv_time_idx = pylab.find(eht_obs_uv[:,0]>=t[-1])[0]
+    except:
+        pass
+    u_probe=eht_obs_uv[uv_time_idx,1]
+    v_probe=eht_obs_uv[uv_time_idx,2]
+
     ###################################################################
     # PICK A POINT
     # u_probe,v_probe=3.,3.
+
+    # SHOULD REALLY JUST INTERPOLATE... E.G.
+    # interp2d(u,v,mbreve_uv)(3,3)
+
     # lower_bound=2.5;upper_bound=3.
     try: # current EHT uv range 3.2 based on Fig.1 in ordered fields draft
         # lower_bound=0.5;upper_bound=1.0
@@ -236,18 +271,16 @@ for snapshot in FILES_2D:
     v_probe_opposite_index = list(v).index(v[(v<-lower_bound)*(v>-upper_bound)][0])
     ###################################################################
 
-    # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    #dt = 4. ## thickdisk7
-    #t_ref = 6100 ## thickdisk7
-    dt_GRMHD = 5. ## a0mad
-    t_ref = 2000
-    print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
+    # NEW WAY ALONG EHT TRACKS
+    mbreve_vs_t += [interp2d(u,v,mbreve_uv)(u_probe,v_probe)]
+    mbreve_opposite_vs_t += [interp2d(u,v,mbreve_uv)(-u_probe,-v_probe)]
+    dEVPA_vs_t   += [interp2d(u,v,EVPA_uv)(u_probe,v_probe)-interp2d(u,v,EVPA_uv)(-u_probe,-v_probe)]
 
-    mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
-    mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
-    dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
-    # dEVPA_vs_t   += [-EVPA_uv[u_probe_index,v_probe_index]+EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
+    # OLD HARDCODED WAY
+    # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
+    # mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
+    # dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
+    # # dEVPA_vs_t   += [-EVPA_uv[u_probe_index,v_probe_index]+EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
 
 for jump_removal_iteration in range(5):
     try:
@@ -468,30 +501,30 @@ if PLOT_CORRELATED_FLUX=="yes":
     I_uv_max = amax(abs(I_uv))
     I_uv_intp = interp2d(u,v,abs(I_uv))
     mbreve_uv_intp = interp2d(u,v,abs(mbreve_uv))
-    CP_uv_intp = interp2d(u,v,abs(V_uv)/abs(I_uv))
+    vbreve_uv_intp = interp2d(u,v,abs(V_uv)/abs(I_uv))
 
     # CF = empty((nr,nph))
-    mbreve_uv_rphi,I_uv_rphi,CP_uv_rphi = empty((nr,nph)),empty((nr,nph)),empty((nr,nph))
+    mbreve_uv_rphi,I_uv_rphi,vbreve_uv_rphi = empty((nr,nph)),empty((nr,nph)),empty((nr,nph))
     for r_idx in arange(nr):
         for phi_idx in arange(nph):
             I_uv_rphi[r_idx][phi_idx]      = I_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
             mbreve_uv_rphi[r_idx][phi_idx] = mbreve_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
-            CP_uv_rphi[r_idx][phi_idx]      = CP_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
+            vbreve_uv_rphi[r_idx][phi_idx]      = vbreve_uv_intp(r_uv[r_idx]*sin(ph_uv[phi_idx]),r_uv[r_idx]*cos(ph_uv[phi_idx]))
     I_uv_1d = mean(abs(I_uv_rphi),axis=1)
     I_uv_1d_min = amin(abs(I_uv_rphi),axis=1)
     I_uv_1d_max = amax(abs(I_uv_rphi),axis=1)
     mbreve_uv_1d = mean(abs(mbreve_uv_rphi),axis=1)
     mbreve_uv_1d_min = amin(abs(mbreve_uv_rphi),axis=1)
     mbreve_uv_1d_max = amax(abs(mbreve_uv_rphi),axis=1)
-    CP_uv_1d = mean(abs(CP_uv_rphi),axis=1)
+    vbreve_uv_1d = mean(abs(vbreve_uv_rphi),axis=1)
 
     plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$I:\phi-avg$")
     fill_between(r_uv,I_uv_1d_min/I_uv_1d[0],I_uv_1d_max/I_uv_1d[0],color='cyan',alpha=0.5)
 
     plot(r_uv,mbreve_uv_1d,'rd-',label=r"$\breve{m}:\phi-avg$")
-    fill_between(r_uv,mbreve_uv_1d_min,mbreve_uv_1d_max,color='red',alpha=0.25)
+    fill_between(r_uv,mbreve_uv_1d_min,mbreve_uv_1d_max,color='red',alpha=0.2)
 
-    plot(r_uv,CP_uv_1d,'o-',color='gray',label=r"$CP:\phi-avg$")
+    plot(r_uv,vbreve_uv_1d,'o-',color='gray',label=r"$\breve{v}:\phi-avg$")
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
@@ -499,26 +532,40 @@ if PLOT_CORRELATED_FLUX=="yes":
     #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
     I_uv_err = array([0.2,0.03,0.05,0.05])
     errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
-    axis((0,10,0,1.1));xlabel(r"$\|uv\|$");ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");legend=legend(labelspacing=0.1);tight_layout()
+    # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
+    axis((0,10,0,1.1));xlabel(r"$\|uv\|$");legend=legend(labelspacing=0.1);tight_layout()
     legend.get_frame().set_alpha(0.5)
     plt.setp(gca().get_legend().get_texts(), fontsize='18')
 
-    iter=FILES_2D[0].split("fn")[1].split("_")[0]
-    t_ref=0.
-    dt_GRMHD
-    t=(float(iter)-t_ref)*dt_GRMHD * (G*M/c**3) /60./60.  # in hours
-    title(r"$t="+str(round(t,1))+"$h")
+    if size(FILES_2D)>1:
+        iter=FILES_2D[0].split("fn")[1].split("_")[0]
+        # t_ref=0.
+        # dt_GRMHD # ?
+        t=(float(iter)-t_ref)*dt_GRMHD * (G*M/c**3) /60./60.  # in hours
+        title(r"$t="+str(round(t,1))+"$h")
+
     tight_layout()
-    savefig("Fnu-vs-uv_"+string.zfill(iter,4)+".png")
+    savefig("Fnu-vs-uv_"+string.zfill(iter,4)+"."+FILE_EXT)
 
 
 if string.lower(PLOT_I_vs_mbreve)=="yes":
     figure(8)
-    scatter(abs(I_uv)/I_uv_max,mbreve_uv,alpha=0.5)
+    scatter(abs(I_uv)/I_uv_max,mbreve_uv,c="r",marker="x",alpha=0.5)
     axis((0,1,0,1.2))
     xlabel(r"$\|I(u,v)/I_{\rm max}\|$")
     ylabel(r"$\breve{m}$")
     tight_layout()
+    savefig("I-vs-mbreve."+FILE_EXT)
+
+PLOT_I_vs_vbreve="yes"
+if string.lower(PLOT_I_vs_vbreve)=="yes":
+    figure(9)
+    scatter(abs(I_uv)/I_uv_max,vbreve_uv,c="m",alpha=0.5)
+    axis((0,1,0,1.2))
+    xlabel(r"$\|I(u,v)/I_{\rm max}\|$")
+    ylabel(r"$\breve{v}$")
+    tight_layout()
+    savefig("I-vs-vbreve."+FILE_EXT)
 
 # See divenex's answer on
 # http://stackoverflow.com/questions/6163334/binning-data-in-python-with-scipy-numpy
