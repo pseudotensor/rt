@@ -697,6 +697,8 @@ tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
 
 if (TEMPERATURE_DIAGNOSTIC) { 
 
+  // printf(YELLOW"[evalpointzero.cpp]: "RESET"TEMPERATURE DIAGNOSTIC!\n");
+
   stringstream temperature_diag_sstr;
   FILE * TeTp_file; 
 
@@ -706,27 +708,37 @@ if (TEMPERATURE_DIAGNOSTIC) {
 
   // if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
   // if (true) { // unlimited output...
-  if (geodesic_idx==0) { // limited output
+  if (geodesic_idx==500) { // limited output
+  // if (geod_pt_idx==1) { // limited output
+  // if (curr==1) { // limited output
     
     // int geodesic_label=ix;
     stringstream temperature_diag_sstr_append;
-    temperature_diag_sstr_append<<append_label<<geodesic_idx;
+    temperature_diag_sstr_append<<append_label<<"geod"<<geodesic_idx;
     string stra = temperature_diag_sstr_append.str();
     
+
+    //RG: should really open file once before computation and close when all is done...
     TeTp_file=fopen ((dir+stra+".dat").c_str(),"a");
     
     //for (int geo_idx=0; geo_idx<=maxco; geo_idx++) { // maxco
     // for (int geo_idx=0; geo_idx<=stN; geo_idx++) { // maxco
-      for (int p=0; p<=7; p++) { // r:p-> costh: ph:
-        // fprintf(TeTp_file,"%f ",ppy[currth].cooxx[p][geo_idx]);
-        fprintf(TeTp_file,"%f ",ppy[curr].cooxx[p][geodesic_idx]);
-      }
+
+      // for (int p=0; p<=7; p++) { // r:p-> costh: ph:
+      //   // fprintf(TeTp_file,"%f ",ppy[currth].cooxx[p][geo_idx]);
+      //   fprintf(TeTp_file,"%f ",ppy[curr].cooxx[p][geodesic_idx]);
+      // }
       // lamx[] vs lam[]?
       // fprintf(TeTp_file,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
-      fprintf(TeTp_file,"%f %f %f %d\n",tet,tpt,ppy[curr].lamx[geodesic_idx],indT);
-    }
+
+    // if () 
+    fprintf(TeTp_file,"# rr \t costh \t ph \t tet \t\t tpt \t\t indT \n");
+
+    fprintf(TeTp_file,"%.4g\t %.4g\t %.4g\t %.4g\t %.4g\t %d\n",rr,costh,ph,tet,tpt,indT);
     
     fclose(TeTp_file);
+
+    }
 
     // } //for (int geodesic_label=0; geo_idx<=maxco; geo_idx+=1000) { // if (curr)
 
