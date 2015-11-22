@@ -98,13 +98,13 @@ if((curr>=nthreads)||(curr<0)){ //check the bounds of thread number
 	exit(-1);
 };
 doub nu=ppy[curr].nu;               //define frequency in current thread
-int indx=ppy[curr].indx;            //number of points on current geodesic
+int geodesic_idx=ppy[curr].indx;            //number of points on current geodesic
 doub la=ppy[curr].lamx[0],          //minimum affine parameter (zero)
-	 lb=ppy[curr].lamx[indx]+1e-14; //maximum affine parameter (~1 for most geodesics hitting the BH, ~2 for most geodesics leaving to infinity)
+	 lb=ppy[curr].lamx[geodesic_idx]+1e-14; //maximum affine parameter (~1 for most geodesics hitting the BH, ~2 for most geodesics leaving to infinity)
 doub lz=t,                          //affine parameter of interest = proper time
      lx;                            //affine parameter at the closest point on a geodesic
 int  ia=0,                          //min index of a point on a geodesic
-	 ib=indx,                       //max index of a point on a geodesic
+	 ib=geodesic_idx,                       //max index of a point on a geodesic
 	 geod_pt_idx;                   //index of the closest point on a geodesic
 
 //given the proper time find where on a geodesic we are
@@ -638,7 +638,7 @@ if(Ttot>maxT)                       //if temperature is above allowed, then set 
 	Ttot=maxT;
 if(Ttot<minT)                       //if temperature is below allowed, then set it to minimum allowed
 	Ttot=minT;
-int indT=stNt;                      //number of points on temperature look-up grid
+int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety? // BESIDES COMMENT SEEMS WRONG: *INDEX* of point on temperature grid
 doub Ta=ts[0],                      //minimum temperature
 	 Tb=ts[indT];                   //maximum temperature
 doub Tx,                            //closest temperature on look-up grid
@@ -687,6 +687,56 @@ doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
 //tet = minT;
 
 tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
+
+
+
+
+
+/******************************/
+/* RG:OUTPUT TEMPERATURE INFO */
+
+if (TEMPERATURE_DIAGNOSTIC) { 
+
+  stringstream temperature_diag_sstr;
+  FILE * TeTp_file; 
+
+  temperature_diag_sstr<<"temperature_diag"<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum;
+  string append_label;
+  append_label=temperature_diag_sstr.str();
+
+  // if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
+  // if (true) { // unlimited output...
+  if (geodesic_idx==0) { // limited output
+    
+    // int geodesic_label=ix;
+    stringstream temperature_diag_sstr_append;
+    temperature_diag_sstr_append<<append_label<<geodesic_idx;
+    string stra = temperature_diag_sstr_append.str();
+    
+    TeTp_file=fopen ((dir+stra+".dat").c_str(),"a");
+    
+    //for (int geo_idx=0; geo_idx<=maxco; geo_idx++) { // maxco
+    // for (int geo_idx=0; geo_idx<=stN; geo_idx++) { // maxco
+      for (int p=0; p<=7; p++) { // r:p-> costh: ph:
+        // fprintf(TeTp_file,"%f ",ppy[currth].cooxx[p][geo_idx]);
+        fprintf(TeTp_file,"%f ",ppy[curr].cooxx[p][geodesic_idx]);
+      }
+      // lamx[] vs lam[]?
+      // fprintf(TeTp_file,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
+      fprintf(TeTp_file,"%f %f %f %d\n",tet,tpt,ppy[curr].lamx[geodesic_idx],indT);
+    }
+    
+    fclose(TeTp_file);
+
+    // } //for (int geodesic_label=0; geo_idx<=maxco; geo_idx+=1000) { // if (curr)
+
+} // if TEMPERATURE_DIAGNOSTIC
+
+
+
+
+
+
 
 if ( !strcmp(avery_toy_jet,"yes") ) {
   doub Rb=20;

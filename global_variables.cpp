@@ -28,6 +28,8 @@ bool GEODESIC_DIAGNOSTIC=false;
 int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
+bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
+
 const doub PI = 4.0*atan(1.0);
 
 const bool avoid_pole=true; // grep for critan ~> [evalpointzero.cpp]
