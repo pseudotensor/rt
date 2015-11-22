@@ -29,8 +29,9 @@
 \author{Roman V. Shcherbakov}
 \affil{Department of Astronomy, University of Maryland, College Park, MD 20742-2421, USA \\Hubble Fellow}
 \email{shcher@gmail.com}
-\author{Documentation coedited by Roman Gold}
-\affil{Department of Physics, University of Maryland, College Park, MD 20742-2421, USA \\JSI Scientist, Postoctoral research Associate}
+\author{Roman Gold}
+\email{gold@umd.edu}
+\affil{Department of Physics, University of Maryland, College Park, MD 20742-2421, USA \\JSI Scientist, Postdoctoral Research Associate}
 \email{gold@umd.edu}
 
 
@@ -44,8 +45,10 @@ code. {\tt ASTRO\_RAY} is a GR, ray-tracing and polarized radiative
 transfer code for thermal synchrotron radiation.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Version 1.0 of the code is publicly released.  The code is provided
-under the terms of GNU Public License v. 3.0.  No technical support is
-provided.
+under the terms of GNU Public License v. 3.0.  No technical support is provided.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The code is under continuous development in a quest for bugfixes,
+enhancements in robustness, usability, and performance.
 \end{abstract}
 %\keywords{radiative transfer --- polarization --- magnetic fields}
 
@@ -109,6 +112,21 @@ to include Compton scattering.
 %\subsection{Extension to large radius}
 
 \section{Compilation and Basic Usage}
+
+Get the code via:
+\begin{verbatim}
+$ git clone https://harm.unfuddle.com/git/harm_rt/
+\end{verbatim}
+
+Familiarizing yourself with {\tt ASTRO\_RAY} will take some time, but
+the aim of this documentation is to make this process as efficient and
+harmless as possible. We take a ``layered'' approach, meaning we will
+explain several working procedures, that require an increasing level of
+experience with the code. This way your set of skills will be
+gradually enhanced. We will start with a minimal example involving a
+prepared case and later will get to more comprehensive and advanced
+situations.
+
 \subsection{{\bf Compiling} the code}
 \paragraph{{\tt UBUNTU}}
 
@@ -180,20 +198,24 @@ $PBS\_ARRAYID$ needs to be defined. \rg{WIP: To what value? At any
 \begin{verbatim}
 ./ASTRORAY_main [SPIN] [#SNAPSHOTS] C [MODE]
 \end{verbatim}
-    where [SPIN] is the dimensionless spin parameter of the Kerr BH
-    spacetime and [\#SNAPSHOTS] is the number of simulation snapshots
-    over which the radiative transfer is performed,
-    \rg{...WIP...FIXME: sp=atoi(argv[1])-1;??}. The meaning of the
-    command-line parameter {\tt C} C=mco=floor(Bpo+0.001) and
-    [\#SNAPSHOTS]? depends on the chosen {\tt [MODE]} of
-    operation. \rg{For \textit{sear=1 C=Bpo}. At least for \textit{[MODE]=1 C} stands for a predefined case label, see \textit{m\_quick.cpp}. C is also used as the
-      heating constant. Are these the same quantities (in general)? If
-      not change it to avoid confusion.}
+    where [SPIN] is the array index (in human/python [1] {\bf \it not} c style
+    [0]) for the {\tt atab} array (provided in {\tt win\_lin\_Jon.c})
+    for the dimensionless spin parameter of the Kerr BH spacetime and
+    [\#SNAPSHOTS] is the number of simulation snapshots over which the
+    radiative transfer is performed, \rg{...WIP...FIXME:
+      sp=atoi(argv[1])-1;??}. The meaning of the command-line
+    parameter {\tt C} C=mco=floor(Bpo+0.001) and [\#SNAPSHOTS]?
+    depends on the chosen {\tt [MODE]} of operation. \rg{For
+      \textit{sear=1 C=Bpo}. At least for \textit{[MODE]=1 C} stands
+      for a predefined case label, see \textit{m\_quick.cpp}. C is
+      also used as the heating constant. Are these the same quantities
+      (in general)? If not change it to avoid confusion.}
 
-    As a simple example: The following line launches the code in mode
-    {\tt sear=1} using case 14 (see \textit{m\_quick.cpp} for details):
+    As a simple example: The following lines launches the code in mode
+    {\tt sear=1} using case 100 (see \textit{m\_quick.cpp} for details):
 \begin{verbatim}
-./ASTRORAY_main 0.9375 1 14 1
+export LSB_JOBINDEX=100; 
+./ASTRORAY_main 0 1 100 1;
 \end{verbatim}
     This will quickly compute a spectrum for given sp, heat, rhonor,
     th \rg{[WIP: describe]} from one simulation snapshot (fast-light
@@ -385,11 +407,19 @@ $PBS\_ARRAYID$ needs to be defined. \rg{WIP: To what value? At any
 \section{Inputs}
 The code has several inputs and several modes of operation.
 \subsection{GRMHD simulation snapshots}
-The files \textit{fieldlineXXXX.bin} are the simulation snapshots. They contain the full 3D dynamical quantities: arbitrarily normalized density $\rho$, internal energy density $u$,
-4-velocity $u^\nu$, 3-vector of lab-frame magnetic field $B_i$ (see \citealt{Penna:2010dj}), and two more quantities, which we do not need. All quantities are 4-byte real numbers
-The simulations are performed on a distorted spherical grid, modified Kerr-Schild (MKS) coordinates. The effective dimensions are ${\bf rlen}$, ${\bf thlen}$, and ${\bf phlen}$
-in radial, poloidal, and toroidal directions, respectively. \textit{fieldlineXXXX.bin} files contain the preamble of the length which changed over the years.
-Thus, start reading the file from the position
+The files \textit{fieldlineXXXX.bin} are the simulation
+snapshots. They contain the full 3D dynamical quantities: arbitrarily
+normalized density $\rho$, internal energy density $u$, 4-velocity
+$u^\nu$, 3-vector of lab-frame magnetic field $B_i$ (see
+\citealt{Penna:2010dj}), and two more quantities, which we do not
+need. All quantities are 4-byte real numbers The simulations are
+performed on a distorted spherical grid, modified Kerr-Schild (MKS)
+coordinates. The effective dimensions are ${\bf rlen}$, ${\bf thlen}$,
+and ${\bf phlen}$ in radial, poloidal, and toroidal directions,
+respectively. \textit{fieldlineXXXX.bin} files contain the preamble of
+the length which changed over the years.  Thus, start reading the file
+from the position
+
 \begin{equation}
 p=filesize-rlen*thlen*phlen*11*4.
 \end{equation}
@@ -397,10 +427,16 @@ p=filesize-rlen*thlen*phlen*11*4.
 \rg{What is meant here? Should the user do that or is this a
   description of what the code is doing?}
 
-The velocity of matter approaches the speed of light near the event horizon. Therefore, as the photons propagate within the flow, the flow itself has enough time to change.
-The information about the flow at that later time is stored in a \textit{fieldlineYYYY.bin} file with a different $YYYY>XXXX$ number. The emissivity etc.
-at that later time is determined by quantities in \textit{fieldlineYYYY.bin}. The code allows to read several \textit{fieldlineXXXX.bin} files from the storage
-and perform self-consistent radiative transfer calculations, where the numerical simulation effectively evolves as the light propagates through the flow.
+The velocity of matter approaches the speed of light near the event
+horizon. Therefore, as the photons propagate within the flow, the flow
+itself has enough time to change.  The information about the flow at
+that later time is stored in a \textit{fieldlineYYYY.bin} file with a
+different $YYYY>XXXX$ number. The emissivity etc.  at that later time
+is determined by quantities in \textit{fieldlineYYYY.bin}. The code
+allows to read several \textit{fieldlineXXXX.bin} files from the
+storage and perform self-consistent radiative transfer calculations,
+where the numerical simulation effectively evolves as the light
+propagates through the flow.
 
 \subsection{Coordinates and transformations}
 Since the simulation grid is not spherical, the distortions need to be quantified.
@@ -447,9 +483,9 @@ constant.  The code computes correspondence of $T_e$ on $u$ \rg{Do we
 the averaged profiles of density and temperature.  Then it draws $T_e$
 from that correspondence to $u$ at any point of the simulation (see
 section 4.2 of SPM12).  Those averaged radial profiles of density and
-temperature are created by \textit{m\_ts} routine (see below) and
-stored in \textit{TsmapNAME.dat} text file, where \textit{NAME} is the
-simulation name.
+temperature are created and bubble-sorted by \textit{m\_ts} routine
+(see below) and stored in \textit{TsmapNAME.dat} text file, where
+\textit{NAME} is the simulation name.
 
 \subsection{Cyclo-synchrotron emissivities and rotativities}
 A crucial part of GR polarized radiative transfer is the correct
@@ -542,14 +578,26 @@ on the mode of operation. That file also defines global variables, and
 a couple of core functions, which are to be discussed below.
 
 \subsection{\textit{m\_space}}
-This routine allows for a given spin ${\bf sp}\sim a_*$ and inclination angle ${\bf th}=\theta$ to surf the parameter space of heating constant ${\bf heat}=C$.
-For each value of ${\bf heat}$ we search for the value of density normalization ${\bf rhonor}$ (which is proportional to the accretion rate $\dot{M}$), 
-which provides the best $\chi^2$ fit to the data. Then we explore the values of ${\bf rhonor}$ near that best value.
-The values of heating constant ${\bf heat}$ roll from $0.75$ down to $0.15$.
-The routine is run for a range of inclination angles ${\bf th}$.
-Such technique allows for thorough exploration of the entire parameter space to make sure no local minimum is missed.
-Looking at ${\bf rhonor}$ values near the minimum allows to immediately estimate the confidence interval, e.g., based on $\Delta\chi^2$ technique.
-Search for the best combination of parameters and the estimate of the confidence interval are done by a separate \mat  scripts.
+This routine assumes a fixed, given spin ${\bf sp}\sim a_*$ and
+inclination angle ${\bf th}=\theta$ and loops through several values
+of the heating constant ${\bf heat}=C$. For each value of ${\bf heat}$
+the routine searches for the value of density normalization ${\bf
+  rhonor}$, that provides the best $\chi^2$ fit to the data. Hint: Run
+the routine with $kmin=4$ as the lower frequencies are not fitted for
+anyways. Low frequencies are computationaly more expensive. The
+routine runs about $3x$ longer with $kmin=0$.
+
+Next, we \rg{Clarify: explore} the values of ${\bf rhonor}$ near that
+best value.  The values of heating constant ${\bf heat}$ roll from
+$0.75$ down to $0.15$.
+
+The routine is run for a range of inclination angles ${\bf th}$.  Such
+technique allows for thorough exploration of the entire parameter
+space to make sure no local minimum is missed.  Looking at ${\bf
+  rhonor}$ values near the minimum allows to immediately estimate the
+confidence interval, e.g., based on $\Delta\chi^2$ technique.  Search
+for the best combination of parameters and the estimate of the
+confidence interval are done by a separate \mat scripts.
 
 \subsection{\textit{m\_quick}}
 A simple computation of a spectrum for a single set of parameters
@@ -664,13 +712,14 @@ The evolution equations on proton and electron temperatures. The equations are s
 
 \section{Supporting MATHEMATICA 8 scripts}
 A lot of scripts are to be grouped into a single structured file
-\textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT.  It
-consists of variety of scripts, which compute auxiliary quantities,
-derive some parts of ASTRORAY code to be directly copied into C++, and
-check GRMHD code.  {\textbf Please, run "Cell$\rightarrow$Delete all
-  output" in \mat before committing the file to GIT.}  The data
-processing and QPO computations are stored in separate \mat scripts to
-be shared later.
+\textit{check\_GRMHD\_code.nb} in \textit{math} directory on GIT. A
+separate improved notebook to create the dxdxp.dat files is also
+provided. It consists of variety of scripts, which compute auxiliary
+quantities, derive some parts of ASTRORAY code to be directly copied
+into C++, and check GRMHD code.  {\textbf Please, run
+  "Cell$\rightarrow$Delete all output" in \mat before committing the
+  file to GIT.}  The data processing and QPO computations are stored
+in separate \mat scripts to be shared later.
 \subsection{\textit{check\_GRMHD\_code.nb}}
 \subsubsection{Emis functions}
 The script "Computing emissivities/rotativities" does what its title
@@ -709,7 +758,9 @@ dxdxp $\rightarrow$ for Jon's jet simulations with QPOs
 script performs a number of tests to ensure the format of each file is
 properly decoded and that the encoded data are correctly understood.
 Then the script computes \textit{dxdxp.dat} file, which is required
-for the ASTRORAY to work.
+for {\tt ASTRORAY} to work. It is recommended to use \textit{dxdxp.nb}
+for this purpose as it is written in a more robust and modular way. It
+also includes more examples for existing GRMHD simulations.
 
 The script in "Limiting the polar region" checks how bad the polar
 region looks: I make various ContourPlots.
