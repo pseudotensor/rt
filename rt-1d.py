@@ -50,12 +50,15 @@ FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE or "ava" in FILE]
 
 PLOT_SED="no"
-PLOT_CORRELATED_FLUX="yes"
+PLOT_CORRELATED_FLUX="no"
 PLOT_I_vs_mbreve="yes"
 
 if size(FILES_2D)==0:
     PLOT_CORRELATED_FLUX="no"
     PLOT_I_vs_mbreve="no"
+
+print "Found ",size(FILES_1D),"1d files and ",size(FILES_2D),"2d files\n"
+print "MODES: PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA",PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA,"\n"
 
 col_SED=[1,2]
 if len(FILES_1D)>0:
@@ -276,6 +279,14 @@ for snapshot in FILES_2D:
     mbreve_opposite_vs_t += [interp2d(u,v,mbreve_uv)(-u_probe,-v_probe)]
     dEVPA_vs_t   += [interp2d(u,v,EVPA_uv)(u_probe,v_probe)-interp2d(u,v,EVPA_uv)(-u_probe,-v_probe)]
 
+    # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
+    dt_GRMHD = 4. ## thickdisk7
+    #t_ref = 6100 ## thickdisk7
+    # dt_GRMHD = 5. ## a0mad
+    t_ref = 2000
+    print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
+    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
+
     # OLD HARDCODED WAY
     # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
     # mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
@@ -310,7 +321,7 @@ if size(FILES_2D)>0:
           ]
       plot(t,mbreve_vs_t,"bo-",label=labelstring_mbreve[0])
       plot(t,mbreve_opposite_vs_t,"r+-",label=labelstring_mbreve[1])
-      legend(loc="upper right",labelspacing=0.1,fontsize=15)
+      legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
       title(os.getcwd().split('/')[-1])
       xlabel(r"$t/h$")
       ylabel(r"$\breve{m}$")
@@ -438,7 +449,7 @@ if string.lower(PLOT_SED)=="yes":
             plot(SED[:,0],SED[:,1],'c.-',alpha=0.5,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
 
         if FILES_1D==FILE:
-            legend(loc="lower right",labelspacing=0.2,fontsize=15)
+            legend(loc="lower right",labelspacing=0.2) # ,fontsize=15)
 
     xlabel(r"$\nu/Ghz$")
     ylabel(r"$F_\nu/Jy$")
@@ -464,7 +475,8 @@ if string.lower(PLOT_SED)=="yes":
             #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
             errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
         #elif panel==4:
-            legend(loc="lower right",fontsize=12)
+            # not enough space
+            # legend(loc="lower right") # ,fontsize=12)
         else:
             plot(tofit[:,0],tofit[:,[None,1,2,4,3][panel]],"ks",label="observations")
         #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
