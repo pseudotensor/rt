@@ -634,11 +634,17 @@ if (r_slices) {
  ***********************************/
 
 
+/****************
+ * TEMPERATURES *
+ * given T_sim  *
+ * get Te,Tp    *
+ ****************/
+
 if(Ttot>maxT)                       //if temperature is above allowed, then set it to maximum allowed
 	Ttot=maxT;
 if(Ttot<minT)                       //if temperature is below allowed, then set it to minimum allowed
 	Ttot=minT;
-int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety? // BESIDES COMMENT SEEMS WRONG: *INDEX* of point on temperature grid
+int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety?
 doub Ta=ts[0],                      //minimum temperature
 	 Tb=ts[indT];                   //maximum temperature
 doub Tx,                            //closest temperature on look-up grid
@@ -730,11 +736,12 @@ if (TEMPERATURE_DIAGNOSTIC) {
       // }
       // lamx[] vs lam[]?
       // fprintf(TeTp_file,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
-
-    // if () 
-    fprintf(TeTp_file,"# rr \t costh \t ph \t tet \t\t tpt \t\t indT \n");
-
-    fprintf(TeTp_file,"%.4g\t %.4g\t %.4g\t %.4g\t %.4g\t %d\n",rr,costh,ph,tet,tpt,indT);
+    static int one_time_only = 0;
+    if (one_time_only==0) {
+      fprintf(TeTp_file,"# rr \t costh \t   ph \t    tsim     t_e_mod  tpt      t_e_orig\n");
+      one_time_only++;
+    }
+    fprintf(TeTp_file,"%.2e %.2e %.2e %.2e %.2e %.2e %.2e \n",rr,costh,ph,ts[ia],tet,tpt,(1-drman)*te[ia]+drman*te[ib]); // ts[ia] ~ ts[ib]
     
     fclose(TeTp_file);
 
