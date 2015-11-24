@@ -42,8 +42,13 @@ try:
     eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
     print "SUCCESSFULLY READ IN EHT uv-TRACKS"
 except:
-    print "Could not load EHT array configuration file! Ignore..."
-    pass
+    try:
+        RT_DIR="/rt/"
+        eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
+        print "SUCCESSFULLY READ IN EHT uv-TRACKS"
+    except:
+        print "Could not load EHT array configuration file! Ignore..."
+        pass
 # scatter(obs[:,0],obs[:,1])
 
 
