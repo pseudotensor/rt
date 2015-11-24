@@ -21,7 +21,6 @@ doub step=xstep,   //local variables, which control radiative transfer
 int ind,           //number of time frames for spectrum evaluation (to compute mean spectrum)
 	fmin,          //minimum ID of fluid simulation snapshot
 	fmax;          //maximum ID of fluid simulation snapshot
-string qadd="";    //output filename modifier, helps to distinguish cases
 
 accur=xaccur;      //assigning values to global variables, which control radiative transfer
 accurr=xaccurr;
@@ -37,11 +36,11 @@ iswrite=true;      //write results to disk
 
 switch (cas){      //selection of a model (only few examples are shown)
 	case 0: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;break;                                   //sample model without any changes to temperature in hot/tenuous regions
-	case 7: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_all";break;                       //model with all radiative transfer effects on
-	case 8: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_jVc0";fljVc=0.;break;             //V-mode emissivity is set to zero
-	case 9: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_rQc0";flrQc=0.;break;             //Faraday conversion is set to zero
-	case 10: fmin=6850;fmax=9850;sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_rVc0";flrVc=0.;break;             //Faraday rotation is set to zero
-	case 11: fmin=6850;fmax=9850;sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;qadd="_Bp15";Bpo-=0.5;break;             //change magnetic field extension slope - first synchronize with command line arguments!
+	case 7: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;fif="_all";break;                       //model with all radiative transfer effects on
+	case 8: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;fif="_jVc0";fljVc=0.;break;             //V-mode emissivity is set to zero
+	case 9: fmin=6850;fmax=9850; sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;fif="_rQc0";flrQc=0.;break;             //Faraday conversion is set to zero
+	case 10: fmin=6850;fmax=9850;sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;fif="_rVc0";flrVc=0.;break;             //Faraday rotation is set to zero
+	case 11: fmin=6850;fmax=9850;sp=1; rhonor=988988.82; heat=0.37012;th=1.8407;fdiff=60;fif="_Bp15";Bpo-=0.5;break;             //change magnetic field extension slope - first synchronize with command line arguments!
 	case 12: fmin=10000;fmax=18720;sp=0;rhonor=2.5e+8; heat=0.55;th=1.8407;fdiff=0;break;                                         //fast light approximation
 	case 14: sp=0;fmin=12424;fmax=22424;rhonor=14802376.9520; heat=0.59894;th=2.356;thlimit=0.1;isBcut=false;fdiff=0;break;       //introducing non-zero thlimit, setting isBcut and isBred
 	case 35: sp=0;rhonor=261385.84479; heat=0.15572;th=1.745/*10 deg from edge-on*/;thlimit=0.1;fdiff=30;isBcut=false;isBred=true;break;//changing viewing angle, almost edge-on
