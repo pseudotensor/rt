@@ -52,10 +52,12 @@ FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in F
 PLOT_SED="no"
 PLOT_CORRELATED_FLUX="no"
 PLOT_I_vs_mbreve="yes"
+PLOT_I_vs_vbreve="no"
 
 if size(FILES_2D)==0:
     PLOT_CORRELATED_FLUX="no"
     PLOT_I_vs_mbreve="no"
+    PLOT_I_vs_vbreve="no"
 
 print "Found ",size(FILES_1D),"1d files and ",size(FILES_2D),"2d files\n"
 print "MODES: PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA",PLOT_SED,PLOT_CORRELATED_FLUX,PLOT_I_vs_mbreve,POLARIZATION_CAP,mbreve,dEVPA,"\n"
@@ -469,7 +471,7 @@ if string.lower(PLOT_SED)=="yes":
     # yticks_obs=[arange(5),arange(0,20,5),arange(0,200,45),arange(-2,5)]
     for panel in range(1,5):
         subplot(220+panel)
-        plot(SED[:,0],SED[:,panel],label="model")
+        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],label="model")
         if panel==1:
             plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
             #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
@@ -569,7 +571,6 @@ if string.lower(PLOT_I_vs_mbreve)=="yes":
     tight_layout()
     savefig("I-vs-mbreve."+FILE_EXT)
 
-PLOT_I_vs_vbreve="yes"
 if string.lower(PLOT_I_vs_vbreve)=="yes":
     figure(9)
     scatter(abs(I_uv)/I_uv_max,vbreve_uv,c="m",alpha=0.5)
