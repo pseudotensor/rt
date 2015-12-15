@@ -30,14 +30,18 @@ from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
+filename = sys.argv[1] # should point to shotimage*.dat file
+
 HOME=commands.getoutput("echo $HOME")
 # RT_DIR="/rt/"
 RT_DIR="/codes/rt-git/"
 
-# assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
+# assumes obs.txt (or similar file) in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 # SOMEWHAT HARDWIRED DIRECTORY...
 try:
-    EHT_config_file="obs.txt"
+    EHT_config_file="EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
+    # EHT_config_file="EHT-obs-230Ghz-2017.txt"
+    # EHT_config_file="obs.txt"
     # EHT_config_file="obs-SMT-SMA.txt"
     eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
     print "SUCCESSFULLY READ IN EHT uv-TRACKS"
@@ -119,8 +123,6 @@ if SCATTERING == "ON":
 # great image detection tutorial:
 # http://pythonvision.org/basic-tutorial/
 # http://scipy-lectures.github.io/advanced/image_processing/
-
-filename = sys.argv[1] # should point to shotimage*.dat file
 
 angle_unit="arcsec" # "rad"
 # This is used for enhancing smoother uv data at large scales: Warning not good for mtilde because the xy-data don't seem to decay to zero for large xy. Zeropadding then introducing strong artefacts.
