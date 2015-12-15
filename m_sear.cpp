@@ -1,13 +1,13 @@
 {//search for minimum with a steepest descent method, less reliable than "m_space", but faster
-doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
-	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
+doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
+	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
-	 xss=1e-2,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
+	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
 	 xsnxy=151,    //5. number of points N along one side in the picture plane for N x N intensity grid
-	 xstep=0.1,    //6. step size in geodesic computation
-	 xsstep=-0.09, //7. step size in radiative transfer computation
-	 xIint=2e-9,   //8. initial intensity along each ray for radiative transfer
-	 xIang=1.;     //9. initial polarized phases along each ray for radiative transfer
+	 xstep=1e-2,    //6. step size in geodesic computation
+	 xsstep=-0.06, //7. step size in radiative transfer computation
+	 xIint=1e-10,   //8. initial intensity along each ray for radiative transfer
+	 xIang=0.1;     //9. initial polarized phases along each ray for radiative transfer
 doub step=xstep,   //local variables, which control radiative transfer
 	 sstep=xsstep,
 	 Iint=xIint,

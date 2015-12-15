@@ -59,7 +59,7 @@ printf(YELLOW"[m_space.cpp]: "RESET"in=%d shots; sp=%d; angle th=%f\n",co,sp,th)
  **************************************************************/
 
 
-doub heat_min=0.3, heat_max=0.75;
+//doub heat_min=0.3, heat_max=0.75;
 
 for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat parameter
 
@@ -119,26 +119,51 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 
             // RESIDUALS
 			//RG:FLAG WHY ONLY UNPOLARIZED RESIDUALS?
+			for(il=4;il<=10;il++)
+              resid[il-4][oo]=(xtotin[il]-tofit[il][1])/dFnu[il]; //compute residuals with 1/dFnu weights
 
-			for(il=4;il<=10;il++)resid[il-4][oo]=(xtotin[il]-tofit[il][1])/dFnu[il]; //compute residuals with 1/dFnu weights
-		};
+            if (dof>7) { // WANT2 INCLUDE POLARIZATION?
+              resid[ 7][oo]=(xLPo[4]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
+              resid[ 8][oo]=(xLPo[7]-tofit[7][2])/dLP[1]; // LP nu=230Ghz
+              resid[ 9][oo]=(xLPo[8]-tofit[8][2])/dLP[2]; // LP nu=345Ghz
+              resid[10][oo]=(xCP[7]-tofit[7][4])/dCP;    // CP nu=230Ghz
+              resid[11][oo]=(xCP[8]-tofit[8][4])/dCP;    // CP nu=345Ghz
+            }
+
+
+        }; // 		for(oo=0;oo<2;oo++){                      
+
 
 		ans=(clock() - start ) / (doub)CLOCKS_PER_SEC;                               //timing
 		printf(YELLOW"[m_space.cpp]: "RESET"Time = %.2f s; finished %d iterations; th=%.3f; heat=%.3f\n", ans,niter,th,heat); //report
 
-		//evaluation of Jacobian, RHS and LHS of \chi^2 minimization
+		//evaluation of Jacobian -- d(chi^2)/drho -- RHS and LHS of \chi^2 minimization
+        //RG:FLAG GIVE REFERENCE/EXPLANATION
 		int ij,ii;
-        //RG:FLAG WHY 15?
-		for(il=0;il<15;il++){Jac[il][0]=(resid[il][1]-resid[il][0])/drho;};
-		for(ij=0;ij<1;ij++)for(ii=0;ii<1;ii++){matr[ij][ii]=0.;for(il=0;il<15;il++)matr[ij][ii]+=Jac[il][ij]*Jac[il][ii];};
-		for(ii=0;ii<1;ii++){bb[ii]=0.;for(il=0;il<15;il++)bb[ii]+=Jac[il][ii]*resid[il][0];};
-		ddr=-bb[0]/matr[0][0];                      //next relative offset of density
-		printf(YELLOW"[m_space.cpp]: "RESET"Iterated ddr=%.4f\n",ddr);
-		heat=inp[0][0];rhonor=inp[0][1]*(1+0.7*ddr);//due to high chance of overshooting and going to unphysical densities, we update density with 0.7*ddr - this slows the convergence, but makes it reliable!
+        //RG:FLAG WHY 15? ~> sflen?!
+		for(il=0;il<15;il++)
+            Jac[il][0] = (resid[il][1]-resid[il][0])/drho;
+		for(ij=0;ij<1;ij++) 
+          for(ii=0;ii<1;ii++)
+            {
+              matr[ij][ii]=0.;
+              for(il=0;il<15;il++)
+                matr[ij][ii]+=Jac[il][ij]*Jac[il][ii];};
+
+		for(ii=0;ii<1;ii++)
+          {
+            bb[ii] = 0.;
+            for(il=0;il<15;il++) 
+              bb[ii] += Jac[il][ii]*resid[il][0];
+          };
+
+        ddr=-bb[0]/matr[0][0];                      //next relative offset of density
+        printf(YELLOW"[m_space.cpp]: "RESET"Iterated ddr=%.4f\n",ddr);
+        heat=inp[0][0];
+        rhonor=inp[0][1]*(1+0.7*ddr); // 0.7*ddr: avoid overshooting (unphysical densities) - converges slower, but is reliable
 	};
 
-	doub xisq=0.,                      //\chi^2
-		dof=7.;                        //degrees of freedom
+	doub xisq=0.;                      //\chi^2
 
     //RG:FLAG OK also when kmin!=0, but MUST HAVE kmin<5 !!!
 	for(il=4;il<=10;il++)              //compute \chi^2
@@ -148,6 +173,8 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 	//RG: new fct to compute chi squared (TESTING)
 	doub chisq=0.,chisq_I=0.; 
 	chisquare(xtotin,xLPo,xCP,chisq,chisq_I,12,7,0);
+    // Compute chi^2 TO *POLARIZED* SPECTRUM
+	// chisquare(xtotin,xLPo,xCP,xisq,chisq_I,12,7,0);
 	printf(YELLOW"[m_space.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
 
 	stringstream sss;                  //filename for writing the "best-fitting" model parameters & spectra to disk
@@ -206,7 +233,7 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 		fprintf(pFile,"# nu\t <I>\t<LP> <CP> <EVPA> heat \t rhonor Bpo\n");
 		for(kk=kmin;kk<=kmax;kk++){
 			printf(YELLOW"[m_space.cpp]: "RESET"avg at f=%.1f; I=%.3fJy LP=%.2f%% CP=%.3f%% EVPA=%.2fdeg\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk]);
-			fprintf(pFile,"%.1f\t\t %.3f\t\t %.3f\t %.3f\t %.2f\t %.5f\t %.4f\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk],heat,rhonor,Bpo);
+			fprintf(pFile,"%.1f\t %.3f\t %.3f\t %.3f\t %.2f\t %.5f\t %.4f\n",sftab[kk][0], xtotin[kk],xLPo[kk], xCP[kk],xEVPA[kk],heat,rhonor,Bpo);
 		};
 		fclose(pFile);
 	};

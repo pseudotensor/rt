@@ -8,7 +8,7 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-  //xsnxy=9,  //5. number of points N along one side in the picture plane for N x N intensity grid
+  xsnxy=101,  //5. number of points N along one side in the picture plane for N x N intensity grid
   xstep=1e-2,   //6. step size in geodesic computation
   //xstep=1e-3,   //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
