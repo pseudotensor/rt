@@ -53,7 +53,7 @@ except:
     except:
         print "Could not load EHT array configuration file! Ignore..."
         pass
-# scatter(obs[:,0],obs[:,1])
+
 
 
 ## Taken from Michael's Notebook ##
@@ -125,7 +125,9 @@ if SCATTERING == "ON":
 # http://scipy-lectures.github.io/advanced/image_processing/
 
 angle_unit="arcsec" # "rad"
-# This is used for enhancing smoother uv data at large scales: Warning not good for mtilde because the xy-data don't seem to decay to zero for large xy. Zeropadding then introducing strong artefacts.
+
+# This is used for enhancing smoother uv data at large scales. 
+# BE CAREFUL when the xy-data don't decay to zero for large xy this introduces artefacts
 zeropadding_factor=4  
 
 pc = scipy.constants.parsec # SI
@@ -242,26 +244,27 @@ fig_pos=["+0+0","+500+0","+0+500","+500+500","+250+250"] # Need to understand sy
 titles = ["I","Q","U","V"]
 titles_4panel_xy = [ 
 #r"$\rm \|m_{LP}\|\equiv |(Q+iU)/I\|$", 
-r"$\rm \|I\|$", 
-r"$\rm \|m_{LP}\|\equiv \sqrt{\|Q\|^2+\|U\|^2}/\|I\|$", 
+r"$\rm I$", 
+r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$", 
 #r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
-r"$\rm EVPA=\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
-r"$\rm m_{CP}\equiv \|V\|/I$"]
+r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
+r"$\rm v \equiv \|V\|/I$"]
 titles_IQUV_uv = [ 
 r"$\rm \|\tilde{I}\|$", 
 r"$\rm \|\tilde{Q}\|$",
 r"$\rm \|\tilde{U}\|$",
 r"$\rm \|\tilde{V}\|$"]
 titles_4panel_uv = [ 
-r"$\rm \breve{PF}\equiv \|\tilde{Q}+i\tilde{U}\|$", 
+# r"$\rm \breve{PF}\equiv \|\tilde{Q}+i\tilde{U}\|$", 
+r"$\rm \|\tilde{I}\|$", 
 r"$\rm \breve{m}\equiv \|(\tilde{Q}+i\tilde{U}) / \tilde{I}\|$", 
-r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
-r"$\rm \breve{CP}\equiv \|\tilde{V} / \tilde{I}\|$"]
+r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
+r"$\rm \breve{v}\equiv \|\tilde{V} / \tilde{I}\|$"]
 titles_miniversion_4panel_uv = [ 
-r"$\rm |\tilde{I}|$", 
+r"$\|\rm \tilde{I}\|$", 
 r"$\rm\breve{m}\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}\|$", 
-r"$\rm EVPA \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
-r"$\rm \|\breve{m}_{CP}\|\equiv \|\tilde{V} / \tilde{I}\|$"]
+r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
+r"$\rm \|\breve{v}\|\equiv \|\tilde{V} / \tilde{I}\|$"]
 # r"$\|\tilde{\rm m}_{LP}\|\equiv\|\mathcal{FFT}\{(Q+iU)/I\}\|$"]
 
 pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
@@ -287,15 +290,72 @@ uvspacing = image_size_rad/nxy
 uv_schwarzschild = 150.*1.4/(shadow_schwarzschild /d_SagA * rad2microarcsec)
 uv_maximally_spinning = 150.*1.4/(shadow_maximally_spinning /d_SagA * rad2microarcsec)
 
+
+
 def plot_shadows(domain):
+    '''Plot predicted black hole shadow size in 'xy' or 'uv' domain.'''
+
     if string.lower(domain)=="xy":
         gca().add_artist(Circle((0,0),radius = shadow_schwarzschild/d_SagA/2. * rad2microarcsec,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
         gca().add_artist(Circle((0,0),radius = shadow_maximally_spinning/2./d_SagA * rad2microarcsec,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
     elif string.lower(domain)=="uv": # the circles with *radius* uv_schwarzschild in uv correspond to the shadow *diameters*
         gca().add_artist(Circle((0,0),radius = uv_schwarzschild,color="cyan",alpha=0.5,fill=False,lw=4,ls="dashed"))
         gca().add_artist(Circle((0,0),radius = uv_maximally_spinning,color="grey",alpha=0.5,fill=False,lw=4,ls="dashed"))
-    # return ""
 
+    return None
+
+def plot_EHT_uv_tracks(config='2017'):
+    scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,s=10,c="r",marker="o",alpha=0.25,label="EHT 2017")
+    return None
+
+
+def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.005,I_threshold=0.05):
+    '''PLOT polarization ticks indicating magnitude and direction of linear polarization'''
+
+    ## WIP ##
+    # I mask?, edges around ticks (arrow shafts)?
+    # every=5, I_threshold=0.1, scale_quiver=0.2, width_quiver=0.002
+
+    ## WORKS WELL FOR 230Ghz (SGR A*)
+    # every=6
+    # I_threshold=0.05 
+    # scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+    # width_quiver=0.01 # 0.01 good for LP/I
+    ## WORKS WELL FOR 102Ghz (SGR A*)
+    # every=6
+    # I_threshold=0.05 
+    # scale_quiver=1e-2*amax(I_xy)  # 0.2  good for LP/I
+    # width_quiver=0.01 # 0.01 good for LP/I
+
+    # scale_quiver=1e-5   # M87 & AVERY's MODEL
+
+    # quiver_fake_inst= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="uv",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+    # NIRVANA=1000
+
+    # DEFAULT
+    # quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
+
+    # quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",scale_units="xy",angles="xy") # ,angles=EVPA_xy[::every,::every])
+
+    EVPA_xy = pi/2. - 0.5*angle(Q_xy+1j*U_xy)
+    x_michael = abs(Q_xy+1j*U_xy)*cos( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
+    y_michael = abs(Q_xy+1j*U_xy)*sin( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
+
+    # x_michael/=I_xy;y_michael/=I_xy
+
+    Q_masked=x_michael
+    Q_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
+    U_masked=y_michael
+    U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
+
+    quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+
+    # quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+    # quiverkey(quiver_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+
+    return None
 
 
 ##############
@@ -381,6 +441,7 @@ V_uv = fftpack.fftshift(fftpack.fft2(w(V_xy),shape=[nxy*zeropadding_factor,nxy*z
 u = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
 v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 
+mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
 P_uv = fftpack.fftshift(fftpack.fft2(sqrt(Q_xy**2+U_xy**2),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 Pbreve_xy = abs(Q_xy+1j*U_xy)
 Pbreve_uv = abs(Q_uv+1j*U_uv)
@@ -423,9 +484,6 @@ limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
 #limits_colors_uv = [(0,3),(0,0.5),(0,0.4),(0,0.1)]
-# figure(5):              [Pbreve_uv,mbreve_uv,EVPA_uv,|V_uv|/|I_uv|]
-limits_colors_4panel_uv = [(0,amax(abs(Pbreve_uv))),(0,1.0),(-90,90),(0,0.2)]
-#limits_colors_4panel_uv = [(0,4e-1),(0,1.0),(-90,90),(0,0.2)]
 # figure(2): [I_uv,mbreve_uv,EVPA_uv,|V_uv/I_uv|]
 limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))),(0,1.0),(-90,90),(0,0.5)]
 #limits_colors_miniversion_4panel_uv = [(0,3),(0,1.0),(-90,90),(0,0.5)]
@@ -493,8 +551,8 @@ for plot_loop in range(len(titles)):
     #colorbar()
     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
     #clim(limits_colors_uv[plot_loop])
-    scatter(eht_obs_uv[:,0]/1e9,eht_obs_uv[:,1]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
 
+    plot_EHT_uv_tracks()
     plot_shadows("uv")
 
     if plot_loop in [2,3]:
@@ -534,6 +592,10 @@ for plot_loop in range(len(titles)): #
         colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
     clim(limits_colors_4panel_xy[plot_loop])
 
+    if plot_loop==0:
+        # plot_polticks()
+        plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
+        # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
     plot_shadows("xy")
     if plot_loop in [2,3]:
         gca().set(xlabel=r"$x\,\mu arcsec$")
@@ -544,41 +606,7 @@ for plot_loop in range(len(titles)): #
 
 savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
 
-#########################
 
-fig_uv_4panel = figure(5)
-fig_uv_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
-
-# mbreve_uv = (abs(Q_uv)**2+abs(U_uv)**2)/abs(I_uv)
-mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
-#large_mbreves = sum((mbreve_uv>=1.) * (sqrt(u**2+v**2)<=5.) ) # WIP: within a circle
-large_mbreves = sum(mbreve_uv[u<=3.,v<=3.]>=1.) # within a square
-print "Fraction of mbreve>1 (within r_uv<3): ",large_mbreves,"/",size(mbreve_uv[u<=3.,v<=3.]),"=",float(large_mbreves) / size(mbreve_uv[u<=3.,v<=3.])
-
-for plot_loop in range(len(titles)):
-
-    ## uv plane ##
-    fig_uv_4panel.add_subplot(221+plot_loop)
-#    pcolormesh(u,v,abs([I_uv,abs((Q_uv+1j*U_uv)/I_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop]),cmap=colormaps_4panel[plot_loop])
-    pcolormesh(u,v,[Pbreve_uv,mbreve_uv,EVPA_uv,abs(V_uv)/abs(I_uv)][plot_loop],cmap=colormaps_4panel[plot_loop])
-    if plot_loop==2:
-        colorbar(ticks=linspace(limits_colors_4panel_uv[plot_loop][0],limits_colors_4panel_uv[plot_loop][1],5),pad=0)
-    else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_uv[plot_loop][0],limits_colors_4panel_uv[plot_loop][1],5))
-    clim(limits_colors_4panel_uv[plot_loop])
-
-    scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
-
-    plot_shadows("uv")
-
-    if plot_loop in [2,3]:
-        gca().set(xlabel=r"u $(G\lambda)$")
-    if plot_loop in [0,2]:
-        gca().set(ylabel=r"v $(G\lambda)$")
-    axis(limits_uv)
-    title(titles_4panel_uv[plot_loop]+title_vary_string)
-
-savefig(filename_out.replace(".png","_4panel_uv.png"))
 
 #########################
 #manager.window.wm_geometry(fig_pos[plot_loop]) # [WIP: need to understand the arg syntax]
@@ -608,8 +636,7 @@ if miniversion: #
 
     clim(limits_colors_miniversion_4panel_uv[plot_loop])
 
-    scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,c="r",marker="o",alpha=0.25,label="EHT 2017")
-
+    plot_EHT_uv_tracks()
     plot_shadows("uv")
 
     if plot_loop in [2,3]:
@@ -665,6 +692,8 @@ NIRVANA=1000
 #DEFAULT
 #quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
 quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",scale_units="xy",angles="xy") # ,angles=EVPA_xy[::every,::every])
+
+
 #figure(9)
 #cla()
 # subplot(121)
@@ -753,29 +782,15 @@ U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
 pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=limits_colors_xy[0][1])
 # pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
 colorbar()
-#quiver_inst2= quiver(X[::every],Y[::every],(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale=scale_quiver,scale_units="xy",angles="uv") # ,angles=EVPA_xy[::every,::every])
-# quiver_inst2= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale=scale_quiver,scale_units="xy",angles="uv") # ,angles=EVPA_xy[::every,::every])
 
-#quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy",angles=EVPA_xy[::every,::every])
+# quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 
-# Michael, angles=EVPA_xy
-#quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=0.005,scale_units="xy",angles=EVPA_xy[::every,::every])
-# Michael, angles=uv
-# quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,width=width_quiver*2,pivot="tip",scale_units="xy",angles="uv",scale=1)
-# Michael, angles=xy
-#quiver_inst2 = quiver(X[::every],Y[::every],x_michael[::every,::every],y_michael[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
-
-# DEFAULT
-#quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,pivot="mid",width=width_quiver,scale_units="xy",angles="xy",scale=scale_quiver)
-# NEW (WIP)
-quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
+plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})
 # WIP
 # quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
-
-# tight_layout()
 
 # quiverkey(quiver_fake_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
 #quiverkey(quiver_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
@@ -786,6 +801,8 @@ quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[:
 gca().set(xlabel=r"$X/\mu arcsec$",ylabel=r"$Y/\mu arcsec$",title="I (with polarization ticks)"+title_vary_string)
 axis(limits_xy)
 savefig(filename_out.replace(".png","_polarization-ticks.png"))
+
+
 
 ######## DONE ###
 print "="*8
