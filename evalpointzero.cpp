@@ -23,7 +23,7 @@ doub rr,               //radius
 	 temp;             //temp
 doub rest[11],         //single record in a fluid simulation file
 	 rho,              //physical number density
-	 Ttot,             //internal energy density
+	 T_sim,            //internal energy density (temeprature from GRMHD simulation)
 	 tet,              //proton temperature // RG: typo in comment?? should be electron temperature?
 	 tpt;              //electron temperature // RG: typo in comment? should be proton temperature?
 doub ly[4],            //coordinate vector along the geodesic
@@ -281,10 +281,10 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 			(1-lrman)*thman*phman*(*uu[sn+1])[ak][tn+1][rn][m]+lrman*thman*phman*(*uu[sn+1])[ak][tn+1][rn+1][m]);
 
 	rho=rest[0]*rhonor;                //physical density
-    if (rho>0.) Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
-    else Ttot=0.;
+    if (rho>0.) T_sim=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
+    else T_sim=0.;
 
-    if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+    if (isnan(T_sim)) printf(YELLOW"[evalpointzero.cpp]: "RED"T_sim=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,T_sim,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
 
 	//testing k values
 	//if((40<k)&&(k<80)){rho/=50.;}//test results - the sense of rotation is clockwise for 1.57<th<3.14
@@ -535,13 +535,13 @@ if(rr<=rcut){                          //inside the convergence radius do interp
 
 
 
-    if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO2: Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+    if (isnan(T_sim)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO2: T_sim=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,T_sim,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
 
-	Ttot=rest[4]*pow(rr/rcut,-1.0);   //temperature is extended with power-law index "-1.0"
+	T_sim=rest[4]*pow(rr/rcut,-1.0);   //temperature is extended with power-law index "-1.0"
 
-    if isnan(Ttot) {
-        Ttot=0.;
-        //printf(YELLOW"[evalpointzero.cpp]: "RED"Ttot=nan (in radial extension) setting to zero...\n"RESET);
+    if isnan(T_sim) {
+        T_sim=0.;
+        //printf(YELLOW"[evalpointzero.cpp]: "RED"T_sim=nan (in radial extension) setting to zero...\n"RESET);
       }
 
 	Bpo=0.5*(1.+rhopo);               //magnetic field extension slope - NOT synchronized with command line arguments!
@@ -568,18 +568,18 @@ doub magn;
  //   if (geod_pt_idx==1) printf(YELLOW"[evalpointzero.cpp]: "RED"Set magn=0 because rho=%g rr=%g costh=%g !!!\n"RESET,rho,rr,costh);
  // }
 
-if (isnan(Ttot)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO3: Ttot=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,Ttot,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
+if (isnan(T_sim)) printf(YELLOW"[evalpointzero.cpp]: "RED"YO3: T_sim=%f rest[0]=%f rest[1]=%f uu[%d]=%f\n"RESET,T_sim,rest[0],rest[1],sn,(*uu[sn])[ak][tn][rn][m]);
 
 
 bool limit_temperature=false;
 if (limit_temperature) {
 if(1-fabs(costh)<thlimit)            //if thlimit is above 0, then emissivity in the polar region is effectively set to zero
-	Ttot=minT;
+	T_sim=minT;
 if(isBcut)                           //set temperature to zero in high magnetization region
 	if(((rr<9) && (magn+20./(9-rg)*(rr-rg))>30)||((rr>=9)&& (magn>10.))) // boundary is in accordance with McKinney et al. (2012)
-		Ttot=minT;
+		T_sim=minT;
 if(isBred)                           //temperature reduction in high magnetization regions
-	Ttot*=exp(-magn/10.);
+	T_sim*=exp(-magn/10.);
  }
 
 bool zero_out_rho=true;
@@ -640,15 +640,15 @@ if (r_slices) {
  * get Te,Tp    *
  ****************/
 
-if(Ttot>maxT)                       //if temperature is above allowed, then set it to maximum allowed
-	Ttot=maxT;
-if(Ttot<minT)                       //if temperature is below allowed, then set it to minimum allowed
-	Ttot=minT;
+if(T_sim>maxT)                       //if temperature is above allowed, then set it to maximum allowed
+	T_sim=maxT;
+if(T_sim<minT)                       //if temperature is below allowed, then set it to minimum allowed
+	T_sim=minT;
 int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety?
 doub Ta=ts[0],                      //minimum temperature
 	 Tb=ts[indT];                   //maximum temperature
 doub Tx,                            //closest temperature on look-up grid
-	 Tz=Ttot;                       //temperature of interest
+	 Tz=T_sim;                       //temperature of interest
 ia=0;
 ib=indT;
 if((Ta<=Tz) && (Tz<=Tb)){
@@ -663,7 +663,7 @@ if((Ta<=Tz) && (Tz<=Tb)){
 	};
 } else {
 	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f Ttot=%f\n"RESET,Ta,Tb,Tz,Ttot);
+	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f T_sim=%f\n"RESET,Ta,Tb,Tz,T_sim);
     //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
 	exit(-1);
 };
@@ -738,10 +738,10 @@ if (TEMPERATURE_DIAGNOSTIC) {
       // fprintf(TeTp_file,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
     static int one_time_only = 0;
     if (one_time_only==0) {
-      fprintf(TeTp_file,"# rr \t costh \t   ph \t    tsim     t_e_mod  tpt      t_e_orig\n");
+      fprintf(TeTp_file,"# rr \t costh \t   ph \t    tsim     t_e_mod  tpt      t_e_orig     rho\n");
       one_time_only++;
     }
-    fprintf(TeTp_file,"%.2e %.2e %.2e %.2e %.2e %.2e %.2e \n",rr,costh,ph,ts[ia],tet,tpt,(1-drman)*te[ia]+drman*te[ib]); // ts[ia] ~ ts[ib]
+    fprintf(TeTp_file,"%.2e %.2e %.2e %.2e %.2e %.2e %.2e %.2e\n",rr,costh,ph,ts[ia],tet,tpt,(1-drman)*te[ia]+drman*te[ib],rho/rhonor); // ts[ia] ~ ts[ib]
     
     fclose(TeTp_file);
 

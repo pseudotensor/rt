@@ -23,6 +23,7 @@ case 7133: fmin=5900;fmax=5960;sep=5;kmin=0;kmax=10;sp=0;rhonor=140000.; heat=0.
  case 7239: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=160000.; heat=0.08; th=1.186; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; // here a low frequency peak starts piling up
 
 
+ case 713900: fmin=5550;fmax=5550;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;include_jet=1;break; 
  case 71390: fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;break; 
  case 713904: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;fif="_51";break; 
  case 713905: fmin=5950;fmax=5950;sep=1;kmin=7;kmax=7;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4;fif="_101";break; 
@@ -109,16 +110,20 @@ case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0
  case 7820000: fmin=2000;fmax=5950;sep=10;kmin=7;kmax=7;sp=0;rhonor=100193.4189; heat=0.0538; th=2.4264; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break;
 
  case 783000: fmin=3950;fmax=5950;sep=100;kmin=4;kmax=10;sp=0;rhonor=100193.4189; heat=0.4; th=2.4264; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=100.;include_jet=1;break;
+ case 783001: fmin=3950;fmax=5950;sep=100;kmin=4;kmax=10;sp=0;rhonor=102564.1544; heat=0.0938; th=2.5911; dphi =4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=100.;include_jet=1;break;
 
  case 7881591: fmin=5950;fmax=5950;sep=20;kmin=4;kmax=8;sp=0;rhonor=98953.9526; heat=0.0442; th=2.3853; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density
  case 78815911: fmin=5950;fmax=5950;sep=20;kmin=0;kmax=10;sp=0;rhonor=90000.; heat=0.0442; th=2.3853; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; // lower density
  case 781691: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=98953.9526; heat=0.1; th=2.3853; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
 // run m_sear.cpp on case 781691 produces this best fit model:
  case 7816911: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
+ case 78169114: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
  case 7816912: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.01;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
  case 7816913: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
 
- case -7816913: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
+ case -7816913: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
+// adjust rhonor
+ case -78169130: fmin=5550;fmax=5550;sep=1;kmin=4;kmax=10;sp=0;rhonor=75000.; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
 
 
  case 8100: fmin=6200;fmax=6200;kmin=0;kmax=13;sp=0;rhonor=136834.; heat=0.25; th=1.4; dphi=4.*PI/3.;thlimit=0.1;fdiff=0;isBcut=true;isBred=false;magn_cap=1.;Te_jet_par=10.;include_jet=1;break; // peak near 40Ghz
@@ -147,6 +152,9 @@ case 231: fmin=1500;fmax=1500;sep=1;kmin=2;kmax=10;sp=0;rhonor=1e8; heat=0.25; t
  case 240: fmin=1500;fmax=1500;sep=1;kmin=7;kmax=8;sp=0;rhonor=1.4632e8; heat=0.5786; th=1.1919; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=10;Te_jet_par=100.;include_jet=1;break;
  case 241: fmin=1490;fmax=1510;sep=1;kmin=0;kmax=10;sp=0;rhonor=1.4632e8; heat=0.5786; th=1.1919; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=10;Te_jet_par=100.;include_jet=1;break;
 
+ case 250: fmin=1250;fmax=1650;sep=20;kmin=4;kmax=10;sp=0;rhonor=1.5e8; heat=0.4; th=PI/2-0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;break;
+ case 251: fmin=1500;fmax=1500;sep=1;kmin=4;kmax=10;sp=0;rhonor=1.5e8; heat=0.4; th=PI/2-0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;break;
+ case 252: fmin=1500;fmax=1500;sep=1;kmin=7;kmax=7;sp=0;rhonor=2.4e8; heat=0.4; th=PI/2-0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=50.;break;
 
 // rhonor maxed out
 // case 100: fmin=1000;fmax=1600;kmin=2;kmax=9;sp=0;rhonor=1e8; heat=0.7; th=PI/2-0.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=10;break;//changing azimuthal camera angle - 4*PI/3
@@ -294,6 +302,11 @@ case 400: fmin=2200;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=3e7; heat=0.45; th
 // same as 4235481 but for images only k=7,8
  case 4245484: fmin=2130;fmax=2170;sep=2;kmin=7;kmax=8; sp=0;rhonor=50981603.1693; heat=0.4683; th=1.9646; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
 
+
+ case 4442140: fmin=2140;fmax=2140;sep=40;kmin=4;kmax=10;sp=0;rhonor=39242068.9650; heat=0.4666; th=1.7; dphi=4.*PI/3.;thlimit=0.01;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=50.;break;
+//same as 4442140 but long and k=7                                           
+ case -4442140: fmin=2140;fmax=2844;sep=1;kmin=7;kmax=7;sp=0;rhonor=39242068.9650; heat=0.4666; th=1.7; dphi=4.*PI/3.;thlimit=0.01;fdiff=0;isBcut=false;\
+isBred=true;magn_cap=1.;Te_jet_par=50.;break;                                
 
  case 444548: fmin=2130;fmax=2170;sep=2;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2-0.2; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
  case 444549: fmin=2130;fmax=2170;sep=2;kmin=0;kmax=10;sp=0;rhonor=6.4e7; heat=0.4; th=PI/2-0.1; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=1.;Te_jet_par=35.;break;
