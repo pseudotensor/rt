@@ -128,10 +128,10 @@ if(!inited){
       }
 
       rtab[k]=exp(coord[k][0][0]);
-      Tstab[k]=r_T_u[k][1];
+      T_sim_tab[k]=r_T_u[k][1];
 	};
 
-	maxT=Tstab[0];//maximum internal energy density
+	maxT=T_sim_tab[0];//maximum internal energy density
 	rmin=r_T_u[0][0];//minimum radius (inside the event horizon)
 
     /*****************************************************************************/
@@ -625,7 +625,7 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
         //doub Rb=20.;
         Te_RIAF *= pow(r/Rb,-0.84);
         rest[1] = Te_RIAF/mp/cc/cc*3*kb*rest[0];
-        //Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
+        //T_sim=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
         u[0]=rest[4];                      //Lorentz factor
         u[1]=u[0]*rest[5];                 //u^r
         u[2]=u[0]*rest[6];                 //u^\theta
@@ -636,7 +636,7 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
         Bi[3]=Bnor*rest[10];
 
         // rho=rest[0]*rhonor;                //physical density
-        // Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
+        // T_sim=rest[1]*mp*cc*cc/3/kb/rest[0];//internal energy density
         // u[0]=rest[4];                      //Lorentz factor
         // u[1]=u[0]*rest[5];                 //u^r
         // u[2]=u[0]*rest[6];                 //u^\theta
@@ -650,7 +650,7 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
 		//rest[1]*=mp*cc*cc/3/kb/(rest[0]);//temperature //RG:CHECK UNITS WHEN USING AVERY'S MODEL
 		//rest[1]*=1./3./kb/(rest[0]);//temperature //RG:CHECK UNITS WHEN USING AVERY'S MODEL
 		//rest[1]=8.1e9;//temperature //RG:CHECK UNITS WHEN USING AVERY'S MODEL
-        // Ttot=8.1e9;
+        // T_sim=8.1e9;
 
 		// u[0]=rest[4];                    //4-velocity
 		// u[1]=u[0]*rest[5];
@@ -678,7 +678,7 @@ if ( !strcmp(avery_toy_jet,"yes") ) { // consider use of PREPROCESSOR DIRECTIVE:
 
 		// rho=rest[0]*rhonor;              //density
         // // RG:FIXME? UNKNOWN TO THIS SCOPE...
-		// // Ttot=rest[1]*mp*cc*cc/3/kb/rest[0];//temperature
+		// // T_sim=rest[1]*mp*cc*cc/3/kb/rest[0];//temperature
 		// u[0]=rest[4];                    //4-velocity
 		// u[1]=u[0]*rest[5];
 		// u[2]=u[0]*rest[6];
@@ -763,10 +763,10 @@ Bnor=sqrt(4.*PI*rhonor*mp)*cc; //normalization of physical magnetic field, negat
 //extending radial temperature profile outwards as a powerlaw
 for(k=ncut;k<ndd;k++){
 	rtab[k]=rcut*pow((doub)rrmax/rcut,(k-ncut+(doub)1.)/(doub)(ndd-ncut));
-	Tstab[k]=Ucon*pow((doub)rtab[k]/rcut,(doub)-Upo);
+	T_sim_tab[k]=Ucon*pow((doub)rtab[k]/rcut,(doub)-Upo);
     //RG: ZERO OUT TEMPERATURES IN OUTER DOMAIN
     // if (k==ncut) printf(YELLOW"[init.cpp]: "RED"Zero out T in extended radial domain\n"RESET); 
-    // Tstab[k]=0.;
+    // T_sim_tab[k]=0.;
 };
 
 int r_mdot_idx=60;                       //radial point where accretion rate is computed
@@ -812,26 +812,26 @@ rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1); // accretion rate in physical units
 // cout << YELLOW"[init.cpp]:"RESET" Electron Temperature Solver..." << endl;
 
 doub acc=2e-3,   //relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
-	 IT[2],      //ODE vector (Te+Tp)
+	 TeTp[2],      //ODE vector (Te+Tp)
 	 step,       //step
 	 rz;         //radius
 gsl_odeiv_step *sz; 
 gsl_odeiv_control *cz; 
 gsl_odeiv_evolve *ez;
 const gsl_odeiv_step_type *Tz; 
-Tz=gsl_odeiv_step_rk2;//Runge-Kutta 2-nd order
+Tz = gsl_odeiv_step_rk2;//Runge-Kutta 2-nd order
 gsl_odeiv_system sysT = {solvetemperature, NULL, 2,NULL};
 ez = gsl_odeiv_evolve_alloc(2);
 cz = gsl_odeiv_control_standard_new(0.0, acc, 1.0, 0.0);
 sz = gsl_odeiv_step_alloc (Tz, 2);
 
 //setting up the first step of integration inwards from the outer boundary
-IT[0]=Tstab[ndd-1];
-IT[1]=IT[0];
+TeTp[0]=T_sim_tab[ndd-1];
+TeTp[1]=TeTp[0];
 stNt=0;
 rz=rrmax;
 step=-0.001*rz; //initial step //RG:HARDWIRED
-ts[0]=IT[0];tp[0]=IT[0];te[0]=IT[0];
+ts[0]=TeTp[0];tp[0]=TeTp[0];te[0]=TeTp[0];
 
 //actual temperature solver
 while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event horizon). 
@@ -841,14 +841,14 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 	stNt++; 
 	if(-step>0.008*rz)       
 		step=-0.005*rz;      //artificially limiting the step
-	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &step, IT);
+	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &step, TeTp);
 	if(status!=0){
 		printf(YELLOW"[init.cpp]:"RED"Temperature solver error\n Exiting"RESET);
 		exit(-1);
 	};
 
-	te[stNt]=IT[0];
-	tp[stNt]=IT[1];
+	te[stNt]=TeTp[0];
+	tp[stNt]=TeTp[1];
 
     //RG:FIXME DIFFERENT WHEN USING AVERY's MODEL... tp ->virial
     if ( !strcmp(avery_toy_jet,"yes") ) {
@@ -865,9 +865,6 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rhonor);
 	}
 
-    // if (stNt==12107) printf(YELLOW"[init.cpp]: "RED"YO2: rz=%g rmin=%g status=%d stNt=%d\n"RESET,rz,rmin,status,stNt);
-
-
 } // while (rz > 1.001*rmin) {
 
 maxT=ts[stNt];minT=ts[0];
@@ -880,6 +877,23 @@ gsl_odeiv_evolve_free (ez);//free memory
 gsl_odeiv_control_free (cz);
 gsl_odeiv_step_free (sz);
 
+
+
+if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN GRMHD SIMULATION
+  // for (r) for (th) for (phi) {
+  for(int r_idx=0;r_idx<rlen;r_idx++)
+    for(int th_idx=0;th_idx<thlen;th_idx++)
+      for(int ph_idx=0;ph_idx<phlen;ph_idx++) {
+        if (r_idx+th_idx+ph_idx==0) {
+          printf(YELLOW"[init.cpp]: OUTPUTTING TEMPERATURE INFO..."RESET"\n");
+          printf(YELLOW"[init.cpp]: "RED"...WIP..."RESET"\n");
+        }
+        // RG: error: ‘B’ was not declared in this scope
+        // doub magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; 
+        //RG: T_sim, tet undeclared in this scope
+        // get_electron_temperature (T_sim, magn, ts, te, tp, tet);
+      }
+}
 
 
 // RG: CODE EXITS WHEN UNCOMMENTING BELOW CODE BLOCK

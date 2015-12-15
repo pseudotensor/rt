@@ -48,12 +48,33 @@ const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
 const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column densities": as the name suggests
 
+// int ndd;
 // THICKDISK7
-const int ndd=650,           //radial dimension of coordinate/coordinate transformation matrices
+// if ( !strcmp(astr[0],"thickdisk7") ) {
+
+// if (true) {
+// if (!strcmp(dir,"thickdisk7") {
+
+// const int i = someCondition ? calculatedValue : defaultValue;
+// DOES NOT WORK
+//const int ndd = (astr[0].c_str()=="thickdisk7") ? 650 : 350;
+//const string astr[1]={"thickdisk7"};
+
+// THIS WORKS ON http://www.tutorialspoint.com/compile_cpp_online.php but not here...
+// const int ndd= astr[0]=="thickdisk7" ? 650 : 350;
+
+// WORKS
+// const int ndd = (true) ? 650 : 350;
+// const int speed = (shiftKeyDown) ? 10 : 1;
+// const int ndd=650;           //radial dimension of coordinate/coordinate transformation matrices
 // OTHER MODELS
-// const int ndd=350,           //radial dimension of coordinate/coordinate transformation matrices
-// const int ndd=288+1,           //radial dimension of coordinate/coordinate transformation matrices
-  sflen=14,          //number of frequencies of interest for flux calculations
+// }
+//else {
+const int ndd=350;           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=288+1;           //radial dimension of coordinate/coordinate transformation matrices
+// }
+
+const int sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
   thn=50,            //number of polar angle values to search for 
   dd=3,              //record size of average temperature & density file
@@ -221,7 +242,7 @@ doub Bpo,              //third command line argument, often magnetic field stren
      jI_nth[Tlen_nth+1][nWlen_nth+1], jQ_nth[Tlen_nth+1][nWlen_nth+1], jV_nth[Tlen_nth+1][nWlen_nth+1],//emissivities tables NON-THERMAL
      aI_nth[Tlen_nth+1][nWlen_nth+1], aQ_nth[Tlen_nth+1][nWlen_nth+1], aV_nth[Tlen_nth+1][nWlen_nth+1],//absorptivity tables NON-THERMAL
 	 rQ_nth[2*Tlen_nth+1], rV_nth[2*Tlen_nth+1],                           //Faraday conversion and rotation tables NON-THERMAL
-     rtab[2000], Tstab[2000],                                      //for calculating electron and proton temperatures//global since are called in "solvetemperature" routine
+     rtab[2000], T_sim_tab[2000],                                      //for calculating electron and proton temperatures//global since are called in "solvetemperature" routine
      usp[maxfield][phlen][thlen][4], uspKS[maxfield][phlen][thlen];//auxiliary for computing accretion rate in "init" function. Not made local due to stack overflow potential.
 
 float uext[phlen][thlen][5],       //quantities on the spherical fluid simulations convergence boundary
