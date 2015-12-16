@@ -28,9 +28,23 @@ RT_DIR="/codes/rt-git/"
 
 # assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 try:
+    TELESCOPES=['ALMA','SMA','SMT','LMT','PV','PDB','SPT']
+
+    # get all combinations
+    [T1+"-"+T2 for T1 in TELESCOPES for T2 in TELESCOPES if T2!=T1]
+
     EHT_config_file="obs.txt"
     # EHT_config_file="obs-SMT-SMA.txt"
     eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
+    fd=open(EHT_Config_file)
+    EHT_config = fd.readlines()[10:] # 2nd and 3rd col: telescope sites
+    fd.close()
+
+    ALMA_BASELINES=[LINE for LINE in EHT_config if "ALMA" in LINE.split()[1:3]]
+    ALMA_tuv = [[LINE.split()[0],LINE.split()[4],LINE.split()[5]] for LINE in EHT_config if "ALMA" in LINE.split()[1:3]]
+
+    # ADD SMA,SMT,LMT,PV,PDB,SPT
+
 except:
     pass
 # scatter(obs[:,1],obs[:,2])
@@ -38,7 +52,7 @@ except:
 
 ## USER SPECS ##
 FILE_EXT="png"
-mbreve="yes"
+mbreve="no"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
 m_LP_cap = 0.7
@@ -50,7 +64,7 @@ FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE or "ava" in FILE]
 
 PLOT_SED="no"
-PLOT_CORRELATED_FLUX="no"
+PLOT_CORRELATED_FLUX="yes"
 PLOT_I_vs_mbreve="yes"
 PLOT_I_vs_vbreve="no"
 
@@ -242,13 +256,16 @@ for snapshot in FILES_2D:
     dt_GRMHD = 5. ## a0mad
     t_ref = 5500 # 2000
     print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
+    t += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
 
     # Given time in hr    NOW PICK UV point (along EHT uv tracks
     try:
         uv_time_idx = pylab.find(eht_obs_uv[:,0]>=t[-1])[0]
     except:
         pass
+
+    #RG:WIP DISTINGUISH DIFFERENT BASELINES
+
     u_probe=eht_obs_uv[uv_time_idx,1]
     v_probe=eht_obs_uv[uv_time_idx,2]
 
@@ -287,7 +304,7 @@ for snapshot in FILES_2D:
     # dt_GRMHD = 5. ## a0mad
     t_ref = 2000
     print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-    t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
+    t += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
 
     # OLD HARDCODED WAY
     # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
@@ -542,17 +559,17 @@ if PLOT_CORRELATED_FLUX=="yes":
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
-    I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]])
+    I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
     #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
-    I_uv_err = array([0.2,0.03,0.05,0.05])
+    I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
     errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
     # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
     axis((0,10,0,1.1));xlabel(r"$\|uv\|$");legend=legend(labelspacing=0.1);tight_layout()
     legend.get_frame().set_alpha(0.5)
     plt.setp(gca().get_legend().get_texts(), fontsize='18')
 
-    if size(FILES_2D)>1:
-        iter=FILES_2D[0].split("fn")[1].split("_")[0]
+    if size(FILES_2D)>0:
+        iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
         # t_ref=0.
         # dt_GRMHD # ?
         t=(float(iter)-t_ref)*dt_GRMHD * (G*M/c**3) /60./60.  # in hours

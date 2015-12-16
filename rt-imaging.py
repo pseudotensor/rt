@@ -30,11 +30,19 @@ from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
+################
+## USER SPECS ##
+miniversion = True
+WANTED_PLOTS=["IQUV","IP"]
+
 filename = sys.argv[1] # should point to shotimage*.dat file
 
 HOME=commands.getoutput("echo $HOME")
 # RT_DIR="/rt/"
 RT_DIR="/codes/rt-git/"
+
+Jy2cgs=1e23
+ang_size_norm=66.4648/Jy2cgs
 
 # assumes obs.txt (or similar file) in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 # SOMEWHAT HARDWIRED DIRECTORY...
@@ -90,9 +98,6 @@ Haystackvec = array([1492460, -4457299, 4296835])/Lambda
 # {0.874554, 0., -0.484929}
 ####################################################
 
-################
-## USER SPECS ##
-miniversion = True
 
 if "vary" in sys.argv: # use that for movies where parameter varies (adds current parameter value to plot titles)
     VARY = string.lower(sys.argv[sys.argv.index("vary")+1])
@@ -159,6 +164,7 @@ fp = open(filename,"rb")
 header = fromfile(fp,count=20)
 nxy=int(header[2])
 data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
+# data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
 # 4 different channels I,Q,U,V +1 additional "slot"
 # total intensity I
 # linearly polarized intensity Q,U
@@ -403,6 +409,14 @@ Q_xy = data[:,:,1]
 U_xy = data[:,:,2]
 V_xy = data[:,:,3]
 
+# EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
+EVPA_xy = 180./2. - 0.5*angle(Q_xy+1j*U_xy,deg=True)
+
+mbreve_xy = abs((Q_xy+1j*U_xy)/I_xy)
+m_xy = (Q_xy+1j*U_xy)/I_xy
+# I_xy_masked = I_xy[:,:]
+# I_xy_masked[I_threshold_mask]=0
+
 #I_threshold_mask = I_xy >= 0. # NO MASK...
 #I_threshold_mask = I_xy < 2e-4 # 0.1*average(I_xy)
 
@@ -493,7 +507,7 @@ limits_xy = [-image_size/2,image_size/2,-image_size/2,image_size/2]
 
 #limits_xy = [-200,200,-200,200] # helical pattern in jet, filaments in QUV
 #limits_xy = [-45,45,-45,45]
-limits_uv = [-6,6,-6,6]
+limits_uv = [-10,10,-10,10]
 
 
  
@@ -519,29 +533,52 @@ limits_uv = [-6,6,-6,6]
 
 ################
 ## IQUV-PLOTS ##
+if "IQUV" in WANTED_PLOTS:
+    fig_xy = figure(0)
+    fig_xy.subplots_adjust(wspace=0.35,hspace=0.22)
+    for plot_loop in range(len(titles)):
+        
+        ## image plane ##
+        fig_xy.add_subplot(221+plot_loop)
+        pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
+        #clim(limits_colors_xy[plot_loop])
+        
+        plot_shadows("xy")
+        if plot_loop in [2,3]:
+            gca().set(xlabel=r"$x\, \mu arcsec$")
+        if plot_loop in [0,2]:
+            gca().set(ylabel=r"$y\,\mu arcsec$")
+        gca().axis(limits_xy)
+        title(titles[plot_loop]+title_vary_string)
 
-fig_xy = figure(0)
-fig_xy.subplots_adjust(wspace=0.35,hspace=0.22)
-for plot_loop in range(len(titles)):
+    savefig(filename_out.replace(".png","_IQUV_xy.png"))
+    
+    fig_uv_plane = figure(1)
+    fig_uv_plane.subplots_adjust(wspace=0.35,hspace=0.22)
 
-    ## image plane ##
-    fig_xy.add_subplot(221+plot_loop)
-    pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
-    #clim(limits_colors_xy[plot_loop])
+    for plot_loop in range(len(titles)):
+        ## uv plane ##
+        fig_uv_plane.add_subplot(221+plot_loop)
+        pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot_loop]),cmap=colormaps_IQUV_uv[plot_loop],vmin=limits_colors_uv[plot_loop][0],vmax=limits_colors_uv[plot_loop][1])
+        #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot_loop],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot_loop])
+        #colorbar()
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
+        #clim(limits_colors_uv[plot_loop])
 
-    plot_shadows("xy")
-    if plot_loop in [2,3]:
-        gca().set(xlabel=r"$x\, \mu arcsec$")
-    if plot_loop in [0,2]:
-        gca().set(ylabel=r"$y\,\mu arcsec$")
-    gca().axis(limits_xy)
-    title(titles[plot_loop]+title_vary_string)
+        plot_EHT_uv_tracks()
+        plot_shadows("uv")
 
-savefig(filename_out.replace(".png","_IQUV_xy.png"))
+        if plot_loop in [2,3]:
+            gca().set(xlabel=r"u $(G\lambda)$")
+        if plot_loop in [0,2]:
+            gca().set(ylabel=r"v $(G\lambda)$")
+        axis(limits_uv)
+        title(titles_IQUV_uv[plot_loop]+title_vary_string)
+        #title([r"$\rm\tilde{I}$",r"$\rm\tilde{Q}$",r"$\rm\tilde{U}$",r"$\rm\tilde{V}$"][plot_loop]+title_vary_string)
 
-fig_uv_plane = figure(1)
-fig_uv_plane.subplots_adjust(wspace=0.35,hspace=0.22)
+    savefig(filename_out.replace(".png","_IQUV_uv.png"))
+
 
 for plot_loop in range(len(titles)):
     ## uv plane ##
@@ -555,56 +592,42 @@ for plot_loop in range(len(titles)):
     plot_EHT_uv_tracks()
     plot_shadows("uv")
 
-    if plot_loop in [2,3]:
-        gca().set(xlabel=r"u $(G\lambda)$")
-    if plot_loop in [0,2]:
-        gca().set(ylabel=r"v $(G\lambda)$")
-    axis(limits_uv)
-    title(titles_IQUV_uv[plot_loop]+title_vary_string)
-    #title([r"$\rm\tilde{I}$",r"$\rm\tilde{Q}$",r"$\rm\tilde{U}$",r"$\rm\tilde{V}$"][plot_loop]+title_vary_string)
+#####################################################################
 
-savefig(filename_out.replace(".png","_IQUV_uv.png"))
 
-#########################
+if "IP" in WANTED_PLOTS:
+    fig_xy_4panel = figure(8)
+    fig_xy_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
 
-fig_xy_4panel = figure(8)
-fig_xy_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
-
-# EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
-EVPA_xy = 180./2. - 0.5*angle(Q_xy+1j*U_xy,deg=True)
-
-mbreve_xy = abs((Q_xy+1j*U_xy)/I_xy)
-m_xy = (Q_xy+1j*U_xy)/I_xy
-# I_xy_masked = I_xy[:,:]
-# I_xy_masked[I_threshold_mask]=0
-
-#################################
-for plot_loop in range(len(titles)): #
-
-    ## image plane ##
-    fig_xy_4panel.add_subplot(221+plot_loop)
+    for plot_loop in range(len(titles)): #
+        
+        ## image plane ##
+        fig_xy_4panel.add_subplot(221+plot_loop)
     
-    pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
-    #pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
-    if plot_loop==2:
-        colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
-    else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
-    clim(limits_colors_4panel_xy[plot_loop])
+        pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
+        #pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
+        if plot_loop==2:
+            colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
+        else:
+            colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
+        clim(limits_colors_4panel_xy[plot_loop])
 
-    if plot_loop==0:
-        # plot_polticks()
-        plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
-        # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
-    plot_shadows("xy")
-    if plot_loop in [2,3]:
-        gca().set(xlabel=r"$x\,\mu arcsec$")
-    if plot_loop in [0,2]:
-        gca().set(ylabel=r"$y\,\mu arcsec$")
-    gca().axis(limits_xy)
-    title(titles_4panel_xy[plot_loop]+title_vary_string)
+        if plot_loop==0:
+            # plot_polticks()
+            plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
+            # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
+        plot_shadows("xy")
+        if plot_loop in [2,3]:
+            gca().set(xlabel=r"$x\,\mu arcsec$")
+        if plot_loop in [0,2]:
+            gca().set(ylabel=r"$y\,\mu arcsec$")
+        gca().axis(limits_xy)
+        title(titles_4panel_xy[plot_loop]+title_vary_string)
 
-savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
+    savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
+
+
+########################################################################
 
 
 
@@ -612,7 +635,7 @@ savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
 #manager.window.wm_geometry(fig_pos[plot_loop]) # [WIP: need to understand the arg syntax]
 #savefig(filename_out.replace(".png","_"+titles[plot_loop]+".png"))
 #################
-if miniversion: #
+if "IP" in WANTED_PLOTS:
 
   fig_miniversion_uv_4panel = figure(2)
   fig_miniversion_uv_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
@@ -650,10 +673,15 @@ savefig(filename_out.replace(".png","_miniversion_4panel_uv.png"))
 
 
 
+#########################################################################
+
+
+
 #[close(window) for window in [0,1,2,5]]
 
-figure(9)
 
+
+figure(9)
 
 ## WIP ##
 # I mask?
