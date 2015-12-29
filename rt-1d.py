@@ -23,36 +23,45 @@ from scipy import fftpack
 import matplotlib.ticker as ticker
 
 HOME=commands.getoutput("echo $HOME")
-# RT_DIR="/rt/"
-RT_DIR="/codes/rt-git/"
+RT_DIR="/rt/"
+if not os.path.isdir(HOME+RT_DIR):
+    RT_DIR="/codes/rt-git/"
 
 # assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 try:
-    TELESCOPES=['ALMA','SMA','SMT','LMT','PV','PDB','SPT']
-
-    # get all combinations
-    [T1+"-"+T2 for T1 in TELESCOPES for T2 in TELESCOPES if T2!=T1]
-
     EHT_config_file="obs.txt"
-    # EHT_config_file="obs-SMT-SMA.txt"
     eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
-    fd=open(EHT_Config_file)
-    EHT_config = fd.readlines()[10:] # 2nd and 3rd col: telescope sites
-    fd.close()
-
-    ALMA_BASELINES=[LINE for LINE in EHT_config if "ALMA" in LINE.split()[1:3]]
-    ALMA_tuv = [[LINE.split()[0],LINE.split()[4],LINE.split()[5]] for LINE in EHT_config if "ALMA" in LINE.split()[1:3]]
-
-    # ADD SMA,SMT,LMT,PV,PDB,SPT
-
 except:
     pass
-# scatter(obs[:,1],obs[:,2])
+
+
+def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
+    '''Given EHT configuration file for given observing freuqency
+    output uv tracks for specified baseline between.'''
+
+    EHT_config_file="EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
+    if string.lower(baseline1)=="all" or string.lower(baseline1)=="":
+        EHT_config_file="obs.txt"
+        eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
+        # scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,s=10,c="r",marker="o",alpha=0.25,label="EHT 2017")
+        
+    else:
+        fd=open(EHT_config_file)
+        EHT_config_all_baselines = fd.readlines()[10:] # 2nd and 3rd col: telescope sites
+        fd.close()
+
+        uv_tracks = [[float(LINE.split()[0]),float(LINE.split()[4]),float(LINE.split()[5])] for LINE in EHT_config_all_baselines if LINE.split()[1]==baseline1 and LINE.split()[2]==baseline2]
+
+    return array(uv_tracks)
+
 
 
 ## USER SPECS ##
+# UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
+UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
 FILE_EXT="png"
-mbreve="no"
+mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
 m_LP_cap = 0.7
@@ -65,7 +74,7 @@ FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in F
 
 PLOT_SED="no"
 PLOT_CORRELATED_FLUX="yes"
-PLOT_I_vs_mbreve="yes"
+PLOT_I_vs_mbreve="no"
 PLOT_I_vs_vbreve="no"
 
 if size(FILES_2D)==0:
@@ -90,15 +99,6 @@ if len(FILES_1D)>0:
         polires="yes"
         col_SED=[0,1,2,3,4] # 1:nu, 2: F, 3: LP, 4: EVPA, 5: CP
     
-# try:
-#     SED_filenames=[element for element in sys.argv if "polires" in element]
-#     # SED_SCS_filename=sys.argv[ sys.argv.index() ]"/home/rgold/rt/thickdisk7/Te35-SCS/avg/poliresa93.75th140fn6130hi.dat" # WIP
-#     SED_SCS_filename=SED_filenames[0]
-#     PLOT_SED="YES" # if no file found above -> IndexError
-
-# except IndexError:
-#     PLOT_SED="NO"
-
 rc('font',size=20)
 
 # SCATTERING could have an effect on these diagnostics...
@@ -136,7 +136,8 @@ shadow_maximally_spinning = 9./2.*2*rg # diameter
 #######################################################
 
 
-t           = [] # to be filled with simulation time
+TIME        = [] # to be filled with simulation time
+mbreve_vs_t_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
 mbreve_vs_t = [] # to be filled with single point in (u,v) data
 mbreve_opposite_vs_t = []
 dEVPA_vs_t  = [] # to be filled with single/two opposite points in (u,v) data
@@ -147,6 +148,9 @@ try:
     FILES_2D.sort(key=lambda elem: float(elem.split("fn")[1][:-3].split('_')[0]))
 except:
     pass
+
+
+
 
 for snapshot in FILES_2D:
 
@@ -226,8 +230,10 @@ for snapshot in FILES_2D:
     U_uv = fftpack.fftshift(fftpack.fft2(U_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
     V_uv = fftpack.fftshift(fftpack.fft2(V_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 
-    u = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
-    v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
+    u_incr = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
+    v_incr = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
+    u = fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit
+    v = fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit
     UV = meshgrid(u,v)
 
     mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
@@ -251,66 +257,84 @@ for snapshot in FILES_2D:
 ######################################################
 
     # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    #dt = 4. ## thickdisk7
-    #t_ref = 6100 ## thickdisk7
-    dt_GRMHD = 5. ## a0mad
-    t_ref = 5500 # 2000
-    print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-    t += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
+    # dt_GRMHD = 4. ## thickdisk7
+    # dt_GRMHD = 5. ## a0mad
+    dt_GRMHD = 2. ## dipole
+    t_ref = int(FILES_2D[0].split("fn")[1].split('_')[0].split('case')[0])
 
-    # Given time in hr    NOW PICK UV point (along EHT uv tracks
-    try:
-        uv_time_idx = pylab.find(eht_obs_uv[:,0]>=t[-1])[0]
-    except:
-        pass
+    print "[HARDWIRE-WARNING]: dt_GRMHD=",dt_GRMHD
+    TIME += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
 
-    #RG:WIP DISTINGUISH DIFFERENT BASELINES
+    if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING:
+        # Given time in hr    NOW PICK UV point (along EHT uv tracks
+        try:
+            uv_time_idx = pylab.find(eht_obs_uv[:,0]>=TIME[-1]%24)[0]
+        except:
+            print "[ERROR: ] Could not find requested time in EHT tracks..."
+            pass
 
-    u_probe=eht_obs_uv[uv_time_idx,1]
-    v_probe=eht_obs_uv[uv_time_idx,2]
+        # CURRENTLY LIMITED TO ONE SPECIFIC BASELINE:
+        # if True:
+        try:
+            BASELINE=UV_TRACKING[1]
+            baseline1=BASELINE.split('-')[0]
+            baseline2=BASELINE.split('-')[1]
+            uv_time_idx_baseline=pylab.find(get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,0]>=TIME[-1]%24)[0]
+            u_probe_baseline=get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[uv_time_idx_baseline,1]/1e9
+            v_probe_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_baseline,2]/1e9
+            # label_baseline=[baseline1+"-"+baseline2,baseline2+"-"+baseline1]
+            label_baseline=[BASELINE,baseline2+"-"+baseline1]
+            # u_probe=get_EHT_uv_tracks(baseline1="SMA",baseline2="SMT")[uv_time_idx,1]
+            # v_probe=get_EHT_uv_tracks(baseline1="SMA",baseline2="SMT")[uv_time_idx,2]
+        except IndexError: # no uv coverage at given time
+            u_probe_baseline=None
+            v_probe_baseline=None
+            # pass
+
+        # else:
+        u_probe=eht_obs_uv[uv_time_idx,1]
+        v_probe=eht_obs_uv[uv_time_idx,2]
 
     ###################################################################
-    # PICK A POINT
-    # u_probe,v_probe=3.,3.
+    if "PICKaPOINT" in UV_TRACKING:
+        u_probe,v_probe=3.,3.
 
-    # SHOULD REALLY JUST INTERPOLATE... E.G.
-    # interp2d(u,v,mbreve_uv)(3,3)
+        # SHOULD REALLY JUST INTERPOLATE... E.G.
+        # interp2d(u,v,mbreve_uv)(3,3)
 
-    # lower_bound=2.5;upper_bound=3.
-    try: # current EHT uv range 3.2 based on Fig.1 in ordered fields draft
-        # lower_bound=0.5;upper_bound=1.0
-        lower_bound=3.0;upper_bound=3.5
-        # sin(pi/4) & cos(pi/4) so that we probe radius r=sqrt(u^2+v^2) where u=v
-        u[(u>=cos(pi/4.)*lower_bound)*(u<=cos(pi/4.)*upper_bound)][0]
-        v[(v>=sin(pi/4.)*lower_bound)*(v<=sin(pi/4.)*upper_bound)][0]
-    except IndexError:
-        print "No point in interval (",lower_bound,"<u<",upper_bound,"): Adjust bounds!"
-        exit()
+        lower_bound=2.5;upper_bound=3.
+        try: # current EHT uv range 3.2 based on Fig.1 in ordered fields draft
+            # lower_bound=0.5;upper_bound=1.0
+            lower_bound=3.0;upper_bound=3.5
+            # sin(pi/4) & cos(pi/4) so that we probe radius r=sqrt(u^2+v^2) where u=v
+            u[(u>=cos(pi/4.)*lower_bound)*(u<=cos(pi/4.)*upper_bound)][0]
+            v[(v>=sin(pi/4.)*lower_bound)*(v<=sin(pi/4.)*upper_bound)][0]
+        except IndexError:
+            print "No point in interval (",lower_bound,"<u<",upper_bound,"): Adjust bounds!"
+            exit()
 
-    u_probe_index = list(u).index(u[(u>lower_bound)*(u<upper_bound)][0])
-    v_probe_index = list(v).index(v[(v>lower_bound)*(v<upper_bound)][0])
-    u_probe_opposite_index = list(u).index(u[(u<-lower_bound)*(u>-upper_bound)][0])
-    v_probe_opposite_index = list(v).index(v[(v<-lower_bound)*(v>-upper_bound)][0])
+        u_probe_index = list(u).index(u[(u>lower_bound)*(u<upper_bound)][0])
+        v_probe_index = list(v).index(v[(v>lower_bound)*(v<upper_bound)][0])
+        u_probe_opposite_index = list(u).index(u[(u<-lower_bound)*(u>-upper_bound)][0])
+        v_probe_opposite_index = list(v).index(v[(v<-lower_bound)*(v>-upper_bound)][0])
+        u_probe = u[u_probe_index]
+        v_probe = v[v_probe_index]
     ###################################################################
 
     # NEW WAY ALONG EHT TRACKS
-    mbreve_vs_t += [interp2d(u,v,mbreve_uv)(u_probe,v_probe)]
-    mbreve_opposite_vs_t += [interp2d(u,v,mbreve_uv)(-u_probe,-v_probe)]
-    dEVPA_vs_t   += [interp2d(u,v,EVPA_uv)(u_probe,v_probe)-interp2d(u,v,EVPA_uv)(-u_probe,-v_probe)]
+    # try:
+    if u_probe_baseline and v_probe_baseline:
+        mbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
+    # except:
+    else:
+        mbreve_vs_t_baseline += [None]
+        pass
 
-    # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    dt_GRMHD = 4. ## thickdisk7
-    #t_ref = 6100 ## thickdisk7
-    # dt_GRMHD = 5. ## a0mad
-    t_ref = 2000
-    print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-    t += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
+    mbreve_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe,v_probe)[0]]
+    mbreve_opposite_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
+    dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
 
-    # OLD HARDCODED WAY
-    # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
-    # mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
-    # dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
-    # # dEVPA_vs_t   += [-EVPA_uv[u_probe_index,v_probe_index]+EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
+
 
 for jump_removal_iteration in range(5):
     try:
@@ -328,44 +352,75 @@ for jump_removal_iteration in range(5):
 
 if size(FILES_2D)>0:
 
-  if mbreve=="yes":
-      ##########################
-      figure(0,figsize=(12,6)) #
+################
+    figure(10) #
+################
+    pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2)
+    colorbar()
+    clim(0,1)
+    # axis((-10,10,-10,10))
+    BASELINES=UV_TRACKING[1:]
+    for BASELINE in BASELINES:
+        try:
+            baseline1=BASELINE.split('-')[0]
+            baseline2=BASELINE.split('-')[1]
+            COLOR="rygb"[BASELINES.index(BASELINE)]
+            scatter(get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,1]/1e9,
+                    get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,2]/1e9,
+                    s=10,c=COLOR,marker="o",alpha=0.25,label=BASELINE,linewidth=1)
+            scatter(get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,1]/1e9,
+                    get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,2]/1e9,
+                    s=10,c=COLOR,marker="s",alpha=0.25,linewidth=1) #,label=baseline2+"-"+baseline1)
+        except:
+            pass
 
-      labelstring_mbreve=[
-          r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
-          r"$uv="+str(round(u[u_probe_opposite_index],1))+"G\lambda$"
-          # r"$(u="+str(round(u[u_probe_index],1))+",v="+str(round(v[v_probe_index],1))+")$",
-          # r"$(u="+str(round(u[u_probe_opposite_index],1))+",v="+str(round(v[v_probe_opposite_index],1))+")$"
-          ]
-      plot(t,mbreve_vs_t,"bo-",label=labelstring_mbreve[0])
-      plot(t,mbreve_opposite_vs_t,"r+-",label=labelstring_mbreve[1])
-      legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
-      title(os.getcwd().split('/')[-1])
-      xlabel(r"$t/h$")
-      ylabel(r"$\breve{m}$")
-      # ylabel(r"$\breve{m}(\|u\|="+str(round(v[v_probe_index],1))+",\|v\|="+str(round(v[v_probe_index],1))+")$")
-      axis((amin(t),amax(t),0,1.1))
-      #axis((t[0],t[-1],0,1.1))
-      tight_layout()
-      savefig("mbreve-vs-t.png")
-      savefig("mbreve-vs-t.pdf")
+    axis('equal')
+    axis((-10,10,-10,10))
+    legend()
+    tight_layout()
+    iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
+    savefig("mbreve_uvtracks-"+iter+"."+FILE_EXT)
+
+    if mbreve=="yes":
+        ##########################
+        figure(0,figsize=(12,6)) #
+
+        if "PICKaPOINT" in UV_TRACKING:
+            labelstring_mbreve=[
+                r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
+                r"$uv="+str(round(u[u_probe_opposite_index],1))+"G\lambda$"
+                ]
+        else:
+            labelstring_mbreve=["EHT2017","EHT2017-conj."]
+
+        plot(TIME,mbreve_vs_t_baseline,"ro-",label=label_baseline[0])
+        plot(TIME,mbreve_vs_t,"bx-",label=labelstring_mbreve[0])
+        plot(TIME,mbreve_opposite_vs_t,"y+-",label=labelstring_mbreve[1])
+        legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
+        title(os.getcwd().split('/')[-1])
+        xlabel(r"$t/h$")
+        ylabel(r"$\breve{m}$")
+        axis((amin(TIME),amax(TIME),0,1.1))
+        tight_layout()
+        savefig("mbreve-vs-t."+FILE_EXT)
 
 
-  if dEVPA=="yes":
+    if dEVPA=="yes":
       ########################
       figure(1,figsize=(12,6)) #
 
       # WIP clean 180deg jumps using diff()
       plot(t,dEVPA_vs_t,"g^")
       xlabel(r"$t/h$")
-      ylabel(r"$\delta EVPA(\|uv\|="+str(round(v[v_probe_index],1))+"G\lambda)$") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
-      #xlim(t[0],t[-1])
+      try:
+          ylabel(r"$\delta EVPA(\|uv\|="+str(round(v[v_probe_index],1))+"G\lambda)$") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
+      except:
+          ylabel(r"$\delta EVPA (along EHT2017)") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
+          
       tight_layout()
-      savefig("dEVPA-vs-t.png")
-      savefig("dEVPA-vs-t.pdf")
+      savefig("dEVPA-vs-t."+FILE_EXT)
 
-  if False:
+    if False:
       figure(2)
       # FIXME: still need to filter |uv|= 2.5-4
       # CHECK THIS
@@ -379,7 +434,7 @@ if size(FILES_2D)>0:
       figure(3)
       # V_uv[CP_mask] = 0
       # V_uv[UV_mbreve_mask] = 0
-      pcolormesh(UV[0],UV[1],abs(V_uv)/abs(I_uv),cmap=cm.bone,vmax=None)
+      pcolormesh(u_incr,v_incr,abs(V_uv)/abs(I_uv),cmap=cm.bone,vmax=None)
       axis((-5,5,-5,5))
       colorbar(pad=0)
       title(r"$\rm \|\tilde{V}\|/\|\tilde{I}\|$ where $0.5<\breve{m}<0.7$") # replace with parameters!
@@ -521,18 +576,22 @@ if PLOT_CORRELATED_FLUX=="yes":
     
     ## interpolate on circle (so that we can sum over all angles
 
-    r_uv_data = sqrt(u**2+v**2)
-    ## ph_uv_data = arctan2(u,v)
-    ph_uv_data = arctan2(v,u)
+    # r_uv_data = sqrt(u**2+v**2)
+    # ph_uv_data = arctan2(u,v)
+    r_uv_data = sqrt(u_incr**2+v_incr**2)
+    ph_uv_data = arctan2(v_incr,u_incr)
 
     nr=51;nph=51
     r_uv  = linspace(0,10,nr)
     ph_uv = linspace(0,2.*pi,nph)
 
     I_uv_max = amax(abs(I_uv))
-    I_uv_intp = interp2d(u,v,abs(I_uv))
-    mbreve_uv_intp = interp2d(u,v,abs(mbreve_uv))
-    vbreve_uv_intp = interp2d(u,v,abs(V_uv)/abs(I_uv))
+    I_uv_intp = interp2d(u_incr,v_incr,abs(I_uv))
+    mbreve_uv_intp = interp2d(u_incr,v_incr,abs(mbreve_uv))
+    vbreve_uv_intp = interp2d(u_incr,v_incr,abs(V_uv)/abs(I_uv))
+    # I_uv_intp = interp2d(u,v,abs(I_uv))
+    # mbreve_uv_intp = interp2d(u,v,abs(mbreve_uv))
+    # vbreve_uv_intp = interp2d(u,v,abs(V_uv)/abs(I_uv))
 
     # CF = empty((nr,nph))
     mbreve_uv_rphi,I_uv_rphi,vbreve_uv_rphi = empty((nr,nph)),empty((nr,nph)),empty((nr,nph))
