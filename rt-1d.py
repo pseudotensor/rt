@@ -138,8 +138,9 @@ shadow_maximally_spinning = 9./2.*2*rg # diameter
 
 TIME        = [] # to be filled with simulation time
 mbreve_vs_t_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
+mbreve_vs_t_conjugate_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
 mbreve_vs_t = [] # to be filled with single point in (u,v) data
-mbreve_opposite_vs_t = []
+mbreve_conjugate_vs_t = []
 dEVPA_vs_t  = [] # to be filled with single/two opposite points in (u,v) data
 
 # SORT IT ACCORDING TO TIME STAMP IN FILENAME
@@ -256,13 +257,16 @@ for snapshot in FILES_2D:
         V_uv[UV_mbreve_mask] = 0
 ######################################################
 
-    # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-    # dt_GRMHD = 4. ## thickdisk7
-    # dt_GRMHD = 5. ## a0mad
-    dt_GRMHD = 2. ## dipole
     t_ref = int(FILES_2D[0].split("fn")[1].split('_')[0].split('case')[0])
+    try:
+        dt_GRMHD = float(sys.argv[sys.argv.index("dt")+1])
+    except ValueError:
+        # time = commands.getoutput("head -1 fieldline.*.bin").split()[0] # get dt from two consecutive files
+        # dt_GRMHD = 4. ## thickdisk7
+        # dt_GRMHD = 5. ## a0mad
+        dt_GRMHD = 2. ## dipole
+        print "[HARDWIRE-WARNING]: dt_GRMHD=",dt_GRMHD
 
-    print "[HARDWIRE-WARNING]: dt_GRMHD=",dt_GRMHD
     TIME += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
 
     if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING:
@@ -281,15 +285,21 @@ for snapshot in FILES_2D:
             baseline2=BASELINE.split('-')[1]
             uv_time_idx_baseline=pylab.find(get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,0]>=TIME[-1]%24)[0]
             u_probe_baseline=get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[uv_time_idx_baseline,1]/1e9
-            v_probe_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_baseline,2]/1e9
-            # label_baseline=[baseline1+"-"+baseline2,baseline2+"-"+baseline1]
+            v_probe_baseline=get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[uv_time_idx_baseline,2]/1e9
             label_baseline=[BASELINE,baseline2+"-"+baseline1]
-            # u_probe=get_EHT_uv_tracks(baseline1="SMA",baseline2="SMT")[uv_time_idx,1]
-            # v_probe=get_EHT_uv_tracks(baseline1="SMA",baseline2="SMT")[uv_time_idx,2]
+
         except IndexError: # no uv coverage at given time
             u_probe_baseline=None
             v_probe_baseline=None
-            # pass
+
+        try:
+            uv_time_idx_conjugate_baseline=pylab.find(get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,0]>=TIME[-1]%24)[0]
+            u_probe_conjugate_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_conjugate_baseline,1]/1e9
+            v_probe_conjugate_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_conjugate_baseline,2]/1e9
+
+        except IndexError: # no uv coverage at given time
+            u_probe_conjugate_baseline=None
+            v_probe_conjugate_baseline=None
 
         # else:
         u_probe=eht_obs_uv[uv_time_idx,1]
@@ -315,23 +325,26 @@ for snapshot in FILES_2D:
 
         u_probe_index = list(u).index(u[(u>lower_bound)*(u<upper_bound)][0])
         v_probe_index = list(v).index(v[(v>lower_bound)*(v<upper_bound)][0])
-        u_probe_opposite_index = list(u).index(u[(u<-lower_bound)*(u>-upper_bound)][0])
-        v_probe_opposite_index = list(v).index(v[(v<-lower_bound)*(v>-upper_bound)][0])
+        u_probe_conjugate_index = list(u).index(u[(u<-lower_bound)*(u>-upper_bound)][0])
+        v_probe_conjugate_index = list(v).index(v[(v<-lower_bound)*(v>-upper_bound)][0])
         u_probe = u[u_probe_index]
         v_probe = v[v_probe_index]
     ###################################################################
 
     # NEW WAY ALONG EHT TRACKS
-    # try:
     if u_probe_baseline and v_probe_baseline:
         mbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
-    # except:
     else:
         mbreve_vs_t_baseline += [None]
-        pass
+        # pass
+    if u_probe_conjugate_baseline and v_probe_conjugate_baseline:
+        mbreve_vs_t_conjugate_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]]
+    else:
+        mbreve_vs_t_conjugate_baseline += [None]
+        # pass
 
     mbreve_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe,v_probe)[0]]
-    mbreve_opposite_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
+    mbreve_conjugate_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
     dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
 
 
@@ -388,14 +401,15 @@ if size(FILES_2D)>0:
         if "PICKaPOINT" in UV_TRACKING:
             labelstring_mbreve=[
                 r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
-                r"$uv="+str(round(u[u_probe_opposite_index],1))+"G\lambda$"
+                r"$uv="+str(round(u[u_probe_conjugate_index],1))+"G\lambda$"
                 ]
         else:
             labelstring_mbreve=["EHT2017","EHT2017-conj."]
 
         plot(TIME,mbreve_vs_t_baseline,"ro-",label=label_baseline[0])
-        plot(TIME,mbreve_vs_t,"bx-",label=labelstring_mbreve[0])
-        plot(TIME,mbreve_opposite_vs_t,"y+-",label=labelstring_mbreve[1])
+        plot(TIME,mbreve_vs_t_conjugate_baseline,"r+--",label=label_baseline[1])
+        plot(TIME,mbreve_vs_t,"yd-",label=labelstring_mbreve[0])
+        plot(TIME,mbreve_conjugate_vs_t,"yx--",label=labelstring_mbreve[1])
         legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
         title(os.getcwd().split('/')[-1])
         xlabel(r"$t/h$")
