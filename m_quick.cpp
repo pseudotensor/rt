@@ -28,7 +28,8 @@ doub step=xstep,   //local variables, which control radiative transfer
 doub avrate,       //average accretion rate
 	 avTpTe,       //average ratio of Tp/Te at 6M radius
 	 avTe6;        //average electron temperature Te at 6M radius
-int snxy=xsnxy,    //global variable correspondent to xsnxy
+//int snxy=xsnxy,    //global variable correspondent to xsnxy
+int snxy=nxy,    //global variable correspondent to xsnxy
     ind,           //number of time frames for spectrum evaluation // RG: average over ind snapshots?
 	fmin,          //minimum ID of fluid simulation snapshot
 	fmax,          //maximum ID of fluid simulation snapshot
