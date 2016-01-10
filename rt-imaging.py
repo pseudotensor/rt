@@ -32,8 +32,9 @@ import matplotlib.ticker as ticker
 
 ################
 ## USER SPECS ##
-miniversion = True
+miniversion = True # False True
 WANTED_PLOTS=["IQUV","IP"]
+# WANTED_PLOTS=["IP"]
 
 filename = sys.argv[1] # should point to shotimage*.dat file
 
@@ -251,10 +252,12 @@ titles = ["I","Q","U","V"]
 titles_4panel_xy = [ 
 #r"$\rm \|m_{LP}\|\equiv |(Q+iU)/I\|$", 
 r"$\rm I$", 
-r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$", 
+#r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$", 
+r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}$", 
 #r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
 r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
-r"$\rm v \equiv \|V\|/I$"]
+#r"$\rm v \equiv \|V\|/I$"]
+r"$\rm v \equiv \|V\|$"]
 titles_IQUV_uv = [ 
 r"$\rm \|\tilde{I}\|$", 
 r"$\rm \|\tilde{Q}\|$",
@@ -452,6 +455,10 @@ V_uv = fftpack.fftshift(fftpack.fft2(w(V_xy),shape=[nxy*zeropadding_factor,nxy*z
 # U_uv = fftpack.fftshift(fftpack.fft2(U_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 # V_uv = fftpack.fftshift(fftpack.fft2(V_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 
+# u = fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit
+# v = fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit
+# u_incr = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
+# v_incr = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 u = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
 v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 
@@ -491,9 +498,12 @@ for i in range(shape(u_no_zeropadding)[0]):
 # RG: FINISH data depend limits
 # figure(0):       [I_xy    ,Q_xy        ,U_xy        ,V_xy        ]
 limits_colors_xy = [(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))]
+# limits_colors_xy = [(0,8e-4),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))]
 #limits_colors_xy = [(0,6e-4),(-4e-5,4e-5),(-4e-5,4e-5),(-1e-5,1e-5)]
-# figure(8):              [I_xy    ,mbreve_xy,EVPA_xy  ,CP_xy   ]
-limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
+# # figure(8):              [I_xy    ,mbreve_xy,EVPA_xy  ,CP_xy   ]
+# limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
+# figure(8):              [I_xy    ,|Q,U|_xy,EVPA_xy  ,|V|_xy   ]
+limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
@@ -558,11 +568,8 @@ if "IQUV" in WANTED_PLOTS:
     fig_uv_plane.subplots_adjust(wspace=0.35,hspace=0.22)
 
     for plot_loop in range(len(titles)):
-        ## uv plane ##
         fig_uv_plane.add_subplot(221+plot_loop)
         pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot_loop]),cmap=colormaps_IQUV_uv[plot_loop],vmin=limits_colors_uv[plot_loop][0],vmax=limits_colors_uv[plot_loop][1])
-        #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot_loop],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot_loop])
-        #colorbar()
         colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
         #clim(limits_colors_uv[plot_loop])
 
@@ -580,17 +587,14 @@ if "IQUV" in WANTED_PLOTS:
     savefig(filename_out.replace(".png","_IQUV_uv.png"))
 
 
-for plot_loop in range(len(titles)):
-    ## uv plane ##
-    fig_uv_plane.add_subplot(221+plot_loop)
-    pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot_loop]),cmap=colormaps_IQUV_uv[plot_loop],vmin=limits_colors_uv[plot_loop][0],vmax=limits_colors_uv[plot_loop][1])
-    #pcolormesh(u,v,abs(fftpack.fftshift(fftpack.fft2(data[:,:,plot_loop],shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))) ) #,cmap=colormaps[plot_loop])
-    #colorbar()
-    colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
-    #clim(limits_colors_uv[plot_loop])
+    # for plot_loop in range(len(titles)):
+    #     fig_uv_plane.add_subplot(221+plot_loop)
+    #     pcolormesh(u,v,abs([I_uv,Q_uv,U_uv,V_uv][plot_loop]),cmap=colormaps_IQUV_uv[plot_loop],vmin=limits_colors_uv[plot_loop][0],vmax=limits_colors_uv[plot_loop][1])
+    #     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_uv[plot_loop][0],limits_colors_uv[plot_loop][1],5))
+    #     # clim(limits_colors_uv[plot_loop])
 
-    plot_EHT_uv_tracks()
-    plot_shadows("uv")
+    #     plot_EHT_uv_tracks()
+    #     plot_shadows("uv")
 
 #####################################################################
 
@@ -604,8 +608,9 @@ if "IP" in WANTED_PLOTS:
         ## image plane ##
         fig_xy_4panel.add_subplot(221+plot_loop)
     
-        pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
-        #pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
+        # pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
+        pcolormesh(X,Y,[abs(I_xy),abs(Q_xy+1j*U_xy),EVPA_xy,abs(V_xy)][plot_loop],cmap=colormaps_4panel[plot_loop])
+        # pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
         if plot_loop==2:
             colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
         else:
@@ -635,7 +640,7 @@ if "IP" in WANTED_PLOTS:
 #manager.window.wm_geometry(fig_pos[plot_loop]) # [WIP: need to understand the arg syntax]
 #savefig(filename_out.replace(".png","_"+titles[plot_loop]+".png"))
 #################
-if "IP" in WANTED_PLOTS:
+if "IP" in WANTED_PLOTS and miniversion:
 
   fig_miniversion_uv_4panel = figure(2)
   fig_miniversion_uv_4panel.subplots_adjust(wspace=0.35,hspace=0.22)
@@ -812,7 +817,7 @@ pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=limits_colors_xy[0][1])
 colorbar()
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
-
+plot_shadows("xy")
 plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
 
 # strange "fan":
