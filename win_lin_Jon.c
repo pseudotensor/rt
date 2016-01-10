@@ -31,12 +31,12 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
  * RG: THICKDISK7 GRMHD model *
  ******************************/
 
-/* const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/"; */
-/* //RG: WHY "int"? */
-/* const int dtimdf=4; // time difference (in M) between fieldlineXXXX files */
-/* const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency */
-/* const string astr[1]={"thermal"}; */
-/* const doub atab[1]={0.9375}; */
+const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/";
+//RG: WHY "int"?
+const int dtimdf=4; // time difference (in M) between fieldlineXXXX files
+const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
+const string astr[1]={"thermal"};
+const doub atab[1]={0.9375};
 
 
 // THICKDISKHR3
@@ -60,14 +60,13 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 // RG: quadrupole MRI GRMHD models (i.e. blandford3d)
 // http://adsabs.harvard.edu/abs/2009MNRAS.394L.126M
-const int ncuttab[1] = {120}, rlen=128, thlen=128,phlen=32,
-     // actually no usgdump2d file but for consistency
-	 usgsize=69 /*record size*/,usgoff=156 /*offset*/;
-const string astr[1]={""};
-const int dtimdf=4;
-const doub atab[1]={0.92};
-//const doub atab[1]={0.9375};
-const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/";
+/* const int ncuttab[1] = {120}, rlen=128, thlen=128,phlen=32, */
+/*      // actually no usgdump2d file but for consistency */
+/* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
+/* const string astr[1]={""}; */
+/* const int dtimdf=4; */
+/* const doub atab[1]={0.92}; */
+/* const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/"; */
 
 
 
