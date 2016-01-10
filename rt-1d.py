@@ -19,6 +19,7 @@ from pylab import *
 from scipy import *
 from scipy.interpolate import *
 from scipy.constants import *
+from scipy.stats import mode
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
@@ -39,7 +40,7 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
     '''Given EHT configuration file for given observing freuqency
     output uv tracks for specified baseline between.'''
 
-    EHT_config_file="EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
+    EHT_config_file=HOME+RT_DIR+"EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
     if string.lower(baseline1)=="all" or string.lower(baseline1)=="":
         EHT_config_file="obs.txt"
         eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
@@ -60,7 +61,7 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
 # UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
-FILE_EXT="png"
+FILE_EXT="pdf" # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
@@ -368,7 +369,10 @@ if size(FILES_2D)>0:
 ################
     figure(10) #
 ################
-    pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2)
+    # pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2) # SUPER SLOW WHEN savefig() when FILE_EXT="pdf"
+    # pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2,shading='gouraud') # much faster savefig() when FILE_EXT="pdf" but seems to ignore shading
+    pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2,rasterized=True) # False) # much faster savefig() when FILE_EXT="pdf"
+    # pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2,shading='gouraud',rasterized=True) # False)
     colorbar()
     clim(0,1)
     # axis((-10,10,-10,10))
@@ -500,12 +504,44 @@ if string.lower(PLOT_SED)=="yes":
     nu=linspace(0,1000,100)
 
     def SgrA_SED_FIT(nu):
+        '''Given observing frequency nu in [Ghz] return flux in [Jy].'''
         return 0.248*nu**0.45 * exp(-(nu/1100.)**2)
 
 
-    def ChiSq(F,tofit=tofit,SED_errors=SED_errors):
-        Chisq = sum((F[4:-4]-tofit[4:-4,1])**2/SED_errors[4:-4]**2)
-        dof   = 7 ## 10-3: fit for i,rho and T_e
+    # def ChiSq(F,nu,observed=tofit,SED_errors=SED_errors,FitLP=False):
+    def ChiSq(data,FitLP=False,FitCP=False,FROM=4,TO=10):
+        '''Given array data containing freuqencies, fluxes F, LP, CP, 
+           return chi^2/dof'''
+        freq=data[:,0];F=data[:,1];LP=data[:,2];CP=data[:,3]
+        FROM = pylab.find(tofit[:,0]>=freq[0])[0]
+        TO   = pylab.find(tofit[:,0]>=freq[-1])[0]
+        observed=empty(size(ones(TO-FROM))+1)
+        # Chisq = sum((F[7:,1]-tofit[4:-3,1])**2/SED_errors[4:-3]**2)
+        for freq_idx in range(len(freq)):
+            observed[freq_idx]=SgrA_SED_FIT(freq[freq_idx])
+        # CHECK THAT WE ACTUALLY COMPARE THE SAME FREQUENCIES
+        if round(freq[0],0)!=round(tofit[FROM,0],0) or round(freq[-1],0)!=round(tofit[TO,0],0):
+            print "ChiSq(): Frequencies inconsistent. Better die...SED"
+            raise ValueError
+        Chisq = sum((F-observed)**2/SED_errors[FROM:TO+1]**2)
+
+        dof=size(F)
+        if FitLP:
+            LP_errors = array([0.50, 0.658, 0.605])
+            LP_measurements=array([4,7,8]) # 87,230,349Ghz
+            Chisq += sum((LP[LP_measurements-FROM]-tofit[LP_measurements,2])**2/LP_errors**2)
+            dof += 3
+        if FitCP:
+            CP_measurements=array([7,8])
+            CP_error = 0.3
+            Chisq += sum((CP[CP_measurements-FROM]-tofit[CP_measurements,4])**2/CP_error**2)
+            # Chisq += sum((F-observed)**2/SED_errors[FROM:TO+1]**2)
+            dof += 2
+
+        npar=3 ## fit for i,rho and T_e
+        dof   -= npar 
+        # print "ChiSq(): effectively dof="+str(dof)+" ("+str(npar)+" free parameters)"
+
         return Chisq/dof
 
 
@@ -529,12 +565,9 @@ if string.lower(PLOT_SED)=="yes":
         # plot_style = str(Line2D.markers.keys()[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
 
         # plot(SED[:,0],SED[:,1],plot_style,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
-        if "quick" in FILE:
-            SED=loadtxt(FILE,usecols=[0,1])
-            plot(SED[:,0],SED[:,1],'b-',linewidth=2)
-        else:
-            SED=loadtxt(FILE,usecols=col_SED)
-            plot(SED[:,0],SED[:,1],'c.-',alpha=0.5,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
+        SED=loadtxt(FILE,usecols=col_SED)
+        plot(SED[:,col_SED[0]],SED[:,col_SED[1]],'co-',linewidth=2)
+        #    plot(SED[:,0],SED[:,1],'c.-',alpha=0.5,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
 
         if FILES_1D==FILE:
             legend(loc="lower right",labelspacing=0.2) # ,fontsize=15)
@@ -545,6 +578,12 @@ if string.lower(PLOT_SED)=="yes":
     tight_layout()
     savefig("SED.png")
     savefig("SED.pdf")
+
+    try:
+        print "chi_I^2/dof:",ChiSq(SED,FitLP=False,FitCP=False)
+        print "chi^2/dof:",ChiSq(SED,FitLP=True,FitCP=True)
+    except:
+        pass
 
 if string.lower(PLOT_SED)=="yes":
     FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE or "poli" in FILE][0]
@@ -617,7 +656,12 @@ if PLOT_CORRELATED_FLUX=="yes":
     I_uv_1d = mean(abs(I_uv_rphi),axis=1)
     I_uv_1d_min = amin(abs(I_uv_rphi),axis=1)
     I_uv_1d_max = amax(abs(I_uv_rphi),axis=1)
-    mbreve_uv_1d = mean(abs(mbreve_uv_rphi),axis=1)
+    mbreve_uv_1d_mean = mean(abs(mbreve_uv_rphi),axis=1)
+    mbreve_uv_1d_median = median(abs(mbreve_uv_rphi),axis=1)
+
+    # IS THIS RIGHT ?
+    mbreve_uv_1d_mode = mode(abs(mbreve_uv_rphi),axis=1)[0][:,0]
+
     mbreve_uv_1d_min = amin(abs(mbreve_uv_rphi),axis=1)
     mbreve_uv_1d_max = amax(abs(mbreve_uv_rphi),axis=1)
     vbreve_uv_1d = mean(abs(vbreve_uv_rphi),axis=1)
@@ -625,7 +669,9 @@ if PLOT_CORRELATED_FLUX=="yes":
     plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$I:\phi-avg$")
     fill_between(r_uv,I_uv_1d_min/I_uv_1d[0],I_uv_1d_max/I_uv_1d[0],color='cyan',alpha=0.5)
 
-    plot(r_uv,mbreve_uv_1d,'rd-',label=r"$\breve{m}:\phi-avg$")
+    plot(r_uv,mbreve_uv_1d_mean,'rx-',label=r"$\breve{m}:\phi-mean$")
+    plot(r_uv,mbreve_uv_1d_median,'rd--',label=r"$\breve{m}:\phi-median$")
+    # plot(r_uv,mbreve_uv_1d_mode,'ro-',label=r"$\breve{m}:\phi-mode$")
     fill_between(r_uv,mbreve_uv_1d_min,mbreve_uv_1d_max,color='red',alpha=0.2)
 
     plot(r_uv,vbreve_uv_1d,'o-',color='gray',label=r"$\breve{v}:\phi-avg$")
