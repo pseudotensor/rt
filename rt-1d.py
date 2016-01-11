@@ -65,6 +65,7 @@ FILE_EXT="pdf" # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
+PSD="no"
 m_LP_cap = 0.7
 m_CP_cap = 1.0
 m_LP_floor = 0.5
@@ -77,6 +78,9 @@ PLOT_SED="no"
 PLOT_CORRELATED_FLUX="yes"
 PLOT_I_vs_mbreve="no"
 PLOT_I_vs_vbreve="no"
+
+if "bh0" in commands.getoutput("echo $HOSTNAME"):
+    PLOT_CORRELATED_FLUX="no" ## BUG in python version on bh cluster... deactivate
 
 if size(FILES_2D)==0:
     PLOT_CORRELATED_FLUX="no"
@@ -238,6 +242,8 @@ for snapshot in FILES_2D:
     v = fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit
     UV = meshgrid(u,v)
 
+    I_uv_max = amax(abs(I_uv))
+
     mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
     vbreve_uv = abs(V_uv)/abs(I_uv)
     EVPA_uv = angle((Q_uv+1j*U_uv)/I_uv) * 90./pi 
@@ -333,6 +339,7 @@ for snapshot in FILES_2D:
     ###################################################################
 
     # NEW WAY ALONG EHT TRACKS
+# <<<<<<< Updated upstream
     if u_probe_baseline and v_probe_baseline:
         mbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
     else:
@@ -349,6 +356,26 @@ for snapshot in FILES_2D:
     dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
 
 
+# =======
+#     mbreve_vs_t += [interp2d(u,v,mbreve_uv)(u_probe,v_probe)]
+#     mbreve_opposite_vs_t += [interp2d(u,v,mbreve_uv)(-u_probe,-v_probe)]
+#     dEVPA_vs_t   += [interp2d(u,v,EVPA_uv)(u_probe,v_probe)-interp2d(u,v,EVPA_uv)(-u_probe,-v_probe)]
+
+#     # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
+#     dt_GRMHD = 4. ## thickdisk7
+#     #t_ref = 6100 ## thickdisk7
+#     # dt_GRMHD = 5. ## a0mad
+#     # dt_GRMHD = 2. ## quadrupole
+#     t_ref = 2000
+#     print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
+#     t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
+
+#     # OLD HARDCODED WAY
+#     # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
+#     # mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
+#     # dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
+#     # # dEVPA_vs_t   += [-EVPA_uv[u_probe_index,v_probe_index]+EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
+# >>>>>>> Stashed changes
 
 for jump_removal_iteration in range(5):
     try:
@@ -361,6 +388,15 @@ for jump_removal_iteration in range(5):
         dEVPA_vs_t[jump_up_in_EVPA+1:] = array(dEVPA_vs_t)[jump_up_in_EVPA+1:] - 180.
     except:
         pass
+
+mbreve_vs_t=array(mbreve_vs_t)
+
+
+if string.lower(PSD)=="yes":
+    figure(3)
+    f = fftfreq(size(mbreve_vs_t),d=40.) * (c**3/G/M)
+    semilogy(f,abs(fft(mbreve_vs_t/mean(mbreve_vs_t)))**2)
+    xlabel("f/Hz")
 
 
 
@@ -685,7 +721,7 @@ if PLOT_CORRELATED_FLUX=="yes":
     # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
     axis((0,10,0,1.1));xlabel(r"$\|uv\|$");legend=legend(labelspacing=0.1);tight_layout()
     legend.get_frame().set_alpha(0.5)
-    plt.setp(gca().get_legend().get_texts(), fontsize='18')
+    plt.setp(gca().get_legend().get_texts(), fontsize='18') 
 
     if size(FILES_2D)>0:
         iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
