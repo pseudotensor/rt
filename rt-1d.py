@@ -37,7 +37,7 @@ except:
 
 
 def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
-    '''Given EHT configuration file for given observing freuqency
+    '''Given EHT configuration file for given observing frequency
     output uv tracks for specified baseline between.'''
 
     EHT_config_file=HOME+RT_DIR+"EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
@@ -338,8 +338,7 @@ for snapshot in FILES_2D:
         v_probe = v[v_probe_index]
     ###################################################################
 
-    # NEW WAY ALONG EHT TRACKS
-# <<<<<<< Updated upstream
+    # ALONG EHT TRACKS
     if u_probe_baseline and v_probe_baseline:
         mbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
     else:
@@ -355,27 +354,6 @@ for snapshot in FILES_2D:
     mbreve_conjugate_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
     dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
 
-
-# =======
-#     mbreve_vs_t += [interp2d(u,v,mbreve_uv)(u_probe,v_probe)]
-#     mbreve_opposite_vs_t += [interp2d(u,v,mbreve_uv)(-u_probe,-v_probe)]
-#     dEVPA_vs_t   += [interp2d(u,v,EVPA_uv)(u_probe,v_probe)-interp2d(u,v,EVPA_uv)(-u_probe,-v_probe)]
-
-#     # time = commands.getoutput("head -1 fieldline.*.bin").split()[0]
-#     dt_GRMHD = 4. ## thickdisk7
-#     #t_ref = 6100 ## thickdisk7
-#     # dt_GRMHD = 5. ## a0mad
-#     # dt_GRMHD = 2. ## quadrupole
-#     t_ref = 2000
-#     print "[HARDWIRE-WARNING]: dt,t_ref=",dt_GRMHD,t_ref
-#     t += [(float(filename.split("fn")[1].split('_')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.]
-
-#     # OLD HARDCODED WAY
-#     # mbreve_vs_t += [mbreve_uv[u_probe_index,v_probe_index]]
-#     # mbreve_opposite_vs_t += [mbreve_uv[u_probe_opposite_index,v_probe_opposite_index]]
-#     # dEVPA_vs_t   += [EVPA_uv[u_probe_index,v_probe_index]-EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
-#     # # dEVPA_vs_t   += [-EVPA_uv[u_probe_index,v_probe_index]+EVPA_uv[u_probe_opposite_index,v_probe_opposite_index]]
-# >>>>>>> Stashed changes
 
 for jump_removal_iteration in range(5):
     try:
