@@ -5,7 +5,7 @@
 //POWERLAW
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
 
-const int nthreads=24; // 24: bh01;// 8;//Orange
+const int nthreads=6; // 24: bh01;// 8;//Orange
 const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 
@@ -65,7 +65,7 @@ const doub atab[1]={0.9375};
 /* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
 /* const string astr[1]={""}; */
 /* const int dtimdf=4; */
-/* const doub atab[1]={0.92}; */
+/* const doub atab[1]={0.9375}; */
 /* const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/"; */
 
 
