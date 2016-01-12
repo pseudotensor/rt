@@ -106,6 +106,7 @@ else:
     VARY="" # can be "","magn_cap","theta","r"
 
 SCATTERING = "ON"
+SCATTERING_REDUCTION=0.5 # 1: full scattering
 if SCATTERING == "ON":
     try:
         from scipy import ndimage
@@ -253,11 +254,11 @@ titles_4panel_xy = [
 #r"$\rm \|m_{LP}\|\equiv |(Q+iU)/I\|$", 
 r"$\rm I$", 
 #r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$", 
-r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}$", 
+r"$\sqrt{\|Q\|^2+\|U\|^2}$", 
 #r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
 r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
 #r"$\rm v \equiv \|V\|/I$"]
-r"$\rm v \equiv \|V\|$"]
+r"$\rm \|V\|$"]
 titles_IQUV_uv = [ 
 r"$\rm \|\tilde{I}\|$", 
 r"$\rm \|\tilde{Q}\|$",
@@ -318,7 +319,7 @@ def plot_EHT_uv_tracks(config='2017'):
     return None
 
 
-def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.005,I_threshold=0.05):
+def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.01,I_threshold=0.05):
     '''PLOT polarization ticks indicating magnitude and direction of linear polarization'''
 
     ## WIP ##
@@ -357,7 +358,9 @@ def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.005,I_threshold=0.05)
     U_masked=y_michael
     U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
 
-    quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+    # silver color
+    # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+    quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="black",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
 
     # quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
 
@@ -387,7 +390,7 @@ if string.lower(SCATTERING)=="on" or string.lower(SCATTERING)=="yes":
     # sigma_in_microarcsec = 7.4 # valid for f=230Ghz
     FWHM = 1e3*((c/observing_frequency*freq_unit)/1e-2)**2. # valid for general frequency
     sigma_in_microarcsec = FWHM/2.3
-    sigma_in_microarcsec *= 0.5 # Scattering can be partially undone, so... REF: http://adsabs.harvard.edu/abs/2014ApJ...795..134F
+    sigma_in_microarcsec *= SCATTERING_REDUCTION # Scattering can be partially undone, so... REF: http://adsabs.harvard.edu/abs/2014ApJ...795..134F
     sigma = sigma_in_microarcsec / (image_size/nxy) # 10. # pixel units for ndimage.gaussian_filter
 
     #XY_2D = meshgrid(X,Y) # shape=(2, nxy, nxy)
@@ -517,8 +520,10 @@ limits_xy = [-image_size/2,image_size/2,-image_size/2,image_size/2]
 
 #limits_xy = [-200,200,-200,200] # helical pattern in jet, filaments in QUV
 #limits_xy = [-45,45,-45,45]
-limits_uv = [-10,10,-10,10]
-
+if observing_frequency>200.:
+    limits_uv = [-10,10,-10,10]
+else:
+    limits_uv = [-6,6,-6,6]
 
  
 # figure(3)
@@ -619,7 +624,7 @@ if "IP" in WANTED_PLOTS:
 
         if plot_loop==0:
             # plot_polticks()
-            plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
+            plot_polticks(scale_quiver=3e-3)
             # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
         plot_shadows("xy")
         if plot_loop in [2,3]:
@@ -818,7 +823,7 @@ colorbar()
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 plot_shadows("xy")
-plot_polticks(width_quiver=0.005,scale_quiver=3e-3)
+plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})
