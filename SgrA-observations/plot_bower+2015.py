@@ -1,0 +1,9 @@
+rcParams["font.size"]=18
+filename="BowerEtAl2015.txt"
+d=loadtxt(filename)
+plot(d[:,1],d[:,2],'b.')
+xlabel(r"$\nu/Ghz$")
+ylabel(r"$F_\nu/Jy$")
+tight_layout()
+savefig(filename.replace(".txt",".pdf"))
+savefig(filename.replace(".txt",".png"))
