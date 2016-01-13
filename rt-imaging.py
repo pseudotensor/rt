@@ -106,7 +106,11 @@ else:
     VARY="" # can be "","magn_cap","theta","r"
 
 SCATTERING = "ON"
-SCATTERING_REDUCTION=0.5 # 1: full scattering
+try: 
+    SCATTERING_REDUCTION=float(sys.argv[sys.argv.index("blur")+1])
+    print "SCALING SCATTERING KERNEL (BLURRING) BY ",SCATTERING_REDUCTION
+except:
+    SCATTERING_REDUCTION=0.5 # 1: full scattering
 if SCATTERING == "ON":
     try:
         from scipy import ndimage
@@ -823,7 +827,8 @@ colorbar()
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 plot_shadows("xy")
-plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
+# plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
+plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.)
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})

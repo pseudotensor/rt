@@ -108,6 +108,11 @@ rc('font',size=20)
 
 # SCATTERING could have an effect on these diagnostics...
 SCATTERING = "ON" # "OFF" "ON"
+try: 
+    SCATTERING_REDUCTION=float(sys.argv[sys.argv.index("blur")+1])
+    print "SCALING SCATTERING KERNEL (BLURRING) BY ",SCATTERING_REDUCTION
+except:
+    SCATTERING_REDUCTION=0.5 # 1: full scattering
 if SCATTERING == "ON":
     try:
         from scipy import ndimage
@@ -188,14 +193,7 @@ for snapshot in FILES_2D:
         FWHM = 1e3*((c/observing_frequency*freq_unit)/1e-2)**2. # valid for general frequency
         # sigma_in_microarcsec = 7.4 # valid for f=230Ghz
         sigma_in_microarcsec = FWHM/2.3
-
-        # TESTING
-        # sigma_in_microarcsec *= 5. 
-        # sigma_in_microarcsec *= 2. 
-        sigma_in_microarcsec *= 0.5 # Scattering can be partially undone, so... REF: http://adsabs.harvard.edu/abs/2014ApJ...795..134F
-
-
-        #sigma_in_microarcsec = 1. # mild scattering to see jet but maybe kill off spurious pole features
+        sigma_in_microarcsec *= SCATTERING_REDUCTION # Scattering can be partially undone, so... REF: http://adsabs.harvard.edu/abs/2014ApJ...795..134F
         sigma = sigma_in_microarcsec / (image_size/nxy) # 10. # pixel units for ndimage.gaussian_filter
         for CHANNEL in range(shape(data)[-1]):
             data[:,:,CHANNEL] = ndimage.gaussian_filter(data[:,:,CHANNEL],sigma=sigma) ## sigma is in pixel units
@@ -706,7 +704,7 @@ if PLOT_CORRELATED_FLUX=="yes":
         # t_ref=0.
         # dt_GRMHD # ?
         t=(float(iter)-t_ref)*dt_GRMHD * (G*M/c**3) /60./60.  # in hours
-        title(r"$t="+str(round(t,1))+"$h")
+        # title(r"$t="+str(round(t,1))+"$h")
 
     tight_layout()
     savefig("Fnu-vs-uv_"+string.zfill(iter,4)+"."+FILE_EXT)
