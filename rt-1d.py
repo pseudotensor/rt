@@ -632,7 +632,7 @@ if string.lower(PLOT_SED)=="yes":
         else:
             plot(tofit[:,0],tofit[:,[None,1,2,4,3][panel]],"ks",label="observations")
         #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
-        gca().set(xlabel=r"$\nu$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
+        gca().set(xlabel=r"$\nu/GHz$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
         xlim(None,1e3)
 
         tight_layout()
@@ -691,7 +691,7 @@ if PLOT_CORRELATED_FLUX=="yes":
     mbreve_uv_1d_max = amax(abs(mbreve_uv_rphi),axis=1)
     vbreve_uv_1d = mean(abs(vbreve_uv_rphi),axis=1)
 
-    plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$I:\phi-avg$")
+    plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$\tilde{I}:\phi-avg$")
     fill_between(r_uv,I_uv_1d_min/I_uv_1d[0],I_uv_1d_max/I_uv_1d[0],color='cyan',alpha=0.5)
 
     plot(r_uv,mbreve_uv_1d_mean,'rx-',label=r"$\breve{m}:\phi-mean$")
