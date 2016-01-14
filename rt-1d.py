@@ -65,7 +65,8 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 ## USER SPECS ##
 # UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
-UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
+UV_TRACKING=[  "BASELINE_FIXED",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
 FILE_EXT="png" # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
@@ -285,7 +286,7 @@ for snapshot in FILES_2D:
 
     TIME += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
 
-    if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING:
+    if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING or "BASELINE_FIXED" in UV_TRACKING:
         # Given time in hr    NOW PICK UV point (along EHT uv tracks
         try:
             uv_time_idx = pylab.find(eht_obs_uv[:,0]>=TIME[-1]%24)[0]
@@ -324,15 +325,13 @@ for snapshot in FILES_2D:
         v_probe=eht_obs_uv[uv_time_idx,2]
 
     ###################################################################
+    if "BASELINE_FIXED" in UV_TRACKING:
+        u_probe = baseline_uv_track[0,1]/1e9
+        v_probe = baseline_uv_track[0,2]/1e9
     if "PICKaPOINT" in UV_TRACKING:
         u_probe,v_probe=3.,3.
-
-        # SHOULD REALLY JUST INTERPOLATE... E.G.
-        # interp2d(u,v,mbreve_uv)(3,3)
-
         lower_bound=2.5;upper_bound=3.
-        try: # current EHT uv range 3.2 based on Fig.1 in ordered fields draft
-            # lower_bound=0.5;upper_bound=1.0
+        try: 
             lower_bound=3.0;upper_bound=3.5
             # sin(pi/4) & cos(pi/4) so that we probe radius r=sqrt(u^2+v^2) where u=v
             u[(u>=cos(pi/4.)*lower_bound)*(u<=cos(pi/4.)*upper_bound)][0]
@@ -432,6 +431,8 @@ if size(FILES_2D)>0:
                 r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
                 r"$uv="+str(round(u[u_probe_conjugate_index],1))+"G\lambda$"
                 ]
+        elif "BASELINE_FIXED" in UV_TRACKING:
+            labelstring_mbreve=["fixed","fixed"]            
         else:
             labelstring_mbreve=["EHT2017","EHT2017-conj."]
 
