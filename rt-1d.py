@@ -36,22 +36,27 @@ except:
     pass
 
 
-def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
+def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation=0.):
     '''Given EHT configuration file for given observing frequency
-    output uv tracks for specified baseline between.'''
+    output uv tracks for specified baseline between baseline1 and baseline2 
+    rotated by the angle specified by orientation.'''
 
     EHT_config_file=HOME+RT_DIR+"EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
     if string.lower(baseline1)=="all" or string.lower(baseline1)=="":
         EHT_config_file="obs.txt"
         eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
-        # scatter(eht_obs_uv[:,1]/1e9,eht_obs_uv[:,2]/1e9,s=10,c="r",marker="o",alpha=0.25,label="EHT 2017")
         
     else:
         fd=open(EHT_config_file)
         EHT_config_all_baselines = fd.readlines()[10:] # 2nd and 3rd col: telescope sites
         fd.close()
 
-        uv_tracks = [[float(LINE.split()[0]),float(LINE.split()[4]),float(LINE.split()[5])] for LINE in EHT_config_all_baselines if LINE.split()[1]==baseline1 and LINE.split()[2]==baseline2]
+        uv_tracks = array([[float(LINE.split()[0]),float(LINE.split()[4]),float(LINE.split()[5])] for LINE in EHT_config_all_baselines if LINE.split()[1]==baseline1 and LINE.split()[2]==baseline2])
+
+    # ROTATE BASELINE TRACKS 
+    orientation*=2.*pi/360.
+    R = array([[cos(orientation),-sin(orientation)],[sin(orientation),cos(orientation)]])
+    uv_tracks[:,1:] = rollaxis(matrix(R)*rollaxis(uv_tracks[:,1:],1),1)
 
     return array(uv_tracks)
 
@@ -61,7 +66,7 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1]):
 # UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
-FILE_EXT="pdf" # pdf is super slow... why pcolormesh plot?
+FILE_EXT="png" # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
@@ -105,6 +110,12 @@ if len(FILES_1D)>0:
         col_SED=[0,1,2,3,4] # 1:nu, 2: F, 3: LP, 4: EVPA, 5: CP
     
 rc('font',size=20)
+
+try: 
+    ORIENTATION=float(sys.argv[sys.argv.index("rot")+1])
+    print "ROTATING BASELINES BY ",ORIENTATION,"deg"
+except:
+    ORIENTATION=0. ## don't rotate baselines (assume default in Andrew Chael's scripts)
 
 # SCATTERING could have an effect on these diagnostics...
 SCATTERING = "ON" # "OFF" "ON"
@@ -288,9 +299,11 @@ for snapshot in FILES_2D:
             BASELINE=UV_TRACKING[1]
             baseline1=BASELINE.split('-')[0]
             baseline2=BASELINE.split('-')[1]
-            uv_time_idx_baseline=pylab.find(get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,0]>=TIME[-1]%24)[0]
-            u_probe_baseline=get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[uv_time_idx_baseline,1]/1e9
-            v_probe_baseline=get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[uv_time_idx_baseline,2]/1e9
+            baseline_uv_track = get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2,orientation=ORIENTATION)
+            conjugate_baseline_uv_track = get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1,orientation=ORIENTATION)
+            uv_time_idx_baseline=pylab.find(baseline_uv_track[:,0]>=TIME[-1]%24)[0]
+            u_probe_baseline=baseline_uv_track[uv_time_idx_baseline,1]/1e9
+            v_probe_baseline=baseline_uv_track[uv_time_idx_baseline,2]/1e9
             label_baseline=[BASELINE,baseline2+"-"+baseline1]
 
         except IndexError: # no uv coverage at given time
@@ -298,9 +311,9 @@ for snapshot in FILES_2D:
             v_probe_baseline=None
 
         try:
-            uv_time_idx_conjugate_baseline=pylab.find(get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,0]>=TIME[-1]%24)[0]
-            u_probe_conjugate_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_conjugate_baseline,1]/1e9
-            v_probe_conjugate_baseline=get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[uv_time_idx_conjugate_baseline,2]/1e9
+            uv_time_idx_conjugate_baseline=pylab.find(baseline_uv_track[:,0]>=TIME[-1]%24)[0]
+            u_probe_conjugate_baseline=conjugate_baseline_uv_track[uv_time_idx_conjugate_baseline,1]/1e9
+            v_probe_conjugate_baseline=conjugate_baseline_uv_track[uv_time_idx_conjugate_baseline,2]/1e9
 
         except IndexError: # no uv coverage at given time
             u_probe_conjugate_baseline=None
@@ -394,11 +407,11 @@ if size(FILES_2D)>0:
             baseline1=BASELINE.split('-')[0]
             baseline2=BASELINE.split('-')[1]
             COLOR="rygb"[BASELINES.index(BASELINE)]
-            scatter(get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,1]/1e9,
-                    get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2)[:,2]/1e9,
+            scatter(baseline_uv_track[:,1]/1e9,
+                    baseline_uv_track[:,2]/1e9,
                     s=10,c=COLOR,marker="o",alpha=0.25,label=BASELINE,linewidth=1)
-            scatter(get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,1]/1e9,
-                    get_EHT_uv_tracks(baseline1=baseline2,baseline2=baseline1)[:,2]/1e9,
+            scatter(conjugate_baseline_uv_track[:,1]/1e9,
+                    conjugate_baseline_uv_track[:,2]/1e9,
                     s=10,c=COLOR,marker="s",alpha=0.25,linewidth=1) #,label=baseline2+"-"+baseline1)
         except:
             pass
@@ -408,7 +421,7 @@ if size(FILES_2D)>0:
     legend()
     tight_layout()
     iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
-    savefig("mbreve_uvtracks-"+iter+"."+FILE_EXT)
+    savefig("mbreve_uvtracks-"+iter+"-orientation"+str(int(ORIENTATION))+"."+FILE_EXT)
 
     if mbreve=="yes":
         ##########################
@@ -432,7 +445,7 @@ if size(FILES_2D)>0:
         ylabel(r"$\breve{m}$")
         axis((amin(TIME),amax(TIME),0,1.1))
         tight_layout()
-        savefig("mbreve-vs-t."+FILE_EXT)
+        savefig("mbreve-vs-t"+"-orientation"+str(int(ORIENTATION))+"."+FILE_EXT)
 
 
     if dEVPA=="yes":
