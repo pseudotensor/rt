@@ -67,7 +67,7 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
 UV_TRACKING=[  "BASELINE_FIXED",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
-FILE_EXT="png" # pdf is super slow... why pcolormesh plot?
+FILE_EXT="pdf" # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
@@ -384,7 +384,7 @@ if string.lower(PSD)=="yes":
     figure(3)
     f = fftfreq(size(mbreve_vs_t),d=40.) * (c**3/G/M)
     semilogy(f,abs(fft(mbreve_vs_t/mean(mbreve_vs_t)))**2)
-    xlabel("f/Hz")
+    xlabel("f[Hz]")
 
 
 
@@ -441,8 +441,17 @@ if size(FILES_2D)>0:
         plot(TIME,mbreve_vs_t,"yd-",label=labelstring_mbreve[0])
         plot(TIME,mbreve_conjugate_vs_t,"yx--",label=labelstring_mbreve[1])
         legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
-        title(os.getcwd().split('/')[-1])
-        xlabel(r"$t/h$")
+        titlestring = os.getcwd().split('/')[-1]
+        if titlestring=="dipole":
+            titlestring=r"${\tt SANE\_dipole-jet}$"
+        if titlestring=="fiducial-case45552041":
+            titlestring=r"${\tt SANE\_quadrupole-disk}$"
+        if titlestring=="case70816924":
+            titlestring=r"${\tt MAD-disk}$"
+        if titlestring=="thickdisk7-jet":
+            titlestring=r"${\tt MAD-jet}$"
+        title(titlestring)
+        xlabel(r"$t[hours]$")
         ylabel(r"$\breve{m}$")
         axis((amin(TIME),amax(TIME),0,1.1))
         tight_layout()
@@ -455,7 +464,7 @@ if size(FILES_2D)>0:
 
       # WIP clean 180deg jumps using diff()
       plot(t,dEVPA_vs_t,"g^")
-      xlabel(r"$t/h$")
+      xlabel(r"$t[h]$")
       try:
           ylabel(r"$\delta EVPA(\|uv\|="+str(round(v[v_probe_index],1))+"G\lambda)$") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
       except:
@@ -483,7 +492,7 @@ if size(FILES_2D)>0:
       colorbar(pad=0)
       title(r"$\rm \|\tilde{V}\|/\|\tilde{I}\|$ where $0.5<\breve{m}<0.7$") # replace with parameters!
       ylabel(r"$v/G\lambda$")
-      xlabel(r"$u/G\lambda$")
+      xlabel(r"$u[G\lambda]$")
       tight_layout()
 
 
@@ -511,8 +520,10 @@ if string.lower(PLOT_SED)=="yes":
         
     # PLOT SED & COMPARE TO OBSERVATIONS
     nu_obs = array([8.45, 14.90, 22.50, 43.00, 87.73, 102., 145., 230.86, 349., 674., 857., 1500., 3000., 5000.])
+    # ASTRORAYv1.0
     SED_errors = array([0.031, 0.012, 0.015, 0.026, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0. , 0., 0.])
-
+    # SED_errors = array([0.31, 0.12, 0.15, 0.26, 0.080, 0.1517, 0.2644, 0.1414, 0.1205, 0.3508, 0.2404, 0. , 0., 0.])
+    # SED_errors *= 2.
 
 #polarized spectrum of Sgr A*, each array element is (frequency, Fnu, LP, EVP\A, CP)
 #Fnu:  flux at frequency nu
@@ -534,33 +545,41 @@ if string.lower(PLOT_SED)=="yes":
         return 0.248*nu**0.45 * exp(-(nu/1100.)**2)
 
 
-    # def ChiSq(F,nu,observed=tofit,SED_errors=SED_errors,FitLP=False):
-    def ChiSq(data,FitLP=False,FitCP=False,FROM=4,TO=10):
+    def ChiSq(F,nu,observed=tofit,SED_errors=SED_errors,FitLP=False):
+    # def ChiSq(data,FitLP=False,FitCP=False,FROM=4,TO=10):
         '''Given array data containing freuqencies, fluxes F, LP, CP, 
            return chi^2/dof'''
         freq=data[:,0];F=data[:,1];LP=data[:,2];CP=data[:,3]
-        FROM = pylab.find(tofit[:,0]>=freq[0])[0]
-        TO   = pylab.find(tofit[:,0]>=freq[-1])[0]
+        FROM = pylab.find(tofit[:,0]>=freq[0])[0] # -1 # python indexing
+        TO   = pylab.find(tofit[:,0]>=freq[-1])[0] # -1 # python indexing
         observed=empty(size(ones(TO-FROM))+1)
         # Chisq = sum((F[7:,1]-tofit[4:-3,1])**2/SED_errors[4:-3]**2)
-        for freq_idx in range(len(freq)):
-            observed[freq_idx]=SgrA_SED_FIT(freq[freq_idx])
+        observed=SgrA_SED_FIT(freq)
         # CHECK THAT WE ACTUALLY COMPARE THE SAME FREQUENCIES
         if round(freq[0],0)!=round(tofit[FROM,0],0) or round(freq[-1],0)!=round(tofit[TO,0],0):
             print "ChiSq(): Frequencies inconsistent. Better die...SED"
             raise ValueError
         Chisq = sum((F-observed)**2/SED_errors[FROM:TO+1]**2)
+        # Chisq = sum((F-observed)**2/0.2**2)
 
         dof=size(F)
         if FitLP:
             LP_errors = array([0.50, 0.658, 0.605])
+            # LP_errors*= 2 
             LP_measurements=array([4,7,8]) # 87,230,349Ghz
-            Chisq += sum((LP[LP_measurements-FROM]-tofit[LP_measurements,2])**2/LP_errors**2)
+            Chisq += ((LP[0]-LP_measurements[0])/LP_errors[0])**2
+            Chisq += ((LP[3]-LP_measurements[1])/LP_errors[1])**2
+            Chisq += ((LP[4]-LP_measurements[2])/LP_errors[2])**2
+            # Chsq += ((LP[0]-LP_measurements[0])/LP_errors[0])**2
+            # Chisq += sum(((array(LP[0],LP[3],LP[4]))-LP_measurements)**2/LP_errors**2)
+            # Chisq += sum((LP[4-FROM:]-LP_measurements)**2/LP_errors**2)
             dof += 3
         if FitCP:
-            CP_measurements=array([7,8])
+            CP_measurements=array([-1.2,-1.5])
             CP_error = 0.3
-            Chisq += sum((CP[CP_measurements-FROM]-tofit[CP_measurements,4])**2/CP_error**2)
+            # CP_errors*= 2 
+            Chisq += sum((CP[3:5]-CP_measurements)**2/CP_error**2)
+            # Chisq += sum((CP[CP_measurements-FROM]-tofit[CP_measurements,4])**2/CP_error**2)
             # Chisq += sum((F-observed)**2/SED_errors[FROM:TO+1]**2)
             dof += 2
 
@@ -598,8 +617,8 @@ if string.lower(PLOT_SED)=="yes":
         if FILES_1D==FILE:
             legend(loc="lower right",labelspacing=0.2) # ,fontsize=15)
 
-    xlabel(r"$\nu/Ghz$")
-    ylabel(r"$F_\nu/Jy$")
+    xlabel(r"$\nu[GHz]$")
+    ylabel(r"$F_\nu[Jy]$")
     xlim(0,1000) # ,1600)
     tight_layout()
     savefig("SED.png")
@@ -612,19 +631,29 @@ if string.lower(PLOT_SED)=="yes":
         pass
 
 if string.lower(PLOT_SED)=="yes":
-    FILE=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE or "poli" in FILE][0]
-    SED=loadtxt(FILE)
+    FILES=[FILE for FILE in FILES_1D if "bestfit" in FILE or "ava" in FILE or "quick" in FILE or "poli" in FILE]
+    SED=loadtxt(FILES[0]) # NOT GREAT, PRETENDS TO BE CAPABLE TO HANDLE MORE THAN ONE FILE...
 
     figure(5)
-    bestfit_labels=[r"$F_\nu$",r"$<LP>$",r"$<CP>$",r"$<EVPA>$"]
-    yticks_obs=[arange(5),arange(0,20,5),arange(-2,5),arange(0,200,45)]
-    # bestfit_labels=[r"$F_\nu/Jy$",r"$<LP>/\%$",r"$<EVPA>/{}^\circ$",r"$<CP>/\%$"]
+    # bestfit_labels=[r"$F_\nu$",r"$<LP>$",r"$<CP>$",r"$<EVPA>$"]
+    yticks_obs=[arange(5),arange(0,31,5),arange(-2,5),arange(0,200,45)]
+    bestfit_labels=[r"$F_\nu[Jy]$",r"$<LP>[\%]$",r"$<CP>[\%]$",r"$<EVPA>[{}^\circ]$"]
     # yticks_obs=[arange(5),arange(0,20,5),arange(0,200,45),arange(-2,5)]
-    for panel in range(1,5):
+    for FILE in FILES_1D:
+      SED=loadtxt(FILE)
+
+      # be cyclic in finite marker arrays
+      # size_markers = size(Line2D.markers.keys())
+      # size_lineStyles = size(Line2D.lineStyles.keys())
+      # taken from orbits.py
+      # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vv [issue with "0"]
+      plot_style = str(Line2D.markers.keys()[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
+
+      for panel in range(1,5):
         subplot(220+panel)
-        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],label="model")
+        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=2,markersize=12,label="model")
         if panel==1:
-            plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.5,lw=4,label="FIT") 
+            plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.25,lw=2,label="FIT") 
             #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
             errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
         #elif panel==4:
@@ -633,11 +662,12 @@ if string.lower(PLOT_SED)=="yes":
         else:
             plot(tofit[:,0],tofit[:,[None,1,2,4,3][panel]],"ks",label="observations")
         #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
-        gca().set(xlabel=r"$\nu/GHz$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
+        gca().set(xlabel=r"$\nu[GHz]$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
         xlim(None,1e3)
 
         tight_layout()
         savefig("F_LP_CP_EVPA.png")
+        savefig("F_LP_CP_EVPA.pdf")
 
 
 
@@ -704,12 +734,25 @@ if PLOT_CORRELATED_FLUX=="yes":
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
+    EHT_2013=loadtxt(HOME+RT_DIR+"SgrA-observations/HighLow_Combined_8-31-15.dat",usecols=[12,13,14,15,16],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+    EHT_2013_mbreve = sqrt(abs(EHT_2013[:,0])**2 + abs(EHT_2013[:,1])**2 - EHT_2013[:,4]**2)
+    # mbreve_amp=sqrt(re^2+im^2)
+    # debias it as mbreve_amp = sqrt(re^2 + im^2 - sigma^2)
+    #  |uv|=sqrt(col 15^2+col 16^2)
+
     I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
+    # I_1d_uv_obs = EHT_2013_Itilde
+    uv_EHT2013=sqrt(EHT_2013[:,2]**2+EHT_2013[:,3]**2)/1e9
+    # plot(uv_EHT2013,EHT_2013_mbreve,'yx')
+
     #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
     I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
-    errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
+    try:
+        errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
+    except:
+        pass
     # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
-    axis((0,10,0,1.1));xlabel(r"$\|uv\|$");legend=legend(labelspacing=0.1);tight_layout()
+    axis((0,10,0,1.1));xlabel(r"baseline length");legend=legend(labelspacing=0.1);tight_layout()
     legend.get_frame().set_alpha(0.5)
     plt.setp(gca().get_legend().get_texts(), fontsize='18') 
 
