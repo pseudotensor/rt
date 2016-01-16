@@ -30,6 +30,8 @@ from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
+rc('font',size=15)
+
 ################
 ## USER SPECS ##
 miniversion = True # False True
@@ -472,7 +474,7 @@ v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
 P_uv = fftpack.fftshift(fftpack.fft2(sqrt(Q_xy**2+U_xy**2),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 Pbreve_xy = abs(Q_xy+1j*U_xy)
-Pbreve_uv = abs(Q_uv+1j*U_uv)
+Pbreve_uv = Q_uv+1j*U_uv
 mtilde_uv = fftpack.fftshift(fftpack.fft2((Q_xy+1j*U_xy)/I_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 mtilde_LP_uv = fftpack.fftshift(fftpack.fft2((Q_xy+1j*U_xy)/I_xy))
 
@@ -482,7 +484,8 @@ v_no_zeropadding = unique(fftfreq(shape(mtilde_LP_uv)[1],d=uvspacing)*freq_unit)
 # find the mag and phase
 I_mag = abs(I_uv)
 I_phase = angle(I_uv)
-EVPA_uv = angle(P_uv/I_uv) * 90./pi ## Michael: EVPA
+## WRONG: EVPA_uv = angle(P_uv/I_uv) * 90./pi ## Michael: EVPA
+EVPA_uv = angle(Pbreve_uv/I_uv) * 90./pi ## Michael: EVPA CORRECT
 
 ## PRODUCE ARTIFICIAL RING DATA IN uv SPACE ##
 ring_data_fourier_space = empty((size(u_no_zeropadding),size(v_no_zeropadding)))
@@ -510,7 +513,8 @@ limits_colors_xy = [(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy
 # # figure(8):              [I_xy    ,mbreve_xy,EVPA_xy  ,CP_xy   ]
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(8):              [I_xy    ,|Q,U|_xy,EVPA_xy  ,|V|_xy   ]
-limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
+# limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
+limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(0,amax(V_xy))]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
@@ -546,7 +550,7 @@ else:
 #colorbar() # format=ticker.FuncFormatter(fmt))
 #axis(limits_uv)
 #clim(0,10)
-#gca().set(title=r"$\tilde{m} \equiv \| FFT( (Q+iU)/I ) \| \quad (log scale)$",xlabel="u $(G\lambda)$",ylabel="v $(G\lambda)$")
+#gca().set(title=r"$\tilde{m} \equiv \| FFT( (Q+iU)/I ) \| \quad (log scale)$",xlabel="$u[G\lambda]$",ylabel="$v[G\lambda]$")
 # savefig(filename_out.replace(".png","_mtilde_uv.png"))
 
 
@@ -565,12 +569,15 @@ if "IQUV" in WANTED_PLOTS:
         
         plot_shadows("xy")
         if plot_loop in [2,3]:
-            gca().set(xlabel=r"$x\, \mu arcsec$")
+            gca().set(xlabel=r"$x[\mu as]$")
         if plot_loop in [0,2]:
-            gca().set(ylabel=r"$y\,\mu arcsec$")
+            gca().set(ylabel=r"$y[\mu as]$")
         gca().axis(limits_xy)
+        xticks(linspace(round(limits_xy[0],-1),round(limits_xy[1],-1),5))
+        yticks(linspace(round(limits_xy[2],-1),round(limits_xy[3],-1),5))
         title(titles[plot_loop]+title_vary_string)
 
+    tight_layout(pad=0.1, w_pad=0.2, h_pad=0) # QUV panel color tick labels need more space due to - sign
     savefig(filename_out.replace(".png","_IQUV_xy.png"))
     
     fig_uv_plane = figure(1)
@@ -586,13 +593,14 @@ if "IQUV" in WANTED_PLOTS:
         plot_shadows("uv")
 
         if plot_loop in [2,3]:
-            gca().set(xlabel=r"u $(G\lambda)$")
+            gca().set(xlabel=r"$u[G\lambda]$")
         if plot_loop in [0,2]:
-            gca().set(ylabel=r"v $(G\lambda)$")
+            gca().set(ylabel=r"$v[G\lambda]$")
         axis(limits_uv)
         title(titles_IQUV_uv[plot_loop]+title_vary_string)
         #title([r"$\rm\tilde{I}$",r"$\rm\tilde{Q}$",r"$\rm\tilde{U}$",r"$\rm\tilde{V}$"][plot_loop]+title_vary_string)
 
+    tight_layout(pad=0.1, w_pad=0., h_pad=0)
     savefig(filename_out.replace(".png","_IQUV_uv.png"))
 
 
@@ -632,12 +640,13 @@ if "IP" in WANTED_PLOTS:
             # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
         plot_shadows("xy")
         if plot_loop in [2,3]:
-            gca().set(xlabel=r"$x\,\mu arcsec$")
+            gca().set(xlabel=r"$x[\mu as]$")
         if plot_loop in [0,2]:
-            gca().set(ylabel=r"$y\,\mu arcsec$")
+            gca().set(ylabel=r"$y[\mu as]$")
         gca().axis(limits_xy)
         title(titles_4panel_xy[plot_loop]+title_vary_string)
 
+    tight_layout(pad=0.1, w_pad=0., h_pad=0)
     savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
 
 
@@ -677,12 +686,13 @@ if "IP" in WANTED_PLOTS and miniversion:
     plot_shadows("uv")
 
     if plot_loop in [2,3]:
-        gca().set(xlabel=r"u $(G\lambda)$")
+        gca().set(xlabel=r"$u[G\lambda]$")
     if plot_loop in [0,2]:
-        gca().set(ylabel=r"v $(G\lambda)$")
+        gca().set(ylabel=r"$v[G\lambda]$")
     axis(limits_uv)
     title(titles_miniversion_4panel_uv[plot_loop]+title_vary_string)
 
+tight_layout(pad=0.1, w_pad=0., h_pad=0)
 savefig(filename_out.replace(".png","_miniversion_4panel_uv.png"))
 
 
@@ -823,7 +833,7 @@ U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
 
 pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=limits_colors_xy[0][1])
 # pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
-colorbar()
+colorbar(pad=0)
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 plot_shadows("xy")
@@ -841,8 +851,9 @@ plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.
 
 #quiver(X[::every],Y[::every],mbreve_xy[::every,::every],mbreve_xy[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,scale_units='xy', angles=EVPA_xy[::every,::every],width=0.005,pivot="mid")
 
-gca().set(xlabel=r"$X/\mu arcsec$",ylabel=r"$Y/\mu arcsec$",title="I (with polarization ticks)"+title_vary_string)
+gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title="I (with polarization ticks)"+title_vary_string)
 axis(limits_xy)
+tight_layout(pad=0.1, w_pad=0., h_pad=0)
 savefig(filename_out.replace(".png","_polarization-ticks.png"))
 
 
