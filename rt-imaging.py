@@ -176,7 +176,8 @@ fp.close()
 
 if TIME_AVERAGE:
     data = empty((nxy+1,nxy+1,5))
-    filename.replace(iter,iter+"-"+sys.argv[-1].split("fn")[1].split("case")[0])
+    filename=filename.replace(iter,iter+"-"+sys.argv[-1].split("fn")[1].split("case")[0])
+    print filename
     for filename_snapshot in sys.argv[1:]:
         fp = open(filename_snapshot,"rb")
         header = fromfile(fp,count=20)
