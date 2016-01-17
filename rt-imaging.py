@@ -34,6 +34,7 @@ rc('font',size=15)
 
 ################
 ## USER SPECS ##
+TIME_AVERAGE=True
 miniversion = True # False True
 WANTED_PLOTS=["IQUV","IP"]
 # WANTED_PLOTS=["IP"]
@@ -165,20 +166,31 @@ shadow_maximally_spinning = 9./2.*2*rg # diameter
 
 ## SETTINGS ##
 #nxy = 201 # image resolution (nxy+1)x(nxy+1) see ASTRO_RAY_main.cpp
-filename_out = filename.replace(".dat",".png")
+iter = filename.split("fn")[1].split("case")[0]
 
 ## READ-IN ##
-fp = open(filename,"rb")
-header = fromfile(fp,count=20)
-nxy=int(header[2])
-data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
-# data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
-# 4 different channels I,Q,U,V +1 additional "slot"
-# total intensity I
-# linearly polarized intensity Q,U
-# circularly polarized intensity V
-fp.close()
+
+if TIME_AVERAGE:
+    filename.replace(iter,iter+"-"+sys.argv[-1].split("fn")[1].split("case")[0])
+    for filename_snapshot in sys.argv[1:]:
+        fp = open(filename_snapshot,"rb")
+        header = fromfile(fp,count=20)
+        nxy=int(header[2])
+        data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(sys.argv[1:])
+        fp.close()
+else:
+    fp = open(filename,"rb")
+    header = fromfile(fp,count=20)
+    nxy=int(header[2])
+    data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
+    # data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
+    # 4 different channels I,Q,U,V +1 additional "slot"
+    # total intensity I
+    # linearly polarized intensity Q,U
+    # circularly polarized intensity V
+    fp.close()
 # filename_out = filename_out.replace(str(nxy),"case"+str(nxy))
+filename_out = filename.replace(".dat",".png")
 
 try:
     if VARY=="r":
