@@ -49,43 +49,43 @@ if((lTe<lTminr)||(lTe>lTmax)){                             //if outside of range
 
 
 
-// AGAIN FOR NON-THERMAL
+if (nth) {// AGAIN FOR NON-THERMAL
 
-doub lnW_nth=log(nW),             //log of frequency ratio // RG: no nW_nth
-//lTe=log(kb*tet/me/cc/cc),//log of electron temperature in rest mass units
-	 lTefrac_nth,                 //position in look-up table along temperature axis
-	 lTeman_nth,                  //weight of closest look-up table cell along temperature axis
-	 lnWfrac_nth,                 //position in look-up table along frequency axis
-	 lnWman_nth;                  //weight of closest look-up table cell along frequency axis
+  doub lnW_nth=log(nW),             //log of frequency ratio // RG: no nW_nth
+    //lTe=log(kb*tet/me/cc/cc),//log of electron temperature in rest mass units
+    lTefrac_nth,                 //position in look-up table along temperature axis
+    lTeman_nth,                  //weight of closest look-up table cell along temperature axis
+    lnWfrac_nth,                 //position in look-up table along frequency axis
+    lnWman_nth;                  //weight of closest look-up table cell along frequency axis
 
-if((lTe<lTmin_nth)||(lTe>lTmax_nth)||(lnW_nth<lnWmin_nth)||(lnW_nth>lnWmax_nth)){ // if OUTSIDE of range for emissivities look-up table
-  jVc_nth_lookuptab=0.;
-  jQc_nth_lookuptab=0.;
-  jIc_nth_lookuptab=0.;
+  if((lTe<lTmin_nth)||(lTe>lTmax_nth)||(lnW_nth<lnWmin_nth)||(lnW_nth>lnWmax_nth)){ // if OUTSIDE of range for emissivities look-up table
+    jVc_nth_lookuptab=0.;
+    jQc_nth_lookuptab=0.;
+    jIc_nth_lookuptab=0.;
 
- } else { // if INSIDE range of look-up tables use them
+  } else { // if INSIDE range of look-up tables use them
 
-  // Te=Tmin -> zeroth element, Te=Tmax -> last element 
-  lTefrac_nth=(lTe-lTmin_nth)/(lTmax_nth-lTmin_nth)*Tlen_nth;
-  j=floor(lTefrac_nth);
-  lTeman_nth=lTefrac_nth-j;
+    // Te=Tmin -> zeroth element, Te=Tmax -> last element 
+    lTefrac_nth=(lTe-lTmin_nth)/(lTmax_nth-lTmin_nth)*Tlen_nth;
+    j=floor(lTefrac_nth);
+    lTeman_nth=lTefrac_nth-j;
 
-  lnWfrac_nth=(lnW_nth-lnWmin_nth)/(lnWmax_nth-lnWmin_nth)*nWlen;
-  k=floor(lnWfrac_nth);
-  lnWman_nth=lnWfrac_nth-k;
+    lnWfrac_nth=(lnW_nth-lnWmin_nth)/(lnWmax_nth-lnWmin_nth)*nWlen;
+    k=floor(lnWfrac_nth);
+    lnWman_nth=lnWfrac_nth-k;
 
-  temp = lnWman_nth*lTeman_nth;
+    temp = lnWman_nth*lTeman_nth;
 
-  //look up dimensionless emissivities by 2D multi-linear interpolation
-  jIc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jI_nth[j][k] + (lnWman_nth - temp)*jI_nth[j][1 + k] + (lTeman_nth - temp)*jI_nth[1 + j][k] + temp*jI_nth[1 + j][1 + k]);
-  jQc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jQ_nth[j][k] + (lnWman_nth - temp)*jQ_nth[j][1 + k] + (lTeman_nth - temp)*jQ_nth[1 + j][k] + temp*jQ_nth[1 + j][1 + k]);
-  jVc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jV_nth[j][k] + (lnWman_nth - temp)*jV_nth[j][1 + k] + (lTeman_nth - temp)*jV_nth[1 + j][k] + temp*jV_nth[1 + j][1 + k]);
+    //look up dimensionless emissivities by 2D multi-linear interpolation
+    jIc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jI_nth[j][k] + (lnWman_nth - temp)*jI_nth[j][1 + k] + (lTeman_nth - temp)*jI_nth[1 + j][k] + temp*jI_nth[1 + j][1 + k]);
+    jQc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jQ_nth[j][k] + (lnWman_nth - temp)*jQ_nth[j][1 + k] + (lTeman_nth - temp)*jQ_nth[1 + j][k] + temp*jQ_nth[1 + j][1 + k]);
+    jVc_nth_lookuptab=exp((-lnWman_nth - lTeman_nth + 1 + temp)*jV_nth[j][k] + (lnWman_nth - temp)*jV_nth[j][1 + k] + (lTeman_nth - temp)*jV_nth[1 + j][k] + temp*jV_nth[1 + j][1 + k]);
 };
 
-if((lTe<lTminr_nth)||(lTe>lTmax_nth)){                             //if outside of range for rotativities look-up table
+  if((lTe<lTminr_nth)||(lTe>lTmax_nth)){                             //if outside of range for rotativities look-up table
 	rQc_nth_lookuptab=0.;
 	rVc_nth_lookuptab=0.;
-} else {
+  } else {
 	lTefrac_nth=(lTe-lTminr_nth)/(lTmax_nth-lTminr_nth)*2*Tlen_nth;
 	j=floor(lTefrac_nth);
 	lTeman_nth=lTefrac_nth-j;
@@ -93,10 +93,12 @@ if((lTe<lTminr_nth)||(lTe>lTmax_nth)){                             //if outside 
 	//look up dimensionless rotativities by 1D interpolation
 	// rQc_nth_lookup=exp((-lTeman_nth + 1)*rQ_nth[j] + (lTeman_nth)*rQ_nth[1 + j]);
 	// rVc_nth_lookup=exp((-lTeman_nth + 1)*rV_nth[j] + (lTeman_nth)*rV_nth[1 + j]);
-
+    
     // LINEAR TABLES (negative values in new scheme)
     if (j==0) cout<<YELLOW"[emission_from_lookuptables.cpp]:"RESET"LINEAR ROTATIVITIES"<<endl;
 	rQc_nth_lookuptab=(-lTeman_nth + 1)*rQ_nth[j] + (lTeman_nth)*rQ_nth[1 + j];
 	rVc_nth_lookuptab=exp((-lTeman_nth + 1)*rV_nth[j] + (lTeman_nth)*rV_nth[1 + j]);
+    
+  };
 
-};
+ } // if (nth) {
