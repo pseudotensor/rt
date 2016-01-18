@@ -678,23 +678,19 @@ tet=(1-drman)*te[ia]+drman*te[ib];
  * ADJUST ELECTRON TEMPERATURE *
  *******************************/
 
-// doub Te_jet_par = 35.; // make this a global parameter and include it in fitting procedures
-// doub Te_jet_par = 0.; // make this a global parameter and include it in fitting procedures
-//doub Te_jet_par = 20.; // make this a global parameter and include it in fitting procedures
-// doub Te_jet_par = 10.; // make this a global parameter and include it in fitting procedures
-doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
-
-// if (magn > magn_cap) {
-//   //printf(YELLOW"[evalpointzero.cpp]:"RESET" magn=%e,magn_cap=%e",magn,magn_cap);
-//   //printf(YELLOW"[evalpointzero.cpp]:"RESET" minT=%e",minT);
-   // tet = minT; // minT:minimum in temperature table. Tmin is misleading; related to TpTe...
-//   tet = Te_jet;
-//  }
-//tet = minT;
-
-tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
-
-
+if (TEMPERATURE_PRESCRIPTION.c_str()=="sharma") {
+  }
+else if (TEMPERATURE_PRESCRIPTION=="sharma+isoth") {
+  doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
+  tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
+  }
+else if (TEMPERATURE_PRESCRIPTION=="constant_tetp_fraction") {
+  tet = ts[ia]/Te_jet_par; // tp/te=3; (assumes ts[ia]=ts[ib])
+  }
+ else {
+   printf(YELLOW"[evalpointzero.cpp]: "RED"NEED TO CHOOSE VALID ELECTRON-TEMPERATURE PRESCRIPTION"RESET"\n");
+   exit(1);
+ }
 
 
 
