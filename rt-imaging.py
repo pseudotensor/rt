@@ -35,9 +35,9 @@ rc('font',size=15)
 ################
 ## USER SPECS ##
 TIME_AVERAGE=True
-miniversion = True # False True
-WANTED_PLOTS=["IQUV","IP"]
-# WANTED_PLOTS=["IP"]
+miniversion = False # False True
+# WANTED_PLOTS=["IQUV","IP"]
+WANTED_PLOTS=["IP"]
 
 filename = sys.argv[1] # should point to shotimage*.dat file
 
@@ -239,8 +239,10 @@ try:
     # QUANTITY  [I           ,Q      ,U      ,V      ]
     colormaps = [cm.cubehelix,cm.PuOr,cm.PuOr,cm.PuOr]
     colormaps_IQUV_uv = [cm.cubehelix,cm.gnuplot2,cm.gnuplot2,cm.gnuplot2]
-    colormaps_4panel = [cm.cubehelix,cm.gnuplot2,cm.RdBu_r,cm.bone]
-    colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.bone]
+    #colormaps_4panel = [cm.cubehelix,cm.gnuplot2,cm.RdBu_r,cm.bone]
+    #colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.bone]
+    colormaps_4panel = [cm.cubehelix,cm.gnuplot2,cm.RdBu_r,cm.PuOr]
+    colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.PuOr]
 except AttributeError: # only want to catch unavailable colormaps
     colormaps = [cm.afmhot,cm.afmhot,cm.afmhot,cm.afmhot]
     colormaps_4panel = [cm.afmhot,cm.afmhot,cm.afmhot,cm.afmhot]
@@ -281,7 +283,7 @@ r"$\sqrt{\|Q\|^2+\|U\|^2}$",
 #r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
 r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
 #r"$\rm v \equiv \|V\|/I$"]
-r"$\rm \|V\|$"]
+r"$\rm V$"]
 titles_IQUV_uv = [ 
 r"$\rm \|\tilde{I}\|$", 
 r"$\rm \|\tilde{Q}\|$",
@@ -531,7 +533,7 @@ limits_colors_xy = [(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(8):              [I_xy    ,|Q,U|_xy,EVPA_xy  ,|V|_xy   ]
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
-limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(0,amax(V_xy))]
+limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(amin(V_xy),amax(V_xy))]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
@@ -643,7 +645,7 @@ if "IP" in WANTED_PLOTS:
         fig_xy_4panel.add_subplot(221+plot_loop)
     
         # pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
-        pcolormesh(X,Y,[abs(I_xy),abs(Q_xy+1j*U_xy),EVPA_xy,abs(V_xy)][plot_loop],cmap=colormaps_4panel[plot_loop])
+        pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3])
         # pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
         if plot_loop==2:
             colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
@@ -846,9 +848,16 @@ Q_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
 U_masked=y_michael
 U_masked[I_xy < I_threshold*amax(I_xy)] = None # 0.
 
+# experiment with colormaps and influence on shadow
+CMAP_SHADOW=cm.cubehelix
+# CMAP_SHADOW=cm.jet ## overemphasizes low data values -> makes shadow appear stronger
+# CMAP_SHADOW=cm.gnuplot
+# CMAP_SHADOW=cm.gnuplot2
+# CMAP_SHADOW=cm.CMRmap # cm.magma #cm.plasma #cm.magma # cm.inferno
+# limits_xy = [-100,100,-100,100] # compare to Moscibrodzka+ 2009: RADIATIVE MODELS OF SGR A* FROM GRMHD SIMULATIONS
 
 
-pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=limits_colors_xy[0][1])
+pcolormesh(X,Y,I_xy,cmap=CMAP_SHADOW,vmax=limits_colors_xy[0][1])
 # pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
 colorbar(pad=0)
 
@@ -869,7 +878,8 @@ plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.
 #quiver(X[::every],Y[::every],mbreve_xy[::every,::every],mbreve_xy[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,scale_units='xy', angles=EVPA_xy[::every,::every],width=0.005,pivot="mid")
 
 gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title="I (with polarization ticks)"+title_vary_string)
-axis(limits_xy)
+axis('equal')
+axis(array(limits_xy)+array([+10,-10,+10,-10]))
 tight_layout(pad=0.1, w_pad=0., h_pad=0)
 savefig(filename_out.replace(".png","_polarization-ticks.png"))
 
