@@ -183,7 +183,7 @@ if TIME_AVERAGE:
         fp = open(filename_snapshot,"rb")
         header = fromfile(fp,count=20)
         nxy=int(header[2])
-        data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_SIZE)
+        data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_FILES)
         fp.close()
 else:
     fp = open(filename,"rb")
