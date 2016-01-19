@@ -183,7 +183,7 @@ if TIME_AVERAGE:
         fp = open(filename_snapshot,"rb")
         header = fromfile(fp,count=20)
         nxy=int(header[2])
-        data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(sys.argv[1:])
+        data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_SIZE)
         fp.close()
 else:
     fp = open(filename,"rb")
@@ -862,6 +862,7 @@ pcolormesh(X,Y,I_xy,cmap=CMAP_SHADOW,vmax=limits_colors_xy[0][1])
 colorbar(pad=0)
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
+
 plot_shadows("xy")
 # plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
 plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.)
