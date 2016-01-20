@@ -35,7 +35,7 @@ rc('font',size=15)
 ################
 ## USER SPECS ##
 TIME_AVERAGE=True
-miniversion = False # False True
+miniversion = True # False True
 # WANTED_PLOTS=["IQUV","IP"]
 WANTED_PLOTS=["IP"]
 
@@ -240,9 +240,9 @@ try:
     colormaps = [cm.cubehelix,cm.PuOr,cm.PuOr,cm.PuOr]
     colormaps_IQUV_uv = [cm.cubehelix,cm.gnuplot2,cm.gnuplot2,cm.gnuplot2]
     #colormaps_4panel = [cm.cubehelix,cm.gnuplot2,cm.RdBu_r,cm.bone]
-    #colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.bone]
+    colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.bone]
     colormaps_4panel = [cm.cubehelix,cm.gnuplot2,cm.RdBu_r,cm.PuOr]
-    colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.PuOr]
+    #colormaps_miniversion_4panel = [cm.cubehelix,cm.afmhot,cm.RdBu_r,cm.PuOr]
 except AttributeError: # only want to catch unavailable colormaps
     colormaps = [cm.afmhot,cm.afmhot,cm.afmhot,cm.afmhot]
     colormaps_4panel = [cm.afmhot,cm.afmhot,cm.afmhot,cm.afmhot]
@@ -276,31 +276,31 @@ manager = get_current_fig_manager()
 fig_pos=["+0+0","+500+0","+0+500","+500+500","+250+250"] # Need to understand syntax better... 
 titles = ["I","Q","U","V"]
 titles_4panel_xy = [ 
-#r"$\rm \|m_{LP}\|\equiv |(Q+iU)/I\|$", 
-r"$\rm I$", 
-#r"$\rm m_{LP}\equiv \sqrt{\|Q\|^2+\|U\|^2}/I$", 
-r"$\sqrt{\|Q\|^2+\|U\|^2}$", 
+#r"$\rm |m_{LP}|\equiv |(Q+iU)/I|$", 
+r"$\rm I \times 10^4$", 
+#r"$\rm m_{LP}\equiv \sqrt{|Q|^2+|U|^2}/I$", 
+r"$\sqrt{|Q|^2+|U|^2} \times 10^4$", 
 #r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
 r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
-#r"$\rm v \equiv \|V\|/I$"]
-r"$\rm V$"]
+#r"$\rm v \equiv |V|/I$"]
+r"$\rm V \times 10^4$"]
 titles_IQUV_uv = [ 
-r"$\rm \|\tilde{I}\|$", 
-r"$\rm \|\tilde{Q}\|$",
-r"$\rm \|\tilde{U}\|$",
-r"$\rm \|\tilde{V}\|$"]
+r"$\rm |\tilde{I}|$", 
+r"$\rm |\tilde{Q}|$",
+r"$\rm |\tilde{U}|$",
+r"$\rm |\tilde{V}|$"]
 titles_4panel_uv = [ 
-# r"$\rm \breve{PF}\equiv \|\tilde{Q}+i\tilde{U}\|$", 
-r"$\rm \|\tilde{I}\|$", 
-r"$\rm \breve{m}\equiv \|(\tilde{Q}+i\tilde{U}) / \tilde{I}\|$", 
+# r"$\rm \breve{PF}\equiv |\tilde{Q}+i\tilde{U}|$", 
+r"$\rm |\tilde{I}|$", 
+r"$\rm \breve{m}\equiv |(\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
 r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
-r"$\rm \breve{v}\equiv \|\tilde{V} / \tilde{I}\|$"]
+r"$\rm \breve{v}\equiv |\tilde{V} / \tilde{I}|$"]
 titles_miniversion_4panel_uv = [ 
-r"$\|\rm \tilde{I}\|$", 
-r"$\rm\breve{m}\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}\|$", 
+r"$|\rm \tilde{I}|$", 
+r"$\rm\breve{m}\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
 r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
-r"$\rm \|\breve{v}\|\equiv \|\tilde{V} / \tilde{I}\|$"]
-# r"$\|\tilde{\rm m}_{LP}\|\equiv\|\mathcal{FFT}\{(Q+iU)/I\}\|$"]
+r"$\rm |\breve{v}|\equiv |\tilde{V} / \tilde{I}|$"]
+# r"$|\tilde{\rm m}_{LP}|\equiv|\mathcal{FFT}\{(Q+iU)/I\}|$"]
 
 pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
 if angle_unit=="rad":
@@ -533,16 +533,18 @@ limits_colors_xy = [(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(8):              [I_xy    ,|Q,U|_xy,EVPA_xy  ,|V|_xy   ]
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
-limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(amin(V_xy),amax(V_xy))]
+limits_colors_4panel_xy = [(0,round(amax(I_xy)*1e4,0)),(0,round(amax(abs(Q_xy+1j*U_xy))*1e4,0)),(0.,180.),(round(amin(V_xy)*1e4,1),round(amax(V_xy)*1e4,1))]
+# limits_colors_4panel_xy = [(0,amax(I_xy)*1e4),(0,amax(abs(Q_xy+1j*U_xy))*1e4),(0.,180.),(amin(V_xy)*1e4,amax(V_xy)*1e4)]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
 #limits_colors_uv = [(0,3),(0,0.5),(0,0.4),(0,0.1)]
 # figure(2): [I_uv,mbreve_uv,EVPA_uv,|V_uv/I_uv|]
-limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))),(0,1.0),(-90,90),(0,0.5)]
+limits_colors_miniversion_4panel_uv = [(0,around(amax(abs(I_uv)),0)),(0,1.0),(-90,90),(0,1.)]
 #limits_colors_miniversion_4panel_uv = [(0,3),(0,1.0),(-90,90),(0,0.5)]
 
-limits_xy = [-image_size/2,image_size/2,-image_size/2,image_size/2]
+limits_xy = array([-image_size/2+15,image_size/2-15,-image_size/2+15,image_size/2-15])
+
 # size_tmp=70;limits_xy = [-size_tmp,size_tmp,-size_tmp,size_tmp] ## FOR 102Ghz case 418
 
 #limits_xy = [-200,200,-200,200] # helical pattern in jet, filaments in QUV
@@ -569,7 +571,7 @@ else:
 #colorbar() # format=ticker.FuncFormatter(fmt))
 #axis(limits_uv)
 #clim(0,10)
-#gca().set(title=r"$\tilde{m} \equiv \| FFT( (Q+iU)/I ) \| \quad (log scale)$",xlabel="$u[G\lambda]$",ylabel="$v[G\lambda]$")
+#gca().set(title=r"$\tilde{m} \equiv | FFT( (Q+iU)/I ) | \quad (log scale)$",xlabel="$u[G\lambda]$",ylabel="$v[G\lambda]$")
 # savefig(filename_out.replace(".png","_mtilde_uv.png"))
 
 
@@ -644,13 +646,15 @@ if "IP" in WANTED_PLOTS:
         ## image plane ##
         fig_xy_4panel.add_subplot(221+plot_loop)
     
-        # pcolormesh(X,Y,[abs(I_xy),abs(mbreve_xy),EVPA_xy,abs(V_xy)/I_xy][plot_loop],cmap=colormaps_4panel[plot_loop])
-        pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3])
-        # pcolormesh(X,Y,[data[:,:,plot_loop],abs(Q_xy+1j*U_xy),ifft2(ifftshift(EVPA_uv)),abs(V_xy)][plot_loop],cmap=colormaps[plot_loop])
-        if plot_loop==2:
-            colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
+        # pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop])
+        pcolormesh(X,Y,[I_xy*1e4,abs(Q_xy+1j*U_xy)*1e4,EVPA_xy,V_xy*1e4][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3],rasterized=True)
+        if plot_loop==3:
+            colorbar(ticks=(limits_colors_4panel_xy[plot_loop][0],0,limits_colors_4panel_xy[plot_loop][1]),pad=0)
         else:
-            colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
+            # if plot_loop==2:
+            colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
+        # else:
+        #     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
         clim(limits_colors_4panel_xy[plot_loop])
 
         if plot_loop==0:
@@ -662,11 +666,16 @@ if "IP" in WANTED_PLOTS:
             gca().set(xlabel=r"$x[\mu as]$")
         if plot_loop in [0,2]:
             gca().set(ylabel=r"$y[\mu as]$")
-        gca().axis(limits_xy)
+        if plot_loop in [1,3]:
+            yticks(visible=False)
+        if plot_loop in [0,1]:
+            xticks(visible=False)
+        axis('equal')
+        axis(limits_xy)
         title(titles_4panel_xy[plot_loop]+title_vary_string)
 
-    tight_layout(pad=0.1, w_pad=0., h_pad=0)
-    savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.png"))
+    tight_layout(pad=0, w_pad=0, h_pad=0)
+    savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.pdf"))
 
 
 ########################################################################
@@ -691,13 +700,14 @@ if "IP" in WANTED_PLOTS and miniversion:
     # RG: Why are ampplitudes of mtilde_uv so large?
     # pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,log10(abs(mtilde_uv))][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop])
     # RG: Replace 4th panel with CP
-    pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop])
+    pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop],rasterized=True)
 
     ## COLORBAR ##
-    if plot_loop==2:
-        colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5),pad=0)
-    else:
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5))
+    # if plot_loop==2:
+    #     colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5),pad=0)
+    # else:
+    colorbar(pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],[6,6,5,6][plot_loop]))
+        # colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5))
 
     clim(limits_colors_miniversion_4panel_uv[plot_loop])
 
@@ -708,11 +718,16 @@ if "IP" in WANTED_PLOTS and miniversion:
         gca().set(xlabel=r"$u[G\lambda]$")
     if plot_loop in [0,2]:
         gca().set(ylabel=r"$v[G\lambda]$")
+    if plot_loop in [0,1]:
+        xticks(visible=False)
+    if plot_loop in [1,3]:
+        yticks(visible=False)
+    axis('equal')
     axis(limits_uv)
     title(titles_miniversion_4panel_uv[plot_loop]+title_vary_string)
 
-tight_layout(pad=0.1, w_pad=0., h_pad=0)
-savefig(filename_out.replace(".png","_miniversion_4panel_uv.png"))
+tight_layout(pad=0, w_pad=0, h_pad=0)
+savefig(filename_out.replace(".png","_miniversion_4panel_uv.pdf"))
 
 
 
@@ -880,7 +895,7 @@ plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.
 
 gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title="I (with polarization ticks)"+title_vary_string)
 axis('equal')
-axis(array(limits_xy)+array([+10,-10,+10,-10]))
+axis(limits_xy) # +array([+10,-10,+10,-10]))
 tight_layout(pad=0.1, w_pad=0., h_pad=0)
 savefig(filename_out.replace(".png","_polarization-ticks.png"))
 
