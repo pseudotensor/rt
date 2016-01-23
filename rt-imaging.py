@@ -292,12 +292,12 @@ r"$\rm |\tilde{V}|$"]
 titles_4panel_uv = [ 
 # r"$\rm \breve{PF}\equiv |\tilde{Q}+i\tilde{U}|$", 
 r"$\rm |\tilde{I}|$", 
-r"$\rm \breve{m}\equiv |(\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
+r"$\rm |\breve{m}|\equiv |(\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
 r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
-r"$\rm \breve{v}\equiv |\tilde{V} / \tilde{I}|$"]
+r"$\rm |\breve{v}|\equiv |\tilde{V} / \tilde{I}|$"]
 titles_miniversion_4panel_uv = [ 
 r"$|\rm \tilde{I}|$", 
-r"$\rm\breve{m}\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
+r"$\rm |\breve{m}|\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}|$", 
 r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
 r"$\rm |\breve{v}|\equiv |\tilde{V} / \tilde{I}|$"]
 # r"$|\tilde{\rm m}_{LP}|\equiv|\mathcal{FFT}\{(Q+iU)/I\}|$"]
