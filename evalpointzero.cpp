@@ -678,7 +678,7 @@ tet=(1-drman)*te[ia]+drman*te[ib];
  * ADJUST ELECTRON TEMPERATURE *
  *******************************/
 
-if (TEMPERATURE_PRESCRIPTION.c_str()=="sharma") {
+if (TEMPERATURE_PRESCRIPTION=="sharma") {
   }
 else if (TEMPERATURE_PRESCRIPTION=="sharma+isoth") {
   doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
