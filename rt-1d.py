@@ -67,7 +67,7 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
 UV_TRACKING=[  "BASELINE_FIXED",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
-FILE_EXT="pdf" # pdf is super slow... why pcolormesh plot?
+FILE_EXT=["png","pdf"] # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
@@ -76,7 +76,12 @@ m_LP_cap = 0.7
 m_CP_cap = 1.0
 m_LP_floor = 0.5
 m_CP_floor = 0.0
-
+# MARKERS = Line2D.markers.keys() # [19:] # [5:] # don't like first 5 (tri) marker
+# del MARKERS[22];del MARKERS[:7];# del MARKERS[1:4] # pixel marker
+# MARKERS.remove()
+# print MARKERS
+# raw_input("Hit key to coninue...")
+MARKERS = ["o","+","x","^",'d','h','s','D','v'] # s:reserved for observation
 FILES_2D = [FILE for FILE in sys.argv[1:] if "shotimag" in FILE]
 FILES_1D = [FILE for FILE in sys.argv[1:] if "polires" in FILE or "bestfit" in FILE or "quick" in FILE or "ava" in FILE]
 
@@ -420,7 +425,8 @@ if size(FILES_2D)>0:
     legend()
     tight_layout()
     iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
-    savefig("mbreve_uvtracks-"+iter+"-orientation"+str(int(ORIENTATION))+"."+FILE_EXT)
+    for EXT in FILE_EXT:
+        savefig("mbreve_uvtracks-"+iter+"-orientation"+str(int(ORIENTATION))+"."+EXT)
 
     if mbreve=="yes":
         ##########################
@@ -432,14 +438,14 @@ if size(FILES_2D)>0:
                 r"$uv="+str(round(u[u_probe_conjugate_index],1))+"G\lambda$"
                 ]
         elif "BASELINE_FIXED" in UV_TRACKING:
-            labelstring_mbreve=["fixed","fixed"]            
+            labelstring_mbreve=["fixed","fixed-conj."]            
         else:
             labelstring_mbreve=["EHT2017","EHT2017-conj."]
 
-        plot(TIME,mbreve_vs_t_baseline,"ro-",label=label_baseline[0])
-        plot(TIME,mbreve_vs_t_conjugate_baseline,"r+--",label=label_baseline[1])
-        plot(TIME,mbreve_vs_t,"yd-",label=labelstring_mbreve[0])
-        plot(TIME,mbreve_conjugate_vs_t,"yx--",label=labelstring_mbreve[1])
+        plot(TIME,mbreve_vs_t_baseline,"r-",label=label_baseline[0])
+        plot(TIME,mbreve_vs_t_conjugate_baseline,"r--",label=label_baseline[1])
+        plot(TIME,mbreve_vs_t,"y-",label=labelstring_mbreve[0])
+        plot(TIME,mbreve_conjugate_vs_t,"y--",label=labelstring_mbreve[1])
         legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
         titlestring = os.getcwd().split('/')[-1]
         if titlestring=="dipole":
@@ -447,15 +453,17 @@ if size(FILES_2D)>0:
         if titlestring=="fiducial-case45552041":
             titlestring=r"${\tt SANE\_quadrupole-disk}$"
         if titlestring=="case70816924":
-            titlestring=r"${\tt MAD-disk}$"
+            titlestring=r"${\tt MAD\_thick-disk}$"
+            # titlestring=r"orientation $"+str(round(float(ORIENTATION)-90,1))+"^\circ$"
         if titlestring=="thickdisk7-jet":
-            titlestring=r"${\tt MAD-jet}$"
+            titlestring=r"${\tt MAD\_thick-jet}$"
         title(titlestring)
         xlabel(r"$t[hours]$")
         ylabel(r"$\breve{m}$")
         axis((amin(TIME),amax(TIME),0,1.1))
         tight_layout()
-        savefig("mbreve-vs-t"+"-orientation"+str(int(ORIENTATION))+"."+FILE_EXT)
+        for EXT in FILE_EXT:
+            savefig("mbreve-vs-t"+"-orientation"+str(int(ORIENTATION))+"."+EXT)
 
 
     if dEVPA=="yes":
@@ -471,7 +479,8 @@ if size(FILES_2D)>0:
           ylabel(r"$\delta EVPA (along EHT2017)") # +",\|v\|="+str(round(v[v_probe_index],1))+")$")
           
       tight_layout()
-      savefig("dEVPA-vs-t."+FILE_EXT)
+      for EXT in FILE_EXT:
+          savefig("dEVPA-vs-t."+EXT)
 
     if False:
       figure(2)
@@ -547,7 +556,7 @@ if string.lower(PLOT_SED)=="yes":
 
     def ChiSq(F,nu,observed=tofit,SED_errors=SED_errors,FitLP=False):
     # def ChiSq(data,FitLP=False,FitCP=False,FROM=4,TO=10):
-        '''Given array data containing freuqencies, fluxes F, LP, CP, 
+        '''Given array data containing frequencies, fluxes F, LP, CP, 
            return chi^2/dof'''
         freq=data[:,0];F=data[:,1];LP=data[:,2];CP=data[:,3]
         FROM = pylab.find(tofit[:,0]>=freq[0])[0] # -1 # python indexing
@@ -596,22 +605,22 @@ if string.lower(PLOT_SED)=="yes":
 
     # plot_styles = ["rd-","b+"]
     # taken from orbits.py
-    # style = Line2D.markers.keys()[index]+Line2D.lineStyles.keys()[index]
+    # style = MARKERS[index]+Line2D.lineStyles.keys()[index]
     # plot_styles = ["rd-","b+"]
     for FILE in FILES_1D:
 
         # be cyclic in finite marker arrays
-        size_markers = size(Line2D.markers.keys())
+        size_markers = size(MARKERS)
         size_lineStyles = size(Line2D.lineStyles.keys())
 
         # taken from orbits.py
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vv [issue with "0"]
-        plot_style = str(Line2D.markers.keys()[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
-        # plot_style = str(Line2D.markers.keys()[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
+        plot_style = str(MARKERS[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
+        # plot_style = str(MARKERS[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
 
         # plot(SED[:,0],SED[:,1],plot_style,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
         SED=loadtxt(FILE,usecols=col_SED)
-        plot(SED[:,col_SED[0]],SED[:,col_SED[1]],'co-',linewidth=2)
+        plot(SED[:,col_SED[0]],SED[:,col_SED[1]],'co-',linewidth=1)
         #    plot(SED[:,0],SED[:,1],'c.-',alpha=0.5,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
 
         if FILES_1D==FILE:
@@ -643,29 +652,31 @@ if string.lower(PLOT_SED)=="yes":
       SED=loadtxt(FILE)
 
       # be cyclic in finite marker arrays
-      # size_markers = size(Line2D.markers.keys())
+      # size_markers = size(MARKERS)
       # size_lineStyles = size(Line2D.lineStyles.keys())
       # taken from orbits.py
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vv [issue with "0"]
-      plot_style = str(Line2D.markers.keys()[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
+      plot_style = str(MARKERS[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
 
       for panel in range(1,5):
         subplot(220+panel)
-        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=2,markersize=12,label="model")
+        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=1,label="model")
+        # plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=2,markersize=12,label="model")
         if panel==1:
-            plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.25,lw=2,label="FIT") 
+            plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.25,lw=3,label="FIT") 
             #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
-            errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed")
+            errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed",markersize=8)
         #elif panel==4:
             # not enough space
             # legend(loc="lower right") # ,fontsize=12)
         else:
-            plot(tofit[:,0],tofit[:,[None,1,2,4,3][panel]],"ks",label="observations")
+            plot(tofit[:,0],tofit[:,[None,1,2,4,3][panel]],"ks",label="observations",markersize=8,alpha=0.5)
         #errorbar(tofit[:,0],tofit[:,panel],"rs",yerr=SED_errors,fmt='ks',label="observed")
-        gca().set(xlabel=r"$\nu[GHz]$",ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
-        xlim(None,1e3)
-
-        tight_layout()
+        if panel==3 or panel==4:
+            gca().set(xlabel=r"$\nu[GHz]$")
+        gca().set(ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
+        xlim(80,900)
+        tight_layout(pad=0.2,w_pad=0.1,h_pad=0)
         savefig("F_LP_CP_EVPA.png")
         savefig("F_LP_CP_EVPA.pdf")
 
@@ -734,21 +745,28 @@ if PLOT_CORRELATED_FLUX=="yes":
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
+    # mbreve EHT 2013 data
     EHT_2013=loadtxt(HOME+RT_DIR+"SgrA-observations/HighLow_Combined_8-31-15.dat",usecols=[12,13,14,15,16],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
-    EHT_2013_mbreve = sqrt(abs(EHT_2013[:,0])**2 + abs(EHT_2013[:,1])**2 - EHT_2013[:,4]**2)
+    EHT_2013 = sqrt(abs(EHT_2013[:,0])**2 + abs(EHT_2013[:,1])**2 - EHT_2013[:,4]**2)
+    # Itilde EHT 2013 data
+    EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_Amplitudes",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+    # EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_LongBaseline_Amplitudes_Day80",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+    I_1d_uv_obs = abs(EHT_2013_I)
     # mbreve_amp=sqrt(re^2+im^2)
     # debias it as mbreve_amp = sqrt(re^2 + im^2 - sigma^2)
     #  |uv|=sqrt(col 15^2+col 16^2)
 
-    I_1d_uv_obs = array([[0.6,1],[2.8,0.1],[3,0.2],[3.5,0.2]]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
     # I_1d_uv_obs = EHT_2013_Itilde
-    uv_EHT2013=sqrt(EHT_2013[:,2]**2+EHT_2013[:,3]**2)/1e9
+    uv_EHT2013_I=EHT_2013_I[:,0]/1e9
+    # uv_EHT2013=sqrt(EHT_2013[:,2]**2+EHT_2013[:,3]**2)/1e9
     # plot(uv_EHT2013,EHT_2013_mbreve,'yx')
 
     #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
-    I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
+    # I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
+    I_uv_err = EHT_2013_I #RG: ...WIP... BY EYE FROM SCIENCE PLOT
     try:
-        errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label="observed (day 80)")
+        errorbar(EHT_2013_I[:,0]/1e9,EHT_2013_I[:,1],yerr=EHT_2013_I[:,2],fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
+        # errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
     except:
         pass
     # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
@@ -764,7 +782,8 @@ if PLOT_CORRELATED_FLUX=="yes":
         # title(r"$t="+str(round(t,1))+"$h")
 
     tight_layout()
-    savefig("Fnu-vs-uv_"+string.zfill(iter,4)+"."+FILE_EXT)
+    for EXT in FILE_EXT:
+        savefig("Fnu-vs-uv_"+string.zfill(iter,4)+"."+EXT)
 
 
 if string.lower(PLOT_I_vs_mbreve)=="yes":
@@ -774,7 +793,8 @@ if string.lower(PLOT_I_vs_mbreve)=="yes":
     xlabel(r"$\|I(u,v)/I_{\rm max}\|$")
     ylabel(r"$\breve{m}$")
     tight_layout()
-    savefig("I-vs-mbreve."+FILE_EXT)
+    for EXT in FILE_EXT:
+        savefig("I-vs-mbreve."+EXT)
 
 if string.lower(PLOT_I_vs_vbreve)=="yes":
     figure(9)
@@ -783,7 +803,8 @@ if string.lower(PLOT_I_vs_vbreve)=="yes":
     xlabel(r"$\|I(u,v)/I_{\rm max}\|$")
     ylabel(r"$\breve{v}$")
     tight_layout()
-    savefig("I-vs-vbreve."+FILE_EXT)
+    for EXT in FILE_EXT:
+        savefig("I-vs-vbreve."+EXT)
 
 # See divenex's answer on
 # http://stackoverflow.com/questions/6163334/binning-data-in-python-with-scipy-numpy
