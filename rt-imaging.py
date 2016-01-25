@@ -276,14 +276,10 @@ manager = get_current_fig_manager()
 fig_pos=["+0+0","+500+0","+0+500","+500+500","+250+250"] # Need to understand syntax better... 
 titles = ["I","Q","U","V"]
 titles_4panel_xy = [ 
-#r"$\rm |m_{LP}|\equiv |(Q+iU)/I|$", 
-r"$\rm I \times 10^4$", 
-#r"$\rm m_{LP}\equiv \sqrt{|Q|^2+|U|^2}/I$", 
-r"$\sqrt{|Q|^2+|U|^2} \times 10^4$", 
-#r"$\rm EVPA=arctan2(Q,U)\times 90/\pi$", 
+r"$\rm I$", # \times 10^"+str(int(log10(I_xy_scale)))+"$", 
+r"$\sqrt{|Q|^2+|U|^2}$", # \times 10^"+str(int(log10(I_xy_scale)))+"$", 
 r"$\rm EVPA$", # =\pi/2. - 0.5*angle(Q_{xy}+iU_{xy})$", ## TESTED
-#r"$\rm v \equiv |V|/I$"]
-r"$\rm V \times 10^4$"]
+r"$\rm V$"] # \times 10^"+str(int(log10(I_xy_scale)))+"$"
 titles_IQUV_uv = [ 
 r"$\rm |\tilde{I}|$", 
 r"$\rm |\tilde{Q}|$",
@@ -490,9 +486,10 @@ V_uv = fftpack.fftshift(fftpack.fft2(w(V_xy),shape=[nxy*zeropadding_factor,nxy*z
 u = unique(fftfreq(shape(I_uv)[0],d=uvspacing)*freq_unit)
 v = unique(fftfreq(shape(I_uv)[1],d=uvspacing)*freq_unit)
 
+
 mbreve_uv = abs((Q_uv+1j*U_uv)/I_uv)
 P_uv = fftpack.fftshift(fftpack.fft2(sqrt(Q_xy**2+U_xy**2),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
-Pbreve_xy = abs(Q_xy+1j*U_xy)
+LP_xy = abs(Q_xy+1j*U_xy)
 Pbreve_uv = Q_uv+1j*U_uv
 mtilde_uv = fftpack.fftshift(fftpack.fft2((Q_xy+1j*U_xy)/I_xy,shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 mtilde_LP_uv = fftpack.fftshift(fftpack.fft2((Q_xy+1j*U_xy)/I_xy))
@@ -505,6 +502,17 @@ I_mag = abs(I_uv)
 I_phase = angle(I_uv)
 ## WRONG: EVPA_uv = angle(P_uv/I_uv) * 90./pi ## Michael: EVPA
 EVPA_uv = angle(Pbreve_uv/I_uv) * 90./pi ## Michael: EVPA CORRECT
+
+# GLOBAL intensity scale to save space with tick labels
+# I_xy_scale=1 # 1e4
+I_xy_scale=10**-round(log10(amax(I_xy))) # automatic nearest power 10
+I_uv_scale=10**-round(log10(amax(I_uv))) # automatic nearest power 10
+Q_xy_scale=10**-round(log10(amax(Q_xy))) # automatic nearest power 10
+U_xy_scale=10**-round(log10(amax(U_xy))) # automatic nearest power 10
+LP_xy_scale=10**-round(log10(amax(LP_xy))) # automatic nearest power 10
+V_xy_scale=10**abs(round(log10(amax(V_xy)))) # automatic nearest power 10
+V_xy_scale=max(V_xy_scale,10**abs(round(log10(amin(V_xy))))) # automatic nearest power 10
+
 
 ## PRODUCE ARTIFICIAL RING DATA IN uv SPACE ##
 ring_data_fourier_space = empty((size(u_no_zeropadding),size(v_no_zeropadding)))
@@ -525,25 +533,36 @@ for i in range(shape(u_no_zeropadding)[0]):
 
 # RG: None does not work because ticks are set based on these values
 # RG: FINISH data depend limits
-# figure(0):       [I_xy    ,Q_xy        ,U_xy        ,V_xy        ]
-limits_colors_xy = [(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))]
+# figure(0):             [I_xy          ,Q_xy       ,U_xy       ,V_xy      ]
+limits_colors_xy = array([(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))])*I_xy_scale
 # limits_colors_xy = [(0,8e-4),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))]
 #limits_colors_xy = [(0,6e-4),(-4e-5,4e-5),(-4e-5,4e-5),(-1e-5,1e-5)]
 # # figure(8):              [I_xy    ,mbreve_xy,EVPA_xy  ,CP_xy   ]
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(8):              [I_xy    ,|Q,U|_xy,EVPA_xy  ,|V|_xy   ]
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
-limits_colors_4panel_xy = [(0,round(amax(I_xy)*1e4,0)),(0,round(amax(abs(Q_xy+1j*U_xy))*1e4,0)),(0.,180.),(round(amin(V_xy)*1e4,1),round(amax(V_xy)*1e4,1))]
-# limits_colors_4panel_xy = [(0,amax(I_xy)*1e4),(0,amax(abs(Q_xy+1j*U_xy))*1e4),(0.,180.),(amin(V_xy)*1e4,amax(V_xy)*1e4)]
+
+# for panel in [0,1,3]:
+titles_4panel_xy[0]=titles_4panel_xy[0][:-1]+r" \times 10^"+str(int(log10(I_xy_scale)))+"$"
+titles_4panel_xy[1]=titles_4panel_xy[1][:-1]+r" \times 10^"+str(int(log10(LP_xy_scale)))+"$"
+titles_4panel_xy[3]=titles_4panel_xy[3][:-1]+r" \times 10^"+str(int(log10(V_xy_scale)))+"$"
+titles_miniversion_4panel_uv[0]=titles_miniversion_4panel_uv[0][:-2]+r" \times 10^"+str(int(log10(I_uv_scale)))+"|$"
+
+# limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(amin(V_xy),amax(V_xy))]
+limits_colors_4panel_xy = [
+    (0,amax(I_xy)*I_xy_scale),
+    (0,amax(abs(LP_xy))*LP_xy_scale),
+    (0.,180.),
+    (amin(V_xy)*V_xy_scale,amax(V_xy)*V_xy_scale)]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
-limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
+limits_colors_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
 #limits_colors_uv = [(0,3),(0,0.5),(0,0.4),(0,0.1)]
 # figure(2): [I_uv,mbreve_uv,EVPA_uv,|V_uv/I_uv|]
-limits_colors_miniversion_4panel_uv = [(0,around(amax(abs(I_uv)),0)),(0,1.0),(-90,90),(0,1.)]
+limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,1.0),(-90,90),(0,1.)]
 #limits_colors_miniversion_4panel_uv = [(0,3),(0,1.0),(-90,90),(0,0.5)]
 
-limits_xy = array([-image_size/2+15,image_size/2-15,-image_size/2+15,image_size/2-15])
+limits_xy = array([-image_size/2+20,image_size/2-20,-image_size/2+20,image_size/2-20])
 
 # size_tmp=70;limits_xy = [-size_tmp,size_tmp,-size_tmp,size_tmp] ## FOR 102Ghz case 418
 
@@ -647,12 +666,16 @@ if "IP" in WANTED_PLOTS:
         fig_xy_4panel.add_subplot(221+plot_loop)
     
         # pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop])
-        pcolormesh(X,Y,[I_xy*1e4,abs(Q_xy+1j*U_xy)*1e4,EVPA_xy,V_xy*1e4][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3],rasterized=True)
+        pcolormesh(X,Y,[I_xy*I_xy_scale,abs(Q_xy+1j*U_xy)*LP_xy_scale,EVPA_xy,V_xy*V_xy_scale][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3],rasterized=True)
         if plot_loop==3:
-            colorbar(ticks=(limits_colors_4panel_xy[plot_loop][0],0,limits_colors_4panel_xy[plot_loop][1]),pad=0)
-        else:
-            # if plot_loop==2:
+            colorbar(ticks=around(arange(round(limits_colors_4panel_xy[plot_loop][0],1),round(limits_colors_4panel_xy[plot_loop][1],1),0.2),1),pad=0)
+            # colorbar(ticks=(limits_colors_4panel_xy[plot_loop][0],0,limits_colors_4panel_xy[plot_loop][1]),pad=0)
+        elif plot_loop==2:
             colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
+        else:
+            cbar_4panel_xy=colorbar(ticks=arange(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],0.2),pad=0)
+            cbar_4panel_xy.locator=matplotlib.ticker.MaxNLocator(5)
+
         # else:
         #     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
         clim(limits_colors_4panel_xy[plot_loop])
@@ -700,13 +723,17 @@ if "IP" in WANTED_PLOTS and miniversion:
     # RG: Why are ampplitudes of mtilde_uv so large?
     # pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,log10(abs(mtilde_uv))][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop])
     # RG: Replace 4th panel with CP
-    pcolormesh(u,v,[abs(I_uv),abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop],rasterized=True)
+    pcolormesh(u,v,[abs(I_uv)*I_uv_scale,abs(mbreve_uv),EVPA_uv,abs(V_uv/I_uv)][plot_loop],cmap=colormaps_miniversion_4panel[plot_loop],rasterized=True)
 
     ## COLORBAR ##
     # if plot_loop==2:
     #     colorbar(ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5),pad=0)
-    # else:
-    colorbar(pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],[6,6,5,6][plot_loop]))
+    if plot_loop==0:
+        cbar_miniversion_4panel = colorbar(pad=0,ticks=arange(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],0.02))
+        cbar_miniversion_4panel.locator = matplotlib.ticker.MaxNLocator(5)
+        cbar_miniversion_4panel.update_ticks()
+    else:
+        colorbar(pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],[6,6,5,6][plot_loop]))
         # colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_miniversion_4panel_uv[plot_loop][0],limits_colors_miniversion_4panel_uv[plot_loop][1],5))
 
     clim(limits_colors_miniversion_4panel_uv[plot_loop])
@@ -872,7 +899,7 @@ CMAP_SHADOW=cm.cubehelix
 # limits_xy = [-100,100,-100,100] # compare to Moscibrodzka+ 2009: RADIATIVE MODELS OF SGR A* FROM GRMHD SIMULATIONS
 
 
-pcolormesh(X,Y,I_xy,cmap=CMAP_SHADOW,vmax=limits_colors_xy[0][1])
+pcolormesh(X,Y,I_xy*I_xy_scale,cmap=CMAP_SHADOW,vmax=limits_colors_xy[0][1])
 # pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
 colorbar(pad=0)
 
@@ -893,7 +920,7 @@ plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.
 
 #quiver(X[::every],Y[::every],mbreve_xy[::every,::every],mbreve_xy[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,scale_units='xy', angles=EVPA_xy[::every,::every],width=0.005,pivot="mid")
 
-gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title="I (with polarization ticks)"+title_vary_string)
+gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string)
 axis('equal')
 axis(limits_xy) # +array([+10,-10,+10,-10]))
 tight_layout(pad=0.1, w_pad=0., h_pad=0)
