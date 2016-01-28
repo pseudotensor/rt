@@ -40,8 +40,8 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
     '''Given EHT configuration file for given observing frequency
     output uv tracks for specified baseline between baseline1 and baseline2 
     rotated by the angle specified by orientation.'''
-
-    EHT_config_file=HOME+RT_DIR+"EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
+    VLBI_ARRAY="VLBA" # "EHT","VLBA"
+    EHT_config_file=HOME+RT_DIR+VLBI_ARRAY+"-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
     if string.lower(baseline1)=="all" or string.lower(baseline1)=="":
         EHT_config_file="obs.txt"
         eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
@@ -66,13 +66,19 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 # UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
-UV_TRACKING=[  "BASELINE_FIXED",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=[  "BASELINE_FIXED",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=[  "BASELINE_FIXED",      "ALMA-GBT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=["ALMA-LMT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=["LMT-GBT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=["ALMA-GBT"] # "PICKaPOINT" or "EHT"
+UV_TRACKING=["SMT-SMA"] # "PICKaPOINT" or "EHT"
+
 FILE_EXT=["png","pdf"] # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
 dEVPA="no"
 POLARIZATION_CAP = "NO" # "YES" # ARTIFICALLY CAP POLARIZATION?
 PSD="no"
-m_LP_cap = 0.7
+mbreve_cap = 1.0 # 0.2
 m_CP_cap = 1.0
 m_LP_floor = 0.5
 m_CP_floor = 0.0
@@ -89,6 +95,9 @@ PLOT_SED="no"
 PLOT_CORRELATED_FLUX="yes"
 PLOT_I_vs_mbreve="no"
 PLOT_I_vs_vbreve="no"
+PLOT_Itilde_vs_t="yes"
+PLOT_mbreve_vs_t="yes"
+PLOT_vbreve_vs_t="yes"
 
 if "bh0" in commands.getoutput("echo $HOSTNAME"):
     PLOT_CORRELATED_FLUX="no" ## BUG in python version on bh cluster... deactivate
@@ -150,25 +159,21 @@ M = 4.3e6 * Msun # SAG A*
 rg = G*M/c**2
 d_SagA = 8.3e3*pc
 rad2microarcsec = 360/(2*pi)*3600*1e6
-
-observing_frequency = 230. # in Ghz
-print "HARDCODED frequency=",observing_frequency,"Ghz"
-
-image_size_astroray = 8.+(600./observing_frequency)**1.5 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
-#image_size_astroray = 12.2 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
-image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
-image_size_rad = image_size_astroray * (2*rg)/d_SagA
 shadow_schwarzschild = sqrt(27)*2*rg # diameter
 shadow_maximally_spinning = 9./2.*2*rg # diameter
 #######################################################
-
-
 TIME        = [] # to be filled with simulation time
+Itilde_vs_t_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
+Itilde_vs_t_conjugate_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
 mbreve_vs_t_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
 mbreve_vs_t_conjugate_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
+vbreve_vs_t_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
+vbreve_vs_t_conjugate_baseline = [] # to be filled with tracks along one specified baseline in (u,v) data
 mbreve_vs_t = [] # to be filled with single point in (u,v) data
 mbreve_conjugate_vs_t = []
 dEVPA_vs_t  = [] # to be filled with single/two opposite points in (u,v) data
+dEVPA_vs_t_baseline  = [] # to be filled with single/two opposite points in (u,v) data
+dmbreve_vs_t_baseline  = [] # to be filled with single/two opposite points in (u,v) data
 
 # SORT IT ACCORDING TO TIME STAMP IN FILENAME
 try:
@@ -187,6 +192,11 @@ for snapshot in FILES_2D:
     fp = open(filename,"rb")
     header = fromfile(fp,count=20)
     nxy=int(header[2])+1
+    observing_frequency=header[3]
+    image_size_inM=header[4]
+    image_size_rad = image_size_inM * (2*rg)/d_SagA
+    image_size = image_size_rad * rad2microarcsec
+
     data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
     fp.close()
 
@@ -228,21 +238,21 @@ for snapshot in FILES_2D:
         return abs(V)/I
 
 ############ MESS WITH POLARIZATION DATA ##############
-    # if string.lower(UV_mbreve_CAP)=="yes":
+    # if string.lower(UV_mbreve_cap)=="yes":
     #     UV_mask  = sqrt(UV[0]**2 + UV[1]**2) > 4.
     #     UV_mask *= sqrt(UV[0]**2 + UV[1]**2) < 2.5
-    #     UV_mask *= mbreve_uv > m_LP_cap
+    #     UV_mask *= mbreve_uv > mbreve_cap
     #     UV_mask *= mbreve_uv < m_LP_floor
 
     if string.lower(POLARIZATION_CAP)=="yes":
-        # m_LP_mask = (m_LP(I_xy,Q_xy,U_xy) < m_LP_cap)  * (m_LP(I_xy,Q_xy,U_xy) > m_LP_floor)
-        m_LP_mask = (m_LP(I_xy,Q_xy,U_xy) > m_LP_cap) * (m_LP(I_xy,Q_xy,U_xy) < m_LP_floor)
+        # m_LP_mask = (m_LP(I_xy,Q_xy,U_xy) < mbreve_cap)  * (m_LP(I_xy,Q_xy,U_xy) > m_LP_floor)
+        m_LP_mask = (m_LP(I_xy,Q_xy,U_xy) > mbreve_cap) * (m_LP(I_xy,Q_xy,U_xy) < m_LP_floor)
         m_CP_mask = m_CP(I_xy,V_xy) > m_CP_cap
 
         m_LP_original = m_LP(I_xy[m_LP_mask],Q_xy[m_LP_mask],U_xy[m_LP_mask])
         m_CP_original = m_CP(I_xy[m_CP_mask],V_xy[m_CP_mask])
-        Q_xy[m_LP_mask] *= m_LP_cap / m_LP_original
-        U_xy[m_LP_mask] *= m_LP_cap / m_LP_original
+        Q_xy[m_LP_mask] *= mbreve_cap / m_LP_original
+        U_xy[m_LP_mask] *= mbreve_cap / m_LP_original
         V_xy[m_CP_mask] *= m_CP_cap / m_CP_original
 #######################################################
 
@@ -265,13 +275,13 @@ for snapshot in FILES_2D:
 
 
 ########### MESS WITH POLARIZATION UV DATA ###########
-    UV_mbreve_CAP = "NO"
-    if string.lower(UV_mbreve_CAP)=="yes":
+    UV_mbreve_cap = "NO"
+    if string.lower(UV_mbreve_cap)=="yes":
         UV_mbreve_mask  = sqrt(UV[0]**2 + UV[1]**2) > 4.
         V_uv[UV_mbreve_mask] = 0
         UV_mbreve_mask  = sqrt(UV[0]**2 + UV[1]**2) < 2.5
         V_uv[UV_mbreve_mask] = 0
-        UV_mbreve_mask  = mbreve_uv > m_LP_cap
+        UV_mbreve_mask  = mbreve_uv > mbreve_cap
         V_uv[UV_mbreve_mask] = 0
         UV_mbreve_mask  = mbreve_uv < m_LP_floor
         V_uv[UV_mbreve_mask] = 0
@@ -291,7 +301,8 @@ for snapshot in FILES_2D:
 
     TIME += [(float(filename.split("fn")[1].split('_')[0].split('case')[0]) - t_ref)*dt_GRMHD * (G*M/c**3) /60./60.] # t in [hours]
 
-    if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING or "BASELINE_FIXED" in UV_TRACKING:
+    # if "EHT" in UV_TRACKING or "PICKaPOINT" in UV_TRACKING or "BASELINE_FIXED" in UV_TRACKING:
+    if size(UV_TRACKING)>0:
         # Given time in hr    NOW PICK UV point (along EHT uv tracks
         try:
             uv_time_idx = pylab.find(eht_obs_uv[:,0]>=TIME[-1]%24)[0]
@@ -302,7 +313,7 @@ for snapshot in FILES_2D:
         # CURRENTLY LIMITED TO ONE SPECIFIC BASELINE:
         # if True:
         try:
-            BASELINE=UV_TRACKING[1]
+            BASELINE=UV_TRACKING[-1]
             baseline1=BASELINE.split('-')[0]
             baseline2=BASELINE.split('-')[1]
             baseline_uv_track = get_EHT_uv_tracks(baseline1=baseline1,baseline2=baseline2,orientation=ORIENTATION)
@@ -355,32 +366,42 @@ for snapshot in FILES_2D:
 
     # ALONG EHT TRACKS
     if u_probe_baseline and v_probe_baseline:
+        Itilde_vs_t_baseline += [interp2d(u_incr,v_incr,abs(I_uv))(u_probe_baseline,v_probe_baseline)[0]]
         mbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
+        vbreve_vs_t_baseline += [interp2d(u_incr,v_incr,vbreve_uv)(u_probe_baseline,v_probe_baseline)[0]]
     else:
+        Itilde_vs_t_baseline += [None]
         mbreve_vs_t_baseline += [None]
+        vbreve_vs_t_baseline += [None]
         # pass
     if u_probe_conjugate_baseline and v_probe_conjugate_baseline:
+        Itilde_vs_t_conjugate_baseline += [interp2d(u_incr,v_incr,abs(I_uv))(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]]
         mbreve_vs_t_conjugate_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]]
+        vbreve_vs_t_conjugate_baseline += [interp2d(u_incr,v_incr,vbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]]
     else:
+        Itilde_vs_t_conjugate_baseline += [None]
         mbreve_vs_t_conjugate_baseline += [None]
+        vbreve_vs_t_conjugate_baseline += [None]
         # pass
 
     mbreve_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe,v_probe)[0]]
     mbreve_conjugate_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
     dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
+    dmbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,mbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
+    dEVPA_vs_t_baseline += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,EVPA_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
 
 
-for jump_removal_iteration in range(5):
-    try:
-        jump_down_in_EVPA = dEVPA_vs_t.index(array(dEVPA_vs_t)[diff(dEVPA_vs_t)<-100][0])
-        dEVPA_vs_t[jump_down_in_EVPA+1:] = array(dEVPA_vs_t)[jump_down_in_EVPA+1:] + 180.
-    except:
-        pass
-    try:
-        jump_up_in_EVPA = dEVPA_vs_t.index(array(dEVPA_vs_t)[diff(dEVPA_vs_t)>100][0])
-        dEVPA_vs_t[jump_up_in_EVPA+1:] = array(dEVPA_vs_t)[jump_up_in_EVPA+1:] - 180.
-    except:
-        pass
+# for jump_removal_iteration in range(5):
+#     try:
+#         jump_down_in_EVPA = dEVPA_vs_t.index(array(dEVPA_vs_t)[diff(dEVPA_vs_t)<-100][0])
+#         dEVPA_vs_t[jump_down_in_EVPA+1:] = array(dEVPA_vs_t)[jump_down_in_EVPA+1:] + 180.
+#     except:
+#         pass
+#     try:
+#         jump_up_in_EVPA = dEVPA_vs_t.index(array(dEVPA_vs_t)[diff(dEVPA_vs_t)>100][0])
+#         dEVPA_vs_t[jump_up_in_EVPA+1:] = array(dEVPA_vs_t)[jump_up_in_EVPA+1:] - 180.
+#     except:
+#         pass
 
 mbreve_vs_t=array(mbreve_vs_t)
 
@@ -403,7 +424,7 @@ if size(FILES_2D)>0:
     pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2,rasterized=True) # False) # much faster savefig() when FILE_EXT="pdf"
     # pcolormesh(u_incr,v_incr,mbreve_uv,cmap=cm.gnuplot2,shading='gouraud',rasterized=True) # False)
     colorbar()
-    clim(0,1)
+    clim(0,mbreve_cap)
     # axis((-10,10,-10,10))
     BASELINES=UV_TRACKING[1:]
     for BASELINE in BASELINES:
@@ -432,20 +453,28 @@ if size(FILES_2D)>0:
         ##########################
         figure(0,figsize=(12,6)) #
 
-        if "PICKaPOINT" in UV_TRACKING:
+        if UV_TRACKING[0]=="PICKaPOINT":
             labelstring_mbreve=[
                 r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
                 r"$uv="+str(round(u[u_probe_conjugate_index],1))+"G\lambda$"
                 ]
-        elif "BASELINE_FIXED" in UV_TRACKING:
+            if string.lower(PLOT_mbreve_vs_t)=="yes":
+                plot(TIME,mbreve_vs_t,"y-",label=labelstring_mbreve[0])
+                plot(TIME,mbreve_conjugate_vs_t,"y--",label=labelstring_mbreve[1])
+        elif UV_TRACKING[0]=="BASELINE_FIXED":
             labelstring_mbreve=["fixed","fixed-conj."]            
         else:
-            labelstring_mbreve=["EHT2017","EHT2017-conj."]
+            labelstring_mbreve=[BASELINE,BASELINE+"-conj."]
+            # labelstring_mbreve=["EHT2017","EHT2017-conj."]
 
-        plot(TIME,mbreve_vs_t_baseline,"r-",label=label_baseline[0])
-        plot(TIME,mbreve_vs_t_conjugate_baseline,"r--",label=label_baseline[1])
-        plot(TIME,mbreve_vs_t,"y-",label=labelstring_mbreve[0])
-        plot(TIME,mbreve_conjugate_vs_t,"y--",label=labelstring_mbreve[1])
+        if PLOT_Itilde_vs_t=="yes":
+            plot(TIME,Itilde_vs_t_baseline,"c-",label=label_baseline[0]+r"$:\tilde{I}$")
+        if PLOT_mbreve_vs_t=="yes":
+            plot(TIME,mbreve_vs_t_baseline,"r-",label=label_baseline[0]+r"$:\breve{m}$")
+            plot(TIME,mbreve_vs_t_conjugate_baseline,"r--",label=label_baseline[1]+r"$:\breve{m}$")
+        if PLOT_vbreve_vs_t=="yes":
+            plot(TIME,vbreve_vs_t_baseline,"m-",label=label_baseline[0]+r"$:\breve{v}$")
+
         legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
         titlestring = os.getcwd().split('/')[-1]
         if titlestring=="dipole":
@@ -459,11 +488,11 @@ if size(FILES_2D)>0:
             titlestring=r"${\tt MAD\_thick-jet}$"
         title(titlestring)
         xlabel(r"$t[hours]$")
-        ylabel(r"$\breve{m}$")
-        axis((amin(TIME),amax(TIME),0,1.1))
+        ylabel(r"$"+[r"\tilde{I}"][not PLOT_Itilde_vs_t=="yes"]+","+[r"\breve{m}"][not PLOT_mbreve_vs_t=="yes"]+","+[r"\breve{v}"][not PLOT_vbreve_vs_t=="yes"]+"$")
+        axis((amin(TIME),amax(TIME),0,mbreve_cap))
         tight_layout()
         for EXT in FILE_EXT:
-            savefig("mbreve-vs-t"+"-orientation"+str(int(ORIENTATION))+"."+EXT)
+            savefig("mbreve-vs-t-"+BASELINE+"-orientation"+str(int(ORIENTATION))+"."+EXT)
 
 
     if dEVPA=="yes":
@@ -486,10 +515,10 @@ if size(FILES_2D)>0:
       figure(2)
       # FIXME: still need to filter |uv|= 2.5-4
       # CHECK THIS
-      hist( (abs(V_uv)/abs(I_uv))[(mbreve_uv < m_LP_cap) * (mbreve_uv > m_LP_floor)].flatten() ,50,normed=True)
+      hist( (abs(V_uv)/abs(I_uv))[(mbreve_uv < mbreve_cap) * (mbreve_uv > m_LP_floor)].flatten() ,50,normed=True)
       # CHECK THIS
-      CP_mask = (mbreve_uv < m_LP_cap) * (mbreve_uv > m_LP_floor) * ( sqrt(UV[0]**2 + UV[1]**2) < 4.) * ( sqrt(UV[0]**2 + UV[1]**2) > 2.5 )
-      hist( (abs(V_uv)/abs(I_uv))[(mbreve_uv < m_LP_cap) * (mbreve_uv > m_LP_floor)].flatten() ,50,normed=True)
+      CP_mask = (mbreve_uv < mbreve_cap) * (mbreve_uv > m_LP_floor) * ( sqrt(UV[0]**2 + UV[1]**2) < 4.) * ( sqrt(UV[0]**2 + UV[1]**2) > 2.5 )
+      hist( (abs(V_uv)/abs(I_uv))[(mbreve_uv < mbreve_cap) * (mbreve_uv > m_LP_floor)].flatten() ,50,normed=True)
       # CHECK THIS
       hist( (abs(V_uv)/abs(I_uv))[CP_mask].flatten() ,19)
 
