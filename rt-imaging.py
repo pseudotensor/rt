@@ -34,7 +34,7 @@ rc('font',size=15)
 
 ################
 ## USER SPECS ##
-TIME_AVERAGE=True
+# TIME_AVERAGE=True # generalized code, obsolete now
 miniversion = True # False True
 # WANTED_PLOTS=["IQUV","IP"]
 WANTED_PLOTS=["IP"]
@@ -154,11 +154,6 @@ M = 4.3e6 * Msun # SAG A*
 rg = G*M/c**2
 d_SagA = 8.3e3*pc
 rad2microarcsec = 360/(2*pi)*3600*1e6
-observing_frequency = float(filename.split('f')[1].split('fn')[0]) # Ghz [file *th*.dat
-image_size_astroray = 8.+(600./observing_frequency)**1.5 # @230Ghz see sftab array in [ASTRORAY_main.cpp] and eq(18) SPM12 ApJ
-#image_size_astroray = 12.2 # @230Ghz see sftab array in [ASTRORAY_main.cpp]
-image_size = image_size_astroray * (2*rg)/d_SagA * rad2microarcsec
-image_size_rad = image_size_astroray * (2*rg)/d_SagA
 shadow_schwarzschild = sqrt(27)*2*rg # diameter
 shadow_maximally_spinning = 9./2.*2*rg # diameter
 #######################################################
@@ -171,10 +166,32 @@ iter = filename.split("fn")[1].split("case")[0]
 ## READ-IN ##
 fp = open(filename,"rb")
 header = fromfile(fp,count=20)
-nxy=int(header[2])
 fp.close()
+nxy=int(header[2])
+observing_frequency=header[3]
+image_size_inM=header[4]
+image_size_rad=image_size_inM * (2*rg)/d_SagA
+image_size=image_size_rad * rad2microarcsec
 
-if TIME_AVERAGE:
+pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
+if angle_unit=="rad":
+    pixeldim = image_size_rad/nxy
+
+# WIP: UNDERSTAND THIS!
+# bh:
+X = pixeldim*arange(-round(nxy/2)-1,round(nxy/2)+1)
+# laptop:
+# X = pixeldim*arange(-round(nxy/2),round(nxy/2)+1)
+
+#?X = pixeldim*arange(-round(nxy/2),round(nxy/2))
+Y = X[:]
+
+freq_unit=1e-9 # uv plane scale
+uvspacing = image_size_rad/nxy
+
+
+# if TIME_AVERAGE:
+if True: # always use this code even when not time-averaging (just a special case)
     data = empty((nxy+1,nxy+1,5))
     IMAGE_FILES = [entry for entry in sys.argv[1:] if "shotimag" in entry]
     filename=filename.replace(iter,iter+"-"+IMAGE_FILES[-1].split("fn")[1].split("case")[0])
@@ -185,16 +202,16 @@ if TIME_AVERAGE:
         nxy=int(header[2])
         data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_FILES)
         fp.close()
-else:
-    fp = open(filename,"rb")
-    data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
-    # data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
-    # 4 different channels I,Q,U,V +1 additional "slot"
-    # total intensity I
-    # linearly polarized intensity Q,U
-    # circularly polarized intensity V
-    fp.close()
-# filename_out = filename_out.replace(str(nxy),"case"+str(nxy))
+# else:
+#     fp = open(filename,"rb")
+#     data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
+#     # data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
+#     # 4 different channels I,Q,U,V +1 additional "slot"
+#     # total intensity I
+#     # linearly polarized intensity Q,U
+#     # circularly polarized intensity V
+#     fp.close()
+# # filename_out = filename_out.replace(str(nxy),"case"+str(nxy))
 filename_out = filename.replace(".dat",".png")
 
 try:
@@ -297,22 +314,6 @@ r"$\rm |\breve{m}|\equiv | (\tilde{Q}+i\tilde{U}) / \tilde{I}|$",
 r"$\rm EVPA$", # \equiv phase(\tilde{P}/\tilde{I}) \times 90/\pi$", 
 r"$\rm |\breve{v}|\equiv |\tilde{V} / \tilde{I}|$"]
 # r"$|\tilde{\rm m}_{LP}|\equiv|\mathcal{FFT}\{(Q+iU)/I\}|$"]
-
-pixeldim = image_size/nxy # Specify the linear size of a pixel, in \[Mu]as
-if angle_unit=="rad":
-    pixeldim = image_size_rad/nxy
-
-# WIP: UNDERSTAND THIS!
-# bh:
-X = pixeldim*arange(-round(nxy/2)-1,round(nxy/2)+1)
-# laptop:
-# X = pixeldim*arange(-round(nxy/2),round(nxy/2)+1)
-
-#?X = pixeldim*arange(-round(nxy/2),round(nxy/2))
-Y = X[:]
-
-freq_unit=1e-9 # uv plane scale
-uvspacing = image_size_rad/nxy
 
 # 150microarcsec = 1.4 in u-v plane 
 # 15 microarcsec = 14  in u-v plane
