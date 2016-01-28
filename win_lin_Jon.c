@@ -64,7 +64,7 @@ const doub atab[1]={0.9375};
 /*      // actually no usgdump2d file but for consistency */
 /* 	 usgsize=69 /\*record size*\/,usgoff=156 /\*offset*\/; */
 /* const string astr[1]={""}; */
-/* const int dtimdf=4; */
+/* const int dtimdf=2; */
 /* const doub atab[1]={0.9375}; */
 /* const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/"; */
 
