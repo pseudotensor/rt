@@ -70,8 +70,8 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 # UV_TRACKING=[  "BASELINE_FIXED",      "ALMA-GBT"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=["ALMA-LMT"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=["LMT-GBT"] # "PICKaPOINT" or "EHT"
-# UV_TRACKING=["ALMA-GBT"] # "PICKaPOINT" or "EHT"
-UV_TRACKING=["SMT-SMA"] # "PICKaPOINT" or "EHT"
+UV_TRACKING=["ALMA-GBT"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=["SMT-SMA"] # "PICKaPOINT" or "EHT"
 
 FILE_EXT=["png","pdf"] # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
@@ -98,6 +98,7 @@ PLOT_I_vs_vbreve="no"
 PLOT_Itilde_vs_t="yes"
 PLOT_mbreve_vs_t="yes"
 PLOT_vbreve_vs_t="yes"
+PLOT_EHT_Itilde="yes"
 
 if "bh0" in commands.getoutput("echo $HOSTNAME"):
     PLOT_CORRELATED_FLUX="no" ## BUG in python version on bh cluster... deactivate
@@ -774,34 +775,33 @@ if PLOT_CORRELATED_FLUX=="yes":
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
-    # mbreve EHT 2013 data
-    EHT_2013=loadtxt(HOME+RT_DIR+"SgrA-observations/HighLow_Combined_8-31-15.dat",usecols=[12,13,14,15,16],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
-    EHT_2013 = sqrt(abs(EHT_2013[:,0])**2 + abs(EHT_2013[:,1])**2 - EHT_2013[:,4]**2)
-    # Itilde EHT 2013 data
-    EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_Amplitudes",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
-    # EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_LongBaseline_Amplitudes_Day80",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
-    I_1d_uv_obs = abs(EHT_2013_I)
-    # mbreve_amp=sqrt(re^2+im^2)
-    # debias it as mbreve_amp = sqrt(re^2 + im^2 - sigma^2)
-    #  |uv|=sqrt(col 15^2+col 16^2)
+    if PLOT_EHT_Itilde=="yes" or PLOT_EHT_Itilde=="2013":
+        
+        # mbreve EHT 2013 data
+        EHT_2013=loadtxt(HOME+RT_DIR+"SgrA-observations/HighLow_Combined_8-31-15.dat",usecols=[12,13,14,15,16],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+        EHT_2013 = sqrt(abs(EHT_2013[:,0])**2 + abs(EHT_2013[:,1])**2 - EHT_2013[:,4]**2)
+        # Itilde EHT 2013 data
+        EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_Amplitudes",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+        # EHT_2013_I=loadtxt(HOME+"/svn/harm_sgrpol/backup/SgrA_LongBaseline_Amplitudes_Day80",usecols=[1,2,3],comments="#") # Re(mbreve) Im(Mbreve) u v sigma(thermal noise)
+        I_1d_uv_obs = abs(EHT_2013_I)
+        # mbreve_amp=sqrt(re^2+im^2)
+        # debias it as mbreve_amp = sqrt(re^2 + im^2 - sigma^2)
+        #  |uv|=sqrt(col 15^2+col 16^2)
+        
+        # I_1d_uv_obs = EHT_2013_Itilde
+        uv_EHT2013_I=EHT_2013_I[:,0]/1e9
+        # uv_EHT2013=sqrt(EHT_2013[:,2]**2+EHT_2013[:,3]**2)/1e9
+        # plot(uv_EHT2013,EHT_2013_mbreve,'yx')
 
-    # I_1d_uv_obs = EHT_2013_Itilde
-    uv_EHT2013_I=EHT_2013_I[:,0]/1e9
-    # uv_EHT2013=sqrt(EHT_2013[:,2]**2+EHT_2013[:,3]**2)/1e9
-    # plot(uv_EHT2013,EHT_2013_mbreve,'yx')
-
-    #FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
-    # I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
-    I_uv_err = EHT_2013_I #RG: ...WIP... BY EYE FROM SCIENCE PLOT
-    try:
+        # FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
+        # I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
+        I_uv_err = EHT_2013_I #RG: ...WIP... BY EYE FROM SCIENCE PLOT
         errorbar(EHT_2013_I[:,0]/1e9,EHT_2013_I[:,1],yerr=EHT_2013_I[:,2],fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
         # errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
-    except:
-        pass
-    # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
-    axis((0,10,0,1.1));xlabel(r"baseline length");legend=legend(labelspacing=0.1);tight_layout()
-    legend.get_frame().set_alpha(0.5)
-    plt.setp(gca().get_legend().get_texts(), fontsize='18') 
+        # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
+        axis((0,10,0,1.1));xlabel(r"baseline length");legend=legend(labelspacing=0.1);tight_layout()
+        legend.get_frame().set_alpha(0.5)
+        plt.setp(gca().get_legend().get_texts(), fontsize='18') 
 
     if size(FILES_2D)>0:
         iter=FILES_2D[0].split("fn")[1].split("_")[0].split("case")[0]
