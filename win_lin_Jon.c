@@ -4,8 +4,8 @@
 //adir - points to fluid simulation dump files
 //POWERLAW
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
-
-const int nthreads=6; // 24: bh01;// 8;//Orange
+//const string MODEL="dipole"; // dipole,quadrupole,thickdisk7
+const int nthreads=24; // 24: bh01;// 8;//Orange
 const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 
@@ -26,17 +26,24 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 /* const int ncuttab[3] = {100, 116, 128}, rlen=272, thlen=128,phlen=256, */
 /* 	 usgsize=69/\*record size in usgdump2d*\/,usgoff=156/\*offset in usgdump2d file*\/;//there is no actual usgdump2d file for these simulations, but the line is needed for consistency with other simulations */
 
-
+/* string dir,adir,fieldstr,xstr,astr[1]; */
+/* int dtimdf,ncuttab[1],rlen,thlen,phlen,usgsize,usgoff; */
+/* doub atab[1]; */
 /******************************
  * RG: THICKDISK7 GRMHD model *
  ******************************/
+/* if (MODEL=="thickdisk7") { */
+  const string dir=ASTRORAY_PATH+"thermal/",
+    // const string dir=ASTRORAY_PATH+"thickdisk7/",
+    adir=dir, fieldstr="/dumps/", xstr="/";
+  //RG: WHY "int"?
+  const int dtimdf=4; // time difference (in M) between fieldlineXXXX files
+  const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
+  const string astr[1]={"thermal"};
+  // const string astr[1]={"thickdisk7"};
+  const doub atab[1]={0.9375};
+ /* } */
 
-const string dir=ASTRORAY_PATH+"thermal/", adir=dir, fieldstr="/dumps/", xstr="/";
-//RG: WHY "int"?
-const int dtimdf=4; // time difference (in M) between fieldlineXXXX files
-const int ncuttab[1] = {143}, rlen=272, thlen=128,phlen=256,usgsize=69,usgoff=156;// no actual usgdump2d file,just consistency
-const string astr[1]={"thermal"};
-const doub atab[1]={0.9375};
 
 
 // THICKDISKHR3
@@ -47,8 +54,9 @@ const doub atab[1]={0.9375};
 /* const string astr[1]={""}; */
 /* const doub atab[1]={0.9375}; */
 
-
+ /* else if (MODEL=="dipole") { */
 // RG: dipole3dfiduciala GRMHD model
+
 /* const string dir="/home/rgold/rt/dipole3dfiduciala/", adir="/home/rgold/rt/dipole3dfiduciala/", fieldstr="/dumps/", xstr="/"; */
 
 /* const int ncuttab[1] = {120}, rlen=256, thlen=128,phlen=32, */
@@ -57,6 +65,8 @@ const doub atab[1]={0.9375};
 /* const doub atab[1]={0.92}; */
 /* const int dtimdf=2.; */
 
+// }
+/* else if (MODEL=="quadrupole") { */
 
 // RG: quadrupole MRI GRMHD models (i.e. blandford3d)
 // http://adsabs.harvard.edu/abs/2009MNRAS.394L.126M
@@ -67,7 +77,7 @@ const doub atab[1]={0.9375};
 /* const int dtimdf=2; */
 /* const doub atab[1]={0.9375}; */
 /* const string dir="/home/rgold/rt/quadrupole/", adir=dir, fieldstr="/dumps/", xstr="/"; */
-
+ /* } */
 
 
 

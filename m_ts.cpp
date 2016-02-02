@@ -31,8 +31,8 @@ asq=a*a;
 stringstream sstr;                
 sstr<<setfill('0')<<setw(4)<<fmin;                                    //build filename of a specific fluid simulation snapshot
 // file does not exist
-cout << "Assuming fluid snapshot is here: fdir="+fdir+"fieldline"+sstr.str()+".bin"<<endl;
- cout << "sp=" << sp << endl;
+cout << YELLOW"[m_ts.cpp]: "RESET"Assuming fluid snapshot is here: fdir="+fdir+"fieldline"+sstr.str()+".bin"<<endl;
+cout << YELLOW"[m_ts.cpp]: "RESET"sp=" << sp << endl;
 ifstream xfline((fdir+"fieldline"+sstr.str()+".bin").c_str(),ios::in);//read from a fluid simulation snapshot as text
 
 // RG: thickdisk7
@@ -52,7 +52,7 @@ xfline>>off>>off>>off;
 xfline.close();
 
 // RG: talk about it
- printf("tt=%e,nx1=%d,nx2=%d,nx3=%d,x1min=%e,dx1=%e\n",tt,nx1,nx2,nx3,x1min,dx1);
+printf("tt=%e,nx1=%d,nx2=%d,nx3=%d,x1min=%e,dx1=%e\n",tt,nx1,nx2,nx3,x1min,dx1);
 
 if((rlen!=nx1)||(thlen!=nx2)||(phlen!=nx3)){                          //check that the grid dimensions specified in "win_lin..." agrees with that found in simulation snapshots
   printf("rlen=%d,nx1=%d,thlen=%d,nx2=%d,phlen=%d,nx3=%d\nErrors in dimensions \n Exiting ",rlen,nx1,thlen,nx2,phlen,nx3);

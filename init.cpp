@@ -758,7 +758,7 @@ rhocon=rhonor*r_T_u[ncut-1][2];   //physical density at radial convergence bound
 Ucon=r_T_u[ncut-1][1];            //temperature at radial convergence boundary
         // doub n_avery_RIAF=pow(0.5*r,-1.5);
         // (*uu[fdiff])[phi_index][theta_index][r_index][0] = n_avery_RIAF;
-Bnor=sqrt(4.*PI*rhonor*mp)*cc; //normalization of physical magnetic field, negative normalization is also allowed
+Bnor=sqrt(4.*PI*rhonor*mp)*cc; //normalization of physical magnetic field, negative normalization is also allowed //RG: hmmm strange comment but code assumes rhonor>=0 for sure...
 
 //extending radial temperature profile outwards as a powerlaw
 for(k=ncut;k<ndd;k++){
@@ -808,18 +808,24 @@ for(k=0;k<thlen-1;k++)
 
 rate*=rhonor*rgrav*rgrav*cc*mp/(2*fdiff+1); // accretion rate in physical units
 
-//initializing Te(Ts)+Tp(Ts) solver, standard for GSL
+
+
+/**********************
+ * TEMPERATURE SOLVER *
+ **********************/
+
+// initializing Te(Ts)+Tp(Ts) solver, standard for GSL
 // cout << YELLOW"[init.cpp]:"RESET" Electron Temperature Solver..." << endl;
 
-doub acc=2e-3,   //relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
-	 TeTp[2],      //ODE vector (Te+Tp)
-	 step,       //step
-	 rz;         //radius
+doub acc=2e-3,   // relative accuracy //RG: SHOULD BE (CONSTANT) GLOBAL, USER SHOULD NOT HAVE TO HUNT THIS DOWN IN THE CODE
+	 TeTp[2],    // ODE vector (Te+Tp) done because GSL routine takes a vector as input
+	 step,       // step
+	 rz;         // radius
 gsl_odeiv_step *sz; 
 gsl_odeiv_control *cz; 
 gsl_odeiv_evolve *ez;
 const gsl_odeiv_step_type *Tz; 
-Tz = gsl_odeiv_step_rk2;//Runge-Kutta 2-nd order
+Tz = gsl_odeiv_step_rk2; // Runge-Kutta 2nd order
 gsl_odeiv_system sysT = {solvetemperature, NULL, 2,NULL};
 ez = gsl_odeiv_evolve_alloc(2);
 cz = gsl_odeiv_control_standard_new(0.0, acc, 1.0, 0.0);
@@ -833,7 +839,7 @@ rz=rrmax;
 step=-0.001*rz; //initial step //RG:HARDWIRED
 ts[0]=TeTp[0];tp[0]=TeTp[0];te[0]=TeTp[0];
 
-//actual temperature solver
+// ACTUAL TEMPERATURE SOLVER
 while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event horizon). 
 
   // if (stNt==12107) printf(YELLOW"[init.cpp]: "RED"YO1: rz=%g rmin=%g stNt=%d\n"RESET,rz,rmin,stNt);
@@ -858,7 +864,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 
     // printf(YELLOW"[init.cpp]: "RED"YO1: rz=%g rmin=%g status=%d stNt=%d\n"RESET,rz,rmin,status,stNt);
 
-	if((rz<6) && (fl)) {    //catching electron temperature & Tp/Te ratio at 6M distance from the BH. Step size is so small that we don't iterate for 6M precisely
+	if((rz<6) && (fl)) { // Reporting electron temperature & Tp/Te ratio at 6M distance from the BH. Step size is so small that we don't iterate for 6M precisely // RG: the last sentence does not make sense to me logically ...
 		fl=false;
 		TpTe=tp[stNt]/te[stNt];
 		Te6=te[stNt];
@@ -873,26 +879,52 @@ if(stNt>maxst){            //check if solver exceeded the number of steps
 	printf(YELLOW"[init.cpp]:"RED"Temperature solver error. Exceeded maximum steps allowed! Increase maxst in [global_variables.cpp]\nEXITING\n"RESET);
 	exit(-1);
 };
-gsl_odeiv_evolve_free (ez);//free memory
+
+// FREE MEMORY
+gsl_odeiv_evolve_free (ez);
 gsl_odeiv_control_free (cz);
 gsl_odeiv_step_free (sz);
 
 
 
 if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN GRMHD SIMULATION
-  // for (r) for (th) for (phi) {
-  for(int r_idx=0;r_idx<rlen;r_idx++)
+
+  ofstream temperature_harm_grid_file;
+  temperature_harm_grid_file.open((dir+astr[sp]+xstr+"T_grid_"+astr[sp]+".dat").c_str(), ios::out | ios::app | ios::binary);
+
+  for(int r_idx=0;r_idx<rlen;r_idx++) // rlen ~> rcut ?
     for(int th_idx=0;th_idx<thlen;th_idx++)
       for(int ph_idx=0;ph_idx<phlen;ph_idx++) {
+
+        doub r=exp(coord[r_idx][th_idx][0]); // rtab[r_idx]; // rlen ~> rcut ? Likely wrong for r>rcut !
+        doub costh=coord[r_idx][th_idx][1];
+        // Taken from evalpointzero.cpp (BUT: ly undefined here):
+        // doub ph=dphi-ly[3];                  //current phi, taking into account azimuthal offset and "different" orientations of phi on a geodesic and phi in numerical simulations - check for every simulation!
+        
         if (r_idx+th_idx+ph_idx==0) {
+          temperature_harm_grid_file<<"# r_idx th_idx ph_idx T_e T_p T_sim rho u r costh"<<endl; // WRITE HEADER
+
           printf(YELLOW"[init.cpp]: OUTPUTTING TEMPERATURE INFO..."RESET"\n");
           printf(YELLOW"[init.cpp]: "RED"...WIP..."RESET"\n");
         }
         // RG: error: ‘B’ was not declared in this scope
         // doub magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; 
-        //RG: T_sim, tet undeclared in this scope
-        // get_electron_temperature (T_sim, magn, ts, te, tp, tet);
+        // RG: T_sim, tet undeclared in this scope
+        doub T_e,T_p;
+        // assume fdiff=0 ~> (uu[0])
+        doub rho=(*uu[0])[ph_idx][th_idx][r_idx][0]*rhonor;
+        doub u=(*uu[0])[ph_idx][th_idx][r_idx][1];
+        doub T_sim=u*mp*cc*cc/3/kb/rho; // internal energy density
+        if (TEMPERATURE_PRESCRIPTION=="sharma")
+          get_electron_temperature (T_sim, 0., T_e, T_p); // magn not needed for Sharma
+        else
+          if (r_idx+th_idx+ph_idx==0) cout<<YELLOW"[init.cpp]: "RED"Need magn to compute electron temperature when TEMPERATURE_PRESCRIPTION=="<<TEMPERATURE_PRESCRIPTION<<". "RESET<<endl;
+        temperature_harm_grid_file<<r_idx<<" "<<th_idx<<" "<<ph_idx<<" "<<T_e<<" "<<T_p<<" "<<T_sim<<" "<<rho<<" "<<u/*<<" "<<magn*/<<" "<<r<<" "<<costh<<endl; // can add tet_isoth etc later
+        
       }
+
+  temperature_harm_grid_file.close();
+
 }
 
 

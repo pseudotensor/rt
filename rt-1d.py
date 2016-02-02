@@ -27,12 +27,15 @@ HOME=commands.getoutput("echo $HOME")
 RT_DIR="/rt/"
 if not os.path.isdir(HOME+RT_DIR):
     RT_DIR="/codes/rt-git/"
+filename=sys.argv[1]
 
-# assumes obs.txt in same dir (provided by Andrew Chael see [eht_python_for_roman.zip])
 try:
-    EHT_config_file="obs.txt"
+    EHT_config_file="EHT-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
+    eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
+    print "SUCCESSFULLY READ IN EHT uv-TRACKS"
     eht_obs_uv = loadtxt(HOME+RT_DIR+EHT_config_file,usecols=[0,4,5],comments='#')
 except:
+    print "Could not load EHT array configuration file! Ignore..."
     pass
 
 

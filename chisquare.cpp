@@ -40,9 +40,9 @@ void chisquare(doub F[], doub LP[], doub CP[], doub& chisq, doub& chisq_I, int d
 
   const bool trustLP87=true;//whether to fit for LP fraction at 87GHz. Its observed value i s controversial
     
-  for(int il=4;il<=10;il++) {          // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
+  for(int il=4;il<=10;il++)      // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
 	resid[il-4]=(F[il]-tofit[il][1])/dFnu[il]; // F         
-  }
+
   if (dof>7) { // WANT2 INCLUDE POLARIZATION?
     resid[7]=(LP[4]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
     resid[8]=(LP[7]-tofit[7][2])/dLP[1]; // LP nu=230Ghz

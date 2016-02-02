@@ -30,6 +30,7 @@ int geodesic_output_every_y = 5; // output geodesic information for every 20th g
 
 bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
 string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+// string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
 
 const doub PI = 4.0*atan(1.0);
 
@@ -67,11 +68,11 @@ const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column 
 // WORKS
 // const int ndd = (true) ? 650 : 350;
 // const int speed = (shiftKeyDown) ? 10 : 1;
-// const int ndd=650;           //radial dimension of coordinate/coordinate transformation matrices
+const int ndd=650;           //radial dimension of coordinate/coordinate transformation matrices
 // OTHER MODELS
 // }
 //else {
-const int ndd=350;           //radial dimension of coordinate/coordinate transformation matrices
+// const int ndd=350;           //radial dimension of coordinate/coordinate transformation matrices
 // const int ndd=288+1;           //radial dimension of coordinate/coordinate transformation matrices
 // }
 

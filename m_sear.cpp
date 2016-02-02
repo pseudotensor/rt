@@ -114,29 +114,33 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	start=clock();
 	
 	//computing spectra for aforementioned 4 models
-	for(oo=0;oo<4;oo++)//initialize these spectra with zeros
+	for(oo=0;oo<4;oo++) // initialize these spectra with zeros
 		for(kk=kmin;kk<=kmax;kk++){
 			ytotin[kk][oo]=0.;
 			yLPo[kk][oo]=0.;
 			yCP[kk][oo]=0.;
 			yEVPA[kk][oo]=0.;
-		};
-	for(fnum=fmin;fnum<=fmax;fnum+=sep){//loop over fluid simulation snapshots
-		for(oo=0;oo<4;oo++){            //loop over 4 models
-			heat=inp[oo][0];
-			rhonor=inp[oo][1];
-			th=inp[oo][2];
+		}; // for(oo=0;oo<4;oo++) // initialize these spectra with zeros
+
+	for(fnum=fmin;fnum<=fmax;fnum+=sep){ // loop over fluid simulation snapshots
+      for(oo=0;oo<4;oo++){             // loop over 4 models
+
+        // SET PARAMETERS FOR RADIATIVE TRANSFER FOR MODEL "oo"
+        heat=inp[oo][0];
+        rhonor=inp[oo][1];
+        th=inp[oo][2];
             
-            //RG: 
-            printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,k=%d\n",sep,fnum,oo,kk);
+        printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,th=%f,rhonor=%f,heat=%f\n",sep,fnum,oo,th,rhonor,heat);
 
-	    init(sp,fmin,fmax,sep);     //compute spectrum for each fluid simulation snapshot for each model
-            #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
-            #include "intensity.cpp"
+        // SETUP MODEL
+        init(sp,fmin,fmax,sep);     
 
-            // RG: Free memory? Or is uu free
-            //#pragma omp barrier //RG: DONT WE NEED TO SYNCH HERE?
-            //delete[] uu; // GIVES ERROR (AT LEAST WITH openMP) WHY?
+        #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
+        #include "intensity.cpp" // COMPUTE SPECTRUM FOR EACH FLUID SIMULATION SNAPSHOT AND EACH MODEL
+
+        // RG: Free memory? Or is uu free
+        //#pragma omp barrier //RG: DONT WE NEED TO SYNCH HERE?
+        //delete[] uu; // GIVES ERROR (AT LEAST WITH openMP) WHY?
 
 	    for(kk=kmin;kk<=kmax;kk++){ //add spectra up to get average spectra
 	      ytotin[kk][oo]+=totin[kk]/ind;
@@ -145,27 +149,29 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	      yEVPA[kk][oo]+=EVPA[kk]/ind;
 	    };
 	    
-	};
-    };
+      }; // for(oo=0;oo<4;oo++){             // loop over 4 models
+    }; // for(fnum=fmin;fnum<=fmax;fnum+=sep){ // loop over fluid simulation snapshots
 
-//end of integration block 
+// END OF RADIATIVE TRANSFER BLOCK 
 
 
 
     // Chi^2
-    //compute normalized residuals with respect to the observed spectra
+    // GIVEN THE MODELS, COMPUTE NORMALIZED RESIDUALS (wrt to observed spectra)
 	
     for(oo=0;oo<4;oo++){              // LOOP over 4 models
       for(il=4;il<=10;il++)           // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
         resid[il-4][oo]=(ytotin[il][oo]-tofit[il][1])/dFnu[il]; // F 
 
-      resid[7][oo]=(yLPo[4][oo]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
+      if (trustLP87) resid[7][oo]=(yLPo[4][oo]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
+      else resid[7][oo] = 0.;
+
       resid[8][oo]=(yLPo[7][oo]-tofit[7][2])/dLP[1]; // LP nu=230Ghz
       resid[9][oo]=(yLPo[8][oo]-tofit[8][2])/dLP[2]; // LP nu=345Ghz
       resid[10][oo]=(yCP[7][oo]-tofit[7][4])/dCP;    // CP nu=230Ghz
       resid[11][oo]=(yCP[8][oo]-tofit[8][4])/dCP;    // CP nu=345Ghz
 
-      //RG:COULD ADD EVPA HERE...
+      // RG: COULD ADD MORE (New Flux measurements,EVPA,source size,...) HERE ...WIP...
 	}
 
 	{
@@ -173,8 +179,6 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
       for(il=0;il<nP;il++)
         //RG:WHY model oo=0 ?
 		xisq+=resid[il][0]*resid[il][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
-      //RG:FLAG SHOULD INCORPORATE
-      //if(trustLP87)            //either include or not include in the fit the LP fraction at 87GHz
 
 
       //RG: new fct to compute chi squared (TESTING)
@@ -182,9 +186,9 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
       // chisquare(ytotin,yLPo,yCP,chisq,chisq_I,nP,7,3);
       doub I[sflen],LP[sflen],CP[sflen];//=[0,0,0,0,0,0,0,0,0,0,0,0,0];
       for(int i=0;i<nP;i++) {
-	I [i]=ytotin[i][0];
-	LP[i]=yLPo  [i][0];
-	CP[i]=yCP   [i][0];
+        I [i]=ytotin[i][0];
+        LP[i]=yLPo  [i][0];
+        CP[i]=yCP   [i][0];
       }
       chisquare(I,LP,CP,chisq,chisq_I);
       printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
@@ -233,6 +237,14 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 		for(il=0;il<nP;il++)
 			bb[ii]+=Jac[il][ii]*resid[il][0];
 	};                                           //compute a determinant and solve a linear system of equations for parameters deviations for the next iteration
+
+    // RG: -> FCT!!!
+    // http://stackoverflow.com/questions/2918461/how-to-get-an-array-size 
+    // answer by http://stackoverflow.com/users/303180/stephen
+    // int num_rows = sizeof(matrix) / sizeof(matrix[0]);
+    // int num_cols = sizeof(matrix[0]) / sizeof(matrix[0][0]);
+    // RG: -> def det(matrix) { if (num_rows>2) det(matrix_minor) return det}
+
 	det=-(matr[0][2]*matr[1][1]*matr[2][0]) + matr[0][1]*matr[1][2]*matr[2][0] + matr[0][2]*matr[1][0]*matr[2][1] - matr[0][0]*matr[1][2]*matr[2][1] - matr[0][1]*matr[1][0]*matr[2][2] + matr[0][0]*matr[1][1]*matr[2][2];
 	ddh=(bb[2]*matr[0][2]*matr[1][1] - bb[2]*matr[0][1]*matr[1][2] - bb[1]*matr[0][2]*matr[2][1] + bb[0]*matr[1][2]*matr[2][1] + (bb[1]*matr[0][1] - bb[0]*matr[1][1])*matr[2][2])/det;
 	ddr=(bb[2]*(-(matr[0][2]*matr[1][0]) + matr[0][0]*matr[1][2]) + bb[1]*(matr[0][2]*matr[2][0] - matr[0][0]*matr[2][2]) + bb[0]*(-(matr[1][2]*matr[2][0]) + matr[1][0]*matr[2][2]))/det;

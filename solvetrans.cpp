@@ -27,7 +27,7 @@ while (llog > ppy[currth].llmin-1.3*sstep) {//main radiative transfer loop
 	counter_pt_on_geodesic++;                                 //increase count of points on each geodesic
 	ittot++;                                //increase global count of points
 
-    //RG:FIXME sstep<0 -> floor step by hh>sstep
+    // original ASTRORAYv1.0 BUT: RG:FIXME sstep<0 -> floor step by hh>sstep
     if(hh<sstep) hh=sstep;                  //floor on step size
     // if(hh>sstep) hh=sstep;                  //floor on step size //GOT LOOKUP ERROR OF CLOSEST GEODESIC POINT [evalpointzero.cpp]
 

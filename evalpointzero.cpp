@@ -215,7 +215,8 @@ drman=(costh-tha)/(thb-tha);       //weight of the closest theta cell in fluid s
 tn=thlen-ib-1;
 thman=1-drman;                     //weight defined in a more uniform way = (1 - weight)
 
-phfrac=fmod(ph*phlen/(2*PI)+0.5,phlen); //closest cell in phi direction - PI factor for half-semisphere and 2*PI factor for the full sphere - check for your simulation!
+// cout<<YELLOW"[evalpointzero.cpp]: "RED<<"CHECK GRMHD MODEL FOR SYMMETRY! PI or 2PI in phi?"<<endl;
+phfrac=fmod(ph*phlen/(2*PI)+0.5,phlen); //closest cell in phi direction - PI factor for hemisphere and 2*PI factor for the full sphere - check for your simulation!
 if(phfrac<0)phfrac+=phlen;              //phi is a periodic coordinate
 k=floor(phfrac);                        //true closest closest cell in phi direction
 phman=phfrac-k;int ak=(1+k)%phlen;//circular boundary condition 
@@ -640,58 +641,64 @@ if (r_slices) {
  * get Te,Tp    *
  ****************/
 
-if(T_sim>maxT)                       //if temperature is above allowed, then set it to maximum allowed
-	T_sim=maxT;
-if(T_sim<minT)                       //if temperature is below allowed, then set it to minimum allowed
-	T_sim=minT;
-int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety?
-doub Ta=ts[0],                      //minimum temperature
-	 Tb=ts[indT];                   //maximum temperature
-doub Tx,                            //closest temperature on look-up grid
-	 Tz=T_sim;                       //temperature of interest
-ia=0;
-ib=indT;
-if((Ta<=Tz) && (Tz<=Tb)){
-	while(ib>ia+1){
-		geod_pt_idx=(ia+ib)>>1;  // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
-		Tx=ts[geod_pt_idx];
-		if(Tz<Tx){
-			ib=geod_pt_idx;
-		} else {
-			ia=geod_pt_idx;
-		};
-	};
-} else {
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f T_sim=%f\n"RESET,Ta,Tb,Tz,T_sim);
-    //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
-	exit(-1);
-};
-Ta=ts[ia];
-Tb=ts[ib];
-drman=(Tz-Ta)/(Tb-Ta);              //weight of the closest temperature cell
-tpt=(1-drman)*tp[ia]+drman*tp[ib];  //compute actual proton and electron temperatures
-tet=(1-drman)*te[ia]+drman*te[ib];
+get_electron_temperature (T_sim, magn, tet, tpt);
 
 
-/*******************************
- * ADJUST ELECTRON TEMPERATURE *
- *******************************/
+// if(T_sim>maxT)                       //if temperature is above allowed, then set it to maximum allowed
+// 	T_sim=maxT;
+// if(T_sim<minT)                       //if temperature is below allowed, then set it to minimum allowed
+// 	T_sim=minT;
+// int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety?
+// doub Ta=ts[0],                      //minimum temperature
+// 	 Tb=ts[indT];                   //maximum temperature
+// doub Tx,                            //closest temperature on look-up grid
+// 	 Tz=T_sim;                       //temperature of interest
+// ia=0;
+// ib=indT;
+// if((Ta<=Tz) && (Tz<=Tb)){
+// 	while(ib>ia+1){
+// 		geod_pt_idx=(ia+ib)>>1;  // RG: bit-shift operations for speed up? (ia+ib)>>1 = (ia+ib)/2 ? golden ratio is faster than 0.5 interval (optimal 1st order method), even better Brent's method
+// 		Tx=ts[geod_pt_idx];
+// 		if(Tz<Tx){
+// 			ib=geod_pt_idx;
+// 		} else {
+// 			ia=geod_pt_idx;
+// 		};
+// 	};
+// } else {
+// 	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
+// 	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f T_sim=%f\n"RESET,Ta,Tb,Tz,T_sim);
+//     //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
+// 	exit(-1);
+// };
+// Ta=ts[ia];
+// Tb=ts[ib];
+// drman=(Tz-Ta)/(Tb-Ta);              //weight of the closest temperature cell
+// tpt=(1-drman)*tp[ia]+drman*tp[ib];  //compute actual proton and electron temperatures
+// tet=(1-drman)*te[ia]+drman*te[ib];
 
-if (TEMPERATURE_PRESCRIPTION=="sharma") {
-  }
-else if (TEMPERATURE_PRESCRIPTION=="sharma+isoth") {
-  doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
-  tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
-  }
-else if (TEMPERATURE_PRESCRIPTION=="constant_tetp_fraction") {
-  tet = ts[ia]/Te_jet_par; // tp/te=3; (assumes ts[ia]=ts[ib])
-  }
- else {
-   printf(YELLOW"[evalpointzero.cpp]: "RED"NEED TO CHOOSE VALID ELECTRON-TEMPERATURE PRESCRIPTION"RESET"\n");
-   exit(1);
- }
 
+// /*******************************
+//  * ADJUST ELECTRON TEMPERATURE *
+//  *******************************/
+
+// if (TEMPERATURE_PRESCRIPTION=="sharma") {
+//   }
+// else if (TEMPERATURE_PRESCRIPTION=="sharma+isoth") {
+//   doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
+//   tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
+//   }
+// else if (TEMPERATURE_PRESCRIPTION=="constant_tetp_fraction") {
+//   tet = ts[ia]/Te_jet_par; // tp/te=3; (assumes ts[ia]=ts[ib])
+//   }
+//  else {
+//    printf(YELLOW"[evalpointzero.cpp]: "RED"NEED TO CHOOSE VALID ELECTRON-TEMPERATURE PRESCRIPTION"RESET"\n");
+//    exit(1);
+//  }
+
+// // get_electron_temperature fct
+// // exit(0);
+// // }
 
 
 /******************************/

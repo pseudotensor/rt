@@ -68,11 +68,12 @@ using namespace std;
 // different setups are below
 // these files are also platform-specific, as they include directory names in Windows/Linux/UNIX
 #include "win_lin_Jon.c" // #include "win_lin_ADAFs.c"
-
 #include "profiling.cpp"
 #include "global_variables.cpp" // contains most global variables
 
 #include "chisquare.cpp"
+#include "electron_temperature.cpp"
+// extern int get_electron_temperature(doub Tsim, doub magn, doub& te, doub& tp);
 
 typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;} poinx;//geodesic object
      poinx ppy[nthreads]; //define 1 geodesic object per OpenMP thread
@@ -87,7 +88,7 @@ extern int solvegeodesic(doub t, const doub y[], doub f[], void *params);//line 
 #include "geodes.cpp"
 
 //solving for electron temperature starting from the known outer properties of the system
-extern int solvetemperature (doub rz, const doub zz[],doub ff[],void *pas);
+extern int solvetemperature (doub rz, const doub zz[],doub TeTp[],void *pas);
 #include "solvetemp.cpp"
 
 //RG:CLEANUP!
@@ -124,7 +125,7 @@ int main(int argc, char* argv[]) {
 
 	int n1;
     struct rusage usage; // FOR PROFILING PURPOSES
-    
+
     // RG:FIXME BAD PLACE TO DO THAT HERE. fdiff can change (e.g. in cases)
     // RG: -> should make fdiff const global!
     for(n1=0;n1<2*fdiff+1;n1++)

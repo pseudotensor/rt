@@ -36,8 +36,8 @@ rc('font',size=15)
 ## USER SPECS ##
 # TIME_AVERAGE=True # generalized code, obsolete now
 miniversion = True # False True
-# WANTED_PLOTS=["IQUV","IP"]
-WANTED_PLOTS=["IP"]
+WANTED_PLOTS=["IQUV","IP"] # "IP","IQUV"
+# WANTED_PLOTS=["IP"]
 
 filename = sys.argv[1] # should point to shotimage*.dat file
 
@@ -45,6 +45,7 @@ HOME=commands.getoutput("echo $HOME")
 # RT_DIR="/rt/"
 RT_DIR="/codes/rt-git/"
 
+I_xy_scale=1
 Jy2cgs=1e23
 ang_size_norm=66.4648/Jy2cgs
 
@@ -142,7 +143,7 @@ angle_unit="arcsec" # "rad"
 
 # This is used for enhancing smoother uv data at large scales. 
 # BE CAREFUL when the xy-data don't decay to zero for large xy this introduces artefacts
-zeropadding_factor=4  
+zeropadding_factor=4
 
 pc = scipy.constants.parsec # SI
 G = scipy.constants.G # SI
@@ -469,6 +470,7 @@ def w(arr):
         out = arr
     return out
 
+# I_xy_mean=mean(I_xy);Q_xy_mean=mean(Q_xy);U_xy_mean=mean(U_xy);V_xy_mean=mean(V_xy)
 I_uv = fftpack.fftshift(fftpack.fft2(w(I_xy),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 Q_uv = fftpack.fftshift(fftpack.fft2(w(Q_xy),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
 U_uv = fftpack.fftshift(fftpack.fft2(w(U_xy),shape=[nxy*zeropadding_factor,nxy*zeropadding_factor]))
@@ -555,12 +557,16 @@ limits_colors_4panel_xy = [
     (0,amax(abs(LP_xy))*LP_xy_scale),
     (0.,180.),
     (amin(V_xy)*V_xy_scale,amax(V_xy)*V_xy_scale)]
+# limits_colors_4panel_xy = [(0,round(amax(I_xy)*I_xy_scale,0)),(0,round(amax(abs(Q_xy+1j*U_xy))*I_xy_scale,0)),(0.,180.),(round(amin(V_xy)*I_xy_scale,1),round(amax(V_xy)*I_xy_scale,1))]
+# same as above but without round
+# limits_colors_4panel_xy = [(0,amax(I_xy)*I_xy_scale),(0,amax(abs(Q_xy+1j*U_xy))*I_xy_scale),(0.,180.),(amin(V_xy)*I_xy_scale,amax(V_xy)*I_xy_scale)]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
 limits_colors_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
 #limits_colors_uv = [(0,3),(0,0.5),(0,0.4),(0,0.1)]
 # figure(2): [I_uv,mbreve_uv,EVPA_uv,|V_uv/I_uv|]
 limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,1.0),(-90,90),(0,1.)]
+# limits_colors_miniversion_4panel_uv = [(0,around(amax(abs(I_uv)),0)),(0,1.0),(-90,90),(0,1.)]
 #limits_colors_miniversion_4panel_uv = [(0,3),(0,1.0),(-90,90),(0,0.5)]
 
 limits_xy = array([-image_size/2+20,image_size/2-20,-image_size/2+20,image_size/2-20])

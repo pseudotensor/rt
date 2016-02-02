@@ -1,7 +1,7 @@
 for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
 
     //RG:
-    //printf(YELLOW"[intensity.cpp]: "RESET"YO0 ix=%d\n",ix);
+    // printf(YELLOW"[intensity.cpp]: "RESET"YO0 ix=%d\n",ix);
 
 	int kk,
 		iiy=ix %(snxy+1),                                      //find geodesic coordinates along x and y directions
@@ -38,11 +38,13 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
 
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
 
+        // printf(YELLOW"[intensity.cpp]: "RED"PRE [solvetrans.cpp]"RESET"\n");
         //doub t_b4_solvetrans = clock();
         //clock_t t_b4_solvetrans = clock();
 		//new radiative transfer is solved for each ray
         #include "solvetrans.cpp"
         // t_solvetrans += (clock() - t_b4_solvetrans) / (float)CLOCKS_PER_SEC;
+        // printf(YELLOW"[intensity.cpp]: "RED"POST [solvetrans.cpp]"RESET"\n");
 		
 		(*ausin)[iix][iiy][kk][0]=II[0];                       //total intensity I
 		(*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]); //linearly polarized intensity Q
