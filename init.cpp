@@ -868,7 +868,7 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 		fl=false;
 		TpTe=tp[stNt]/te[stNt];
 		Te6=te[stNt];
-		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rhonor);
+		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho*rhonor=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rho*rhonor);
 	}
 
 } // while (rz > 1.001*rmin) {
@@ -912,7 +912,7 @@ if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN G
         // RG: T_sim, tet undeclared in this scope
         doub T_e,T_p;
         // assume fdiff=0 ~> (uu[0])
-        doub rho=(*uu[0])[ph_idx][th_idx][r_idx][0]*rhonor;
+        doub rho=(*uu[0])[ph_idx][th_idx][r_idx][0]; // *rhonor;
         doub u=(*uu[0])[ph_idx][th_idx][r_idx][1];
         doub T_sim=u*mp*cc*cc/3/kb/rho; // internal energy density
         if (TEMPERATURE_PRESCRIPTION=="sharma")
