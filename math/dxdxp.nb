@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       157,          7]
-NotebookDataLength[    110946,       2893]
-NotebookOptionsPosition[    107761,       2793]
-NotebookOutlinePosition[    108221,       2811]
-CellTagsIndexPosition[    108178,       2808]
+NotebookDataLength[    110935,       2889]
+NotebookOptionsPosition[    107751,       2789]
+NotebookOutlinePosition[    108209,       2807]
+CellTagsIndexPosition[    108166,       2804]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -149,36 +149,10 @@ Cell[BoxData[
    3.635867131591638*^9, 3.635867231091144*^9}}],
 
 Cell["\<\
-for Jon\[CloseCurlyQuote] s jet simulations with QPOs (i.e.thickdiskhr3)\
-\>", "Input",
- CellChangeTimes->{{3.635948531658903*^9, 3.635948544614147*^9}},
- FormatType->"TextForm"],
-
-Cell[BoxData[
- RowBox[{
-  RowBox[{
-   RowBox[{"atab", "=", "\"\</thickdiskhr3/\>\""}], ";", 
-   RowBox[{"dirin", "=", "\"\</home/rgold/codes/rt/\>\""}], ";", 
-   RowBox[{"ndd", "=", "350"}], ";", 
-   RowBox[{"ncut", "=", "120"}], ";", 
-   RowBox[{"NDIM", "=", "4"}], ";", 
-   RowBox[{"anum", "=", "0.9375"}], ";", 
-   RowBox[{"ncolsgdump", "=", "126"}], ";", 
-   RowBox[{"ncolsfieldline", "=", "11"}], ";", 
-   RowBox[{"rlen", "=", "256"}], ";", 
-   RowBox[{"byte", "=", "8"}], ";", 
-   RowBox[{"bytefieldline", "=", "4"}], ";", 
-   RowBox[{"phlen", "=", "256"}], ";", 
-   RowBox[{"thlen", "=", "128"}], ";"}], "\n"}]], "Input",
- CellChangeTimes->{{3.635948531658903*^9, 3.635948549857339*^9}, {
-  3.635954301393433*^9, 3.635954302166315*^9}}],
-
-Cell["\<\
 for Jon\[CloseCurlyQuote] s MB09 (i.e.dipole3dfiduciala)\
 \>", "Input",
  Evaluatable->False,
- CellChangeTimes->{{3.63563358525975*^9, 3.6356335980990467`*^9}},
- FormatType->"TextForm"],
+ CellChangeTimes->{{3.63563358525975*^9, 3.6356335980990467`*^9}}],
 
 Cell[BoxData[{
  RowBox[{
@@ -205,6 +179,70 @@ Cell[BoxData[{
    3.635515802383799*^9}, 3.635633643640669*^9, {3.635633683663948*^9, 
    3.635633736895926*^9}, 3.635694781978223*^9, {3.635867285995042*^9, 
    3.635867305531082*^9}}],
+
+Cell["\<\
+for Jon\[CloseCurlyQuote] s quadrupole MRI disk (i.e. blandford3d_new)\
+\>", "Input",
+ CellChangeTimes->{{3.6357020662723303`*^9, 3.635702090619326*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"dir", "=", 
+   RowBox[{"NotebookDirectory", "[", "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"dirin", "=", "\"\</home/rgold/codes/rt/\>\""}], ";", 
+  RowBox[{"atab", "=", "\"\</quadrupole/\>\""}], ";", 
+  RowBox[{"ndd", "=", "350"}], 
+  RowBox[{"(*", 
+   RowBox[{"350", " ", "WORKS"}], "*)"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"on", " ", "dell"}], "-", 
+     RowBox[{"xps13", " ", "with", " ", "mathematica", " ", "7"}]}], ":", 
+    RowBox[{"380", " ", "works"}]}], " ", "*)"}], 
+  RowBox[{"(*", " ", 
+   RowBox[{"original", ":", 
+    RowBox[{"650", " ", "DOES", " ", "NOT", " ", "WORK"}]}], " ", "*)"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ncut", "=", "120"}], ";", 
+  RowBox[{"NDIM", "=", "4"}], ";", 
+  RowBox[{"anum", "=", "0.9375"}], ";", 
+  RowBox[{"ncolsgdump", "=", "126"}], ";", 
+  RowBox[{"ncolsfieldline", "=", "11"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rlen", "=", "128"}], ";", 
+  RowBox[{"byte", "=", "8"}], ";", 
+  RowBox[{"bytefieldline", "=", "4"}], ";", 
+  RowBox[{"phlen", "=", "32"}], ";", 
+  RowBox[{"thlen", "=", "128"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.6357020662723303`*^9, 3.635702144753305*^9}, {
+  3.663546998449102*^9, 3.663547118178211*^9}}],
+
+Cell["\<\
+for Jon\[CloseCurlyQuote] s jet simulations with QPOs (i.e.thickdiskhr3)\
+\>", "Input",
+ CellChangeTimes->{{3.635948531658903*^9, 3.635948544614147*^9}}],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"atab", "=", "\"\</thickdiskhr3/\>\""}], ";", 
+   RowBox[{"dirin", "=", "\"\</home/rgold/codes/rt/\>\""}], ";", 
+   RowBox[{"ndd", "=", "350"}], ";", 
+   RowBox[{"ncut", "=", "120"}], ";", 
+   RowBox[{"NDIM", "=", "4"}], ";", 
+   RowBox[{"anum", "=", "0.9375"}], ";", 
+   RowBox[{"ncolsgdump", "=", "126"}], ";", 
+   RowBox[{"ncolsfieldline", "=", "11"}], ";", 
+   RowBox[{"rlen", "=", "256"}], ";", 
+   RowBox[{"byte", "=", "8"}], ";", 
+   RowBox[{"bytefieldline", "=", "4"}], ";", 
+   RowBox[{"phlen", "=", "256"}], ";", 
+   RowBox[{"thlen", "=", "128"}], ";"}], "\n"}]], "Input",
+ CellChangeTimes->{{3.635948531658903*^9, 3.635948549857339*^9}, {
+  3.635954301393433*^9, 3.635954302166315*^9}}],
 
 Cell["\<\
 for Jon\[CloseCurlyQuote] s zero spin MAD MTB12 (i.e.rtf2_15r35_a0.0_0_0_0)\
@@ -319,48 +357,6 @@ Cell[BoxData[
    RowBox[{"phlen", "=", "32"}], ";", " ", 
    RowBox[{"thlen", "=", "128"}], ";"}], " "}]], "Input",
  CellChangeTimes->{{3.635867408421337*^9, 3.635867494640627*^9}}],
-
-Cell["\<\
-for Jon\[CloseCurlyQuote] s quadrupole MRI disk (i.e. blandford3d_new)\
-\>", "Input",
- CellChangeTimes->{{3.6357020662723303`*^9, 3.635702090619326*^9}},
- FormatType->"TextForm"],
-
-Cell[BoxData[{
- RowBox[{
-  RowBox[{"dir", "=", 
-   RowBox[{"NotebookDirectory", "[", "]"}]}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"dirin", "=", "\"\</home/rgold/codes/rt/\>\""}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"atab", "=", "\"\</quadrupole/\>\""}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"ndd", "=", "350"}], 
-  RowBox[{"(*", 
-   RowBox[{"350", " ", "WORKS"}], "*)"}], 
-  RowBox[{"(*", 
-   RowBox[{"DOES", " ", "NOT", " ", "WORK", " ", 
-    RowBox[{"(", 
-     RowBox[{
-      RowBox[{
-       RowBox[{"on", " ", "dell"}], "-", 
-       RowBox[{"xps13", " ", "with", " ", "mathematica", " ", "7"}]}], ":", 
-      "380"}]}]}], "*)"}], 
-  RowBox[{"(*", 
-   RowBox[{"original", ":", "650"}], "*)"}], ";", 
-  RowBox[{"ncut", "=", "120"}], ";", 
-  RowBox[{"NDIM", "=", "4"}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"anum", "=", "0.9375"}], ";"}], "\n", 
- RowBox[{
-  RowBox[{"ncolsgdump", "=", "126"}], ";", 
-  RowBox[{"ncolsfieldline", "=", "11"}], ";", 
-  RowBox[{"rlen", "=", "128"}], ";", 
-  RowBox[{"byte", "=", "8"}], ";", 
-  RowBox[{"bytefieldline", "=", "4"}], ";", 
-  RowBox[{"phlen", "=", "32"}], ";", 
-  RowBox[{"thlen", "=", "128"}], ";"}]}], "Input",
- CellChangeTimes->{{3.6357020662723303`*^9, 3.635702144753305*^9}}],
 
 Cell[CellGroupData[{
 
@@ -2791,8 +2787,8 @@ Cell[BoxData[{
 }, Open  ]]
 }, Open  ]]
 },
-WindowSize->{943, 1013},
-WindowMargins->{{64, Automatic}, {-6, Automatic}},
+WindowSize->{943, 973},
+WindowMargins->{{65, Automatic}, {0, Automatic}},
 ShowSelection->True,
 Magnification:>FEPrivate`If[
   FEPrivate`Equal[FEPrivate`$VersionNumber, 6.], 1.25, 1.25 Inherited],
@@ -2818,80 +2814,80 @@ Cell[1141, 34, 455, 14, 67, "Input"],
 Cell[CellGroupData[{
 Cell[1621, 52, 173, 3, 37, "Subsubsection"],
 Cell[1797, 57, 6203, 91, 121, "Input"],
-Cell[8003, 150, 188, 4, 39, "Input"],
-Cell[8194, 156, 743, 17, 121, "Input"],
-Cell[8940, 175, 194, 5, 39, "Input",
+Cell[8003, 150, 169, 4, 39, "Input",
  Evaluatable->False],
-Cell[9137, 182, 1181, 24, 148, "Input"],
-Cell[10321, 208, 238, 5, 39, "Input"],
-Cell[10562, 215, 1327, 36, 283, "Input"],
-Cell[11892, 253, 180, 4, 39, "Input"],
-Cell[12075, 259, 1341, 37, 283, "Input"],
-Cell[13419, 298, 186, 4, 39, "Input"],
-Cell[13608, 304, 696, 16, 121, "Input"],
-Cell[14307, 322, 188, 4, 39, "Input"],
-Cell[14498, 328, 1212, 34, 283, "Input"],
+Cell[8175, 156, 1181, 24, 148, "Input"],
+Cell[9359, 182, 163, 3, 39, "Input"],
+Cell[9525, 187, 1277, 33, 202, "Input"],
+Cell[10805, 222, 163, 3, 39, "Input"],
+Cell[10971, 227, 743, 17, 121, "Input"],
+Cell[11717, 246, 238, 5, 39, "Input"],
+Cell[11958, 253, 1327, 36, 283, "Input"],
+Cell[13288, 291, 180, 4, 39, "Input"],
+Cell[13471, 297, 1341, 37, 283, "Input"],
+Cell[14815, 336, 186, 4, 39, "Input"],
+Cell[15004, 342, 696, 16, 121, "Input"],
 Cell[CellGroupData[{
-Cell[15735, 366, 11789, 284, 2262, "Input"],
-Cell[27527, 652, 228, 7, 39, "Output"]
+Cell[15725, 362, 11789, 284, 2262, "Input"],
+Cell[27517, 648, 228, 7, 39, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[27792, 664, 4458, 122, 504, "Input"],
-Cell[32253, 788, 88, 1, 39, "Output"]
+Cell[27782, 660, 4458, 122, 504, "Input"],
+Cell[32243, 784, 88, 1, 39, "Output"]
 }, Open  ]],
-Cell[32356, 792, 184, 4, 39, "Input"],
-Cell[32543, 798, 28696, 839, 23, "Input",
+Cell[32346, 788, 184, 4, 39, "Input"],
+Cell[32533, 794, 28696, 839, 23, "Input",
  CellOpen->False],
-Cell[61242, 1639, 567, 11, 148, "Input"],
-Cell[61812, 1652, 388, 7, 67, "Input"],
+Cell[61232, 1635, 567, 11, 148, "Input"],
+Cell[61802, 1648, 388, 7, 67, "Input"],
 Cell[CellGroupData[{
-Cell[62225, 1663, 4242, 124, 416, "Input"],
-Cell[66470, 1789, 86, 1, 39, "Output"],
-Cell[66559, 1792, 77, 1, 39, "Output"]
+Cell[62215, 1659, 4242, 124, 416, "Input"],
+Cell[66460, 1785, 86, 1, 48, "Output"],
+Cell[66549, 1788, 77, 1, 48, "Output"]
 }, Open  ]],
-Cell[66651, 1796, 181, 3, 39, "Input"],
-Cell[66835, 1801, 4815, 123, 401, "Input"],
-Cell[71653, 1926, 5633, 127, 391, "Input"],
+Cell[66641, 1792, 181, 3, 48, "Input"],
+Cell[66825, 1797, 4815, 123, 501, "Input"],
+Cell[71643, 1922, 5633, 127, 488, "Input"],
 Cell[CellGroupData[{
-Cell[77311, 2057, 3910, 77, 175, "Input"],
-Cell[81224, 2136, 197, 6, 39, "Output"],
-Cell[81424, 2144, 131, 3, 39, "Output"]
-}, Open  ]],
-Cell[CellGroupData[{
-Cell[81592, 2152, 3002, 85, 328, "Input"],
-Cell[84597, 2239, 86, 1, 39, "Output"],
-Cell[84686, 2242, 86, 1, 39, "Output"]
-}, Open  ]],
-Cell[84787, 2246, 1997, 33, 67, "Input"],
-Cell[86787, 2281, 2155, 41, 67, "Input"],
-Cell[CellGroupData[{
-Cell[88967, 2326, 212, 5, 39, "Input"],
-Cell[89182, 2333, 170, 5, 39, "Output"]
-}, Open  ]],
-Cell[89367, 2341, 604, 14, 67, "Input"],
-Cell[89974, 2357, 1164, 30, 101, "Input"],
-Cell[91141, 2389, 3656, 75, 225, "Input"],
-Cell[CellGroupData[{
-Cell[94822, 2468, 164, 3, 39, "Input"],
-Cell[94989, 2473, 139, 3, 39, "Output"]
-}, Open  ]],
-Cell[95143, 2479, 1844, 33, 67, "Input"],
-Cell[96990, 2514, 138, 2, 39, "Input"],
-Cell[97131, 2518, 255, 6, 39, "Input"],
-Cell[CellGroupData[{
-Cell[97411, 2528, 1509, 25, 67, "Input"],
-Cell[98923, 2555, 129, 3, 39, "Output"],
-Cell[99055, 2560, 139, 3, 39, "Output"]
+Cell[77301, 2053, 3910, 77, 218, "Input"],
+Cell[81214, 2132, 197, 6, 48, "Output"],
+Cell[81414, 2140, 131, 3, 48, "Output"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[99231, 2568, 3365, 77, 283, "Input"],
-Cell[102599, 2647, 219, 4, 39, "Output"],
-Cell[102821, 2653, 219, 4, 39, "Output"]
+Cell[81582, 2148, 3002, 85, 410, "Input"],
+Cell[84587, 2235, 86, 1, 48, "Output"],
+Cell[84676, 2238, 86, 1, 48, "Output"]
 }, Open  ]],
-Cell[103055, 2660, 801, 20, 94, "Input"],
-Cell[103859, 2682, 1909, 52, 229, "Input"],
-Cell[105771, 2736, 268, 6, 39, "Input"],
-Cell[106042, 2744, 1679, 44, 148, "Input"]
+Cell[84777, 2242, 1997, 33, 83, "Input"],
+Cell[86777, 2277, 2155, 41, 83, "Input"],
+Cell[CellGroupData[{
+Cell[88957, 2322, 212, 5, 48, "Input"],
+Cell[89172, 2329, 170, 5, 48, "Output"]
+}, Open  ]],
+Cell[89357, 2337, 604, 14, 83, "Input"],
+Cell[89964, 2353, 1164, 30, 126, "Input"],
+Cell[91131, 2385, 3656, 75, 281, "Input"],
+Cell[CellGroupData[{
+Cell[94812, 2464, 164, 3, 48, "Input"],
+Cell[94979, 2469, 139, 3, 48, "Output"]
+}, Open  ]],
+Cell[95133, 2475, 1844, 33, 83, "Input"],
+Cell[96980, 2510, 138, 2, 48, "Input"],
+Cell[97121, 2514, 255, 6, 48, "Input"],
+Cell[CellGroupData[{
+Cell[97401, 2524, 1509, 25, 83, "Input"],
+Cell[98913, 2551, 129, 3, 48, "Output"],
+Cell[99045, 2556, 139, 3, 48, "Output"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[99221, 2564, 3365, 77, 353, "Input"],
+Cell[102589, 2643, 219, 4, 48, "Output"],
+Cell[102811, 2649, 219, 4, 48, "Output"]
+}, Open  ]],
+Cell[103045, 2656, 801, 20, 117, "Input"],
+Cell[103849, 2678, 1909, 52, 286, "Input"],
+Cell[105761, 2732, 268, 6, 48, "Input"],
+Cell[106032, 2740, 1679, 44, 185, "Input"]
 }, Open  ]]
 }, Open  ]]
 }, Open  ]]

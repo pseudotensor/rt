@@ -241,12 +241,7 @@ if(t<=mintim){                          //for too small time offsets use maximum
 };
 
 //auxiliary quantities
-cossq=costh*costh;
-sinsq=1-cossq;
-rsq=rr*rr;
-rhosq=rsq+asq*cossq;
-Del=rsq-2.*rr+asq;
-temp=2.*rr/rhosq;
+cossq=costh*costh; sinsq=1-cossq; rsq=rr*rr; rhosq=rsq+asq*cossq; Del=rsq-2.*rr+asq; temp=2.*rr/rhosq;
 
 //-,+,+,+ signature covariant KS metric matrix
 iKS[0][0]=temp-1.;

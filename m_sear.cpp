@@ -93,7 +93,8 @@ dheat=0.02;           //small deviations of basic model parameters for the purpo
 drho=0.02;            //these numbers are determined with consideration of convergence tests
 dtheta=0.01;
 
-while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is stated if ALL model parameters change only slightly over 1 iteration
+while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) { //convergence is stated if ALL model parameters change only slightly over 1 iteration
+
 	niter++;          //iteration counter
     printf(YELLOW"[m_sear.cpp]: "RESET"niter=%d heat=%f rhonor=%f th=%f\n",niter,heat,rhonor,th);
 	inp[0][0]=heat;   //0-th model + small deviations along "heat" axis, "rhonor" axis, and "theta" axis
@@ -131,10 +132,8 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
         th=inp[oo][2];
             
         printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,th=%f,rhonor=%f,heat=%f\n",sep,fnum,oo,th,rhonor,heat);
-
         // SETUP MODEL
         init(sp,fmin,fmax,sep);     
-
         #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
         #include "intensity.cpp" // COMPUTE SPECTRUM FOR EACH FLUID SIMULATION SNAPSHOT AND EACH MODEL
 
@@ -185,11 +184,13 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
       doub chisq=0.,chisq_I=0.; 
       // chisquare(ytotin,yLPo,yCP,chisq,chisq_I,nP,7,3);
       doub I[sflen],LP[sflen],CP[sflen];//=[0,0,0,0,0,0,0,0,0,0,0,0,0];
+
       for(int i=0;i<nP;i++) {
         I [i]=ytotin[i][0];
         LP[i]=yLPo  [i][0];
         CP[i]=yCP   [i][0];
       }
+
       chisquare(I,LP,CP,chisq,chisq_I);
       printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
 
@@ -263,11 +264,11 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 
     //RG: ADD magn_cap, Te_jet as parameters here (replace heat?)
 
-	if (niter>20){                              //limit to 20 iterations
-		break;
-	};
-};
+	if (niter>20) break;                              //limit to 20 iterations
 
+}; // while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) {
+
+printf(YELLOW"[m_sear.cpp]: "CYAN"DONE with FITTING. FINAL PARAMETERS: th=%f rhonor=%f heat=%f"RESET"\n",th,rhonor,heat);
 
 
 // BEST-FIT: 

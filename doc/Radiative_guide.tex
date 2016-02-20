@@ -476,18 +476,25 @@ sophisticated technique is employed. I follow
 simulation boundary some $10^5r_{\rm g}$ away from the center. Such
 computation includes the Coulomb collisions, relativistic heat
 capacity of electrons, redistribution of viscous energy dissipation
-between species $Q_e/Q_i=C(T_e/T_i)^{0.5}$ \rg{Where does this come
-  from? What assumptions have been made? Ref?}, where $C$ is a
-constant.  The code computes correspondence of $T_e$ on $u$ \rg{Do we
-  mean contributions of $T_e$ to $u$?} in the equatorial plane over
-the averaged profiles of density and temperature.  Then it draws $T_e$
-from that correspondence to $u$ at any point of the simulation (see
-section 4.2 of SPM12).  Those averaged radial profiles of density and
-temperature are created and bubble-sorted by \textit{m\_ts} routine
-(see below) and stored in \textit{TsmapNAME.dat} text file, where
-\textit{NAME} is the simulation name.
+between species $Q_e/Q_i=C(T_e/T_i)^{0.5}$, where $C$ is a constant.
+The code (see {\tt [m\_ts.cpp]}) computes a table that approximates
+the function $T_e=T_e(u)$ in the equatorial plane over the profiles of
+density and temperature averaged over $\phi$ and 7 grid cells around
+the equator in $\theta$.  The resulting table containing radius,
+density and temperature are then bubble-sorted and stored in
+\textit{Tsmap[NAME].dat} text file, where \textit{[NAME]} is the
+simulation name.  In this scheme the electron temperature depends
+solely on the temperature given by the simulation $T_{\rm
+  sim}=u/\rho$. Given any temperature $T_{\rm sim}$, $T_e$ can be
+obtained from the computed table at any point of the simulation (see
+section 4.2 of \cite{Shcherbakov:2012appl}) via interpolation. An
+example of such radial profiles is shown in Fig. in
+\cite{Shcherbakov:2012appl}.
+
+
 
 \subsection{Cyclo-synchrotron emissivities and rotativities}
+
 A crucial part of GR polarized radiative transfer is the correct
 absorptivities/emissivities/rotativities.  Those are computed by a
 separate \mat script. Those coefficients are typically function of
