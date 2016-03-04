@@ -28,9 +28,9 @@ bool GEODESIC_DIAGNOSTIC=false;
 int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
-bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
-string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
-// string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+bool TEMPERATURE_DIAGNOSTIC=true; // output info on t_p,t_e,u,rho,r,th,ph
+// string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
 
 const doub PI = 4.0*atan(1.0);
 
@@ -48,33 +48,9 @@ const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet
 
 // bool use_radial_extension=false; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
+const string RADIAL_EXT_FILE="dxdxp.dat"; // "usgdump2d";
+
 const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column densities": as the name suggests
-
-// int ndd;
-// THICKDISK7
-// if ( !strcmp(astr[0],"thickdisk7") ) {
-
-// if (true) {
-// if (!strcmp(dir,"thickdisk7") {
-
-// const int i = someCondition ? calculatedValue : defaultValue;
-// DOES NOT WORK
-//const int ndd = (astr[0].c_str()=="thickdisk7") ? 650 : 350;
-//const string astr[1]={"thickdisk7"};
-
-// THIS WORKS ON http://www.tutorialspoint.com/compile_cpp_online.php but not here...
-// const int ndd= astr[0]=="thickdisk7" ? 650 : 350;
-
-// WORKS
-// const int ndd = (true) ? 650 : 350;
-// const int speed = (shiftKeyDown) ? 10 : 1;
-const int ndd=650;           //radial dimension of coordinate/coordinate transformation matrices
-// OTHER MODELS
-// }
-//else {
-// const int ndd=350;           //radial dimension of coordinate/coordinate transformation matrices
-// const int ndd=288+1;           //radial dimension of coordinate/coordinate transformation matrices
-// }
 
 const int sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -82,10 +58,12 @@ const int sflen=14,          //number of frequencies of interest for flux calcul
   dd=3,              //record size of average temperature & density file
 
 // THICKDISK7,THICKDISKHR3?,DIPOLE3DFIDUCIALA,QUADRUPOLE
+#if MODEL==THICKDISK7 || MODEL==DIPOLE || MODEL==QUADRUPOLE
   wdd=11,            //record size of fluid simulations dump file
 // a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
-//  wdd=11+3,          //record size of fluid simulations dump file
-
+#elif MODEL==THINNERMAD
+  wdd=11+3,          //record size of fluid simulations dump file
+#endif
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
 //maxco=3000,        //maximum number of points on a geodesic
 // on bh01 maxco=80000 is ok, but maxco=90000 the code just silently quits ~> exceed heap size limit??
@@ -102,7 +80,10 @@ const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corre
 // const doub rgrav=2.66e+12,    // Gravitational radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 // const doub rgrav=1.33e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~4.4e9 Msun RG:TODO RENAME TO rs!
 // const doub rgrav=1.099e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~3.4e9 Msun RG:TODO RENAME TO rs! // Broderick & Loeb 2009
-	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
+           // DEFAULT
+           rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
+           // WIP
+// rrmax=7.11445236e+03,      //radius in rgrav, where outer temperature and density are defined
 	       rhoout=130.,       //outer density for Sgr A*
 		   Tout=1.5e+7,       //outer temperature for Sgr A*
 		   mp=1.67e-24,       //proton mass [g]
