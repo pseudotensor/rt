@@ -71,6 +71,7 @@ using namespace std;
 #include "profiling.cpp"
 #include "global_variables.cpp" // contains most global variables
 
+#include "utils.cpp"
 #include "chisquare.cpp"
 #include "electron_temperature.cpp"
 // extern int get_electron_temperature(doub Tsim, doub magn, doub& te, doub& tp);
@@ -82,6 +83,10 @@ typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;}
 // geodesics geodesic_info;
 
 //doub geodesics[nxy*nxy][maxco][12]; //RG: TRULY GLOBAL ARRAY TO STORE GEODESIC INFO
+
+// int bisection_search(doub target, doub arr[], int lower_bound, int upper_bound, int size=ppy[curr].indx) {
+extern int bisection_search(doub target, doub arr[], doub lower_bound, doub upper_bound, int size, int& target_idx, int& lower_bound_idx, int& upper_bound_idx);
+extern void temperature_diag(doub rr, doub costh, doub ph, doub T_sim, doub tet, doub tpt, doub rho, doub rhonor, int currth, int geodesic_idx);
 
 //geodesic solver
 extern int solvegeodesic(doub t, const doub y[], doub f[], void *params);//line can be commented out
@@ -107,14 +112,17 @@ extern void KS_metric(doub gmunu[][4], doub ginvmunu[][4], doub r, doub costh);
 extern int init(int sp, int fmin, int fmax, int sep); //RG:CLEANUP/INVESTIGATE sep not used
 #include "init.cpp"
 
-//polarized radiative transfer
+// POLARIZED RADIATIVE TRANSFER
 extern int trans (doub llog, const doub yyy[], doub ff[], void *pas);
+//RG:FIXME
+// extern doub trans (doub llog, const doub yyy[], doub ff[], void *pas);
 //extern int trans (doub llog, const doub yyy[], doub ff[], void *pas, int stNx); //RG:WIP
 #include "transnew.cpp"
 
 // AVERY's TOY-JET+RIAF MODEL
 //extern void setup_averys_toyjet(doub rr, doub costh, float* uu, int isum);
 #include "setup_averys_toyjet.cpp"
+
 
 
 /**********************************
@@ -126,8 +134,11 @@ int main(int argc, char* argv[]) {
 	int n1;
     struct rusage usage; // FOR PROFILING PURPOSES
 
-    // RG:FIXME BAD PLACE TO DO THAT HERE. fdiff can change (e.g. in cases)
-    // RG: -> should make fdiff const global!
+    // RG:FIXME 
+    // BAD PLACE TO DO THAT HERE. fdiff can change (e.g. in cases)
+    // SO FAR fdiff is sufficiently large initially and 
+    // should always be decreased but must never be increased later on. 
+    // So it works but wastes memory
     for(n1=0;n1<2*fdiff+1;n1++)
       uu[n1]=(uuarr) new float[phlen][thlen][rlen][wdd]; // allocate memory for fluid data 
 
@@ -170,7 +181,6 @@ int main(int argc, char* argv[]) {
     // [m_ts.cpp]:    argv[4]=6: fmin
     // [m_surf.cpp]:  argv[4]=3: choice of parameters to vary: co=1: accretion rate & viewing angle theta
 	co=atoi(argv[2]);
-
 	Bpo=atof(argv[3]);    // 
 	//mco=floor(Bpo+0.001); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
 	mco=atoi(argv[3]); // argv[4]=6:fmax [m_ts.cpp] (second and third command line arguments are used differently by subroutines)
