@@ -221,8 +221,9 @@ case 231: fmin=1500;fmax=1500;sep=1;kmin=2;kmax=10;sp=0;rhonor=1e8; heat=0.25; t
  case 251002: fmin=996;fmax=1003;sep=1;kmin=7;kmax=7;sp=0;rhonor=50000000.0689; heat=0.4688; th=0.873; dphi=4.*PI/3.;thlimit=0.01;fdiff=0;isBcut=false;isBred=false;magn_cap=1;Te_jet_par=3.;TEMPERATURE_PRESCRIPTION="constant_tetp_fraction";break;
  case 251003: fmin=1596;fmax=1603;sep=1;kmin=7;kmax=7;sp=0;rhonor=50000000.0689; heat=0.4688; th=0.873; dphi=4.*PI/3.;thlimit=0.01;fdiff=0;isBcut=false;isBred=false;magn_cap=1;Te_jet_par=3.;TEMPERATURE_PRESCRIPTION="constant_tetp_fraction";break;
 
-//case 25400, but thlim=0.01
- case 22222: fmin=1000;fmax=1664;sep=1;kmin=4;kmax=4;sp=0;rhonor=138755481.0689; heat=0.4688; th=2.1661; dphi=4.*PI/3.;thlimit=0.01;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;fact=4.;break;
+//case 25400, but thlim=0.01 images use 1600
+ case 22222: fmin=1600;fmax=1600;sep=1;kmin=7;kmax=7;sp=0;rhonor=138755481.0689; heat=0.4688; th=2.1661; dphi=4.*PI/3.;thlimit=0.01;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;fact=1.;break;
+ case 22223: fmin=1600;fmax=1600;sep=1;kmin=7;kmax=7;sp=0;rhonor=138755481.0689; heat=0.4688; th=2.1661; dphi=4.*PI/3.;thlimit=0.01;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;fact=1.;TEMPERATURE_PRESCRIPTION="sharma";break;
 
  case 25399: fmin=1500;fmax=1500;sep=20;kmin=7;kmax=7;sp=0;rhonor=1000000000.0000; heat=0.4688; th=2.1661; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;TEMPERATURE_PRESCRIPTION="constant_tetp_fraction";break;
  case 25400: fmin=1500;fmax=1500;sep=20;kmin=7;kmax=7;sp=0;rhonor=138755481.0689; heat=0.4688; th=2.1661; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=100.;break;

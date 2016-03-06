@@ -61,7 +61,7 @@ switch (cas){      //selection of a model (only few examples are shown)
       //#include "vary_thlimit.cpp"
       #include "lightup_jet.cpp"
 };
-printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
+printf(YELLOW"[m_imag.cpp]: "RESET"Bpo=%.3f fdiff=%d th=%f\n",Bpo,fdiff,th);
 
 
 /* SETTING UP MAIN LOOP OVER SNAPSHOTS */
