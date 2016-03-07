@@ -14,10 +14,12 @@ const string ASTRORAY_PATH = "/home/rgold/rt/";
 #define TOYJET 100
 
 /* USER CHOICE HERE */
-#define MODEL DIPOLE
+// #define MODEL DIPOLE
+// #define MODEL QUADRUPOLE
+#define MODEL THICKDISK7
 
 
-#if MODEL == THICKDISK7
+#if MODEL == TOYJET
 // AVERY's TOY+RIAF model (Broderick & Loeb 2009)
 // STILL READ IN A MODEL (here a0mad) (AND USE THAT GRID SETUP)
 const int ncuttab[1] = {120}, rlen=288, thlen=128,phlen=32,
