@@ -51,9 +51,6 @@ void chisquare(doub F[], doub LP[], doub CP[], doub& chisq, doub& chisq_I, int d
     resid[11]=(CP[8]-tofit[8][4])/dCP;    // CP nu=345Ghz
   }
 
-
-  // doub chisq=0.,chisq_I=0.;
-
   for(int il=0;il<dof;il++) {
 
     // WIP: REARRANGE resid... incorporate I,LP,CP differently...
@@ -65,5 +62,8 @@ void chisquare(doub F[], doub LP[], doub CP[], doub& chisq, doub& chisq_I, int d
 
   // talk about it
   // printf("chisquare(): chi^2/dof=%f chi^2_I/dof=%f\n",chisq,chisq_I);
+  for(int kk=4;kk<=10;kk++){
+    printf(YELLOW"[chisquare.cpp]:"RESET"  avg at f=%.1f; I=%.3fJy I_obs=%.3fJy LP=%.2f%% LP_obs=%.2f%% CP=%.3f%% CP_obs=%.3f%% EVPA=%.2f \n",sftab[kk][0], F[kk],tofit[kk][1],LP[kk],tofit[kk][2],CP[kk],tofit[kk][4],xEVPA[kk]);
+  }
   
 };

@@ -28,9 +28,9 @@ bool GEODESIC_DIAGNOSTIC=false;
 int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
-bool TEMPERATURE_DIAGNOSTIC=true; // output info on t_p,t_e,u,rho,r,th,ph
-// string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
-string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
+string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+// string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
 
 const doub PI = 4.0*atan(1.0);
 

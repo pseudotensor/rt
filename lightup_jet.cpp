@@ -96,7 +96,8 @@ case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0
  case 7081691: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=98953.9526; heat=0.14; th=1.4; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;break; 
  case 7081692: fmin=5450;fmax=5950;sep=25;kmin=4;kmax=10;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;break; 
 
- case 70816924: fmin=5500;fmax=5500;sep=1;kmin=4;kmax=7;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";break; 
+// case 70816924: fmin=5500;fmax=5500;sep=1;kmin=4;kmax=7;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";break; 
+ case 70816924: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma+isoth";break; 
 // case 70816924: fmin=5500;fmax=5500;sep=1;kmin=4;kmax=7;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma+isoth";break; 
 // case 70816924: fmin=4000;fmax=6000;sep=1;kmin=8;kmax=8;sp=0;rhonor=126198.9381; heat=0.027; th=1.73; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=1;Te_jet_par=10.;include_jet=1;break; 
 
@@ -152,7 +153,30 @@ case 714: fmin=5500;fmax=5500;sep=1;kmin=7;kmax=7;sp=0;rhonor=122966.6; heat=0.0
  case 78111: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;magn_cap_rho=4;Te_jet_par=35.;include_jet=0;break; 
  case 78112: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=40;magn_cap_rho=0.1;Te_jet_par=35.;include_jet=1;break; 
  case 78113: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=40;magn_cap_rho=1.;Te_jet_par=35.;include_jet=1;break; 
- case 78114: fmin=5450;fmax=5950;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
+
+// REPRODUCE QPO paper //RG:FIXME
+// mdot=1e-8 Msun/yr Te@6M=3.2e10K
+// case 13047768: fmin=3500;fmax=4500;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.4; th=37./180.*PI; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=true;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";break; // heat?, rhonor?
+// [init.cpp]: fn=4475 stN=7289 r=5.98M Tp/Te=20.20 Te=1.270e+11 rate=6.972e-09 he=0.400 rho=0
+// [intensity.cpp]: fnum=4475; f=230.9; I=5.956Jy LP=15.04% EVPA=44.7deg CP=-0.197% non-pol I=6.61Jy 
+// [intensity.cpp]: chi=281.562197,chi_I=559.916121
+// case 13047768: fmin=3500;fmax=4500;sep=25;kmin=7;kmax=7;sp=0;rhonor=10118.5683; heat=0.4; th=37./180.*PI; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=true;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";/*nxy=101;snxy=101;*/xaccur=1e-3;xaccurr=1e-3;break; // heat?, rhonor?
+// [init.cpp]: fn=3500 stN=6595 r=5.98M Tp/Te=20.62 Te=1.246e+11 rate=5.988e-10 he=0.400 rho=0
+// case 13047768: fmin=3500;fmax=4500;sep=25;kmin=7;kmax=7;sp=0;rhonor=2e5         ; heat=0.4; th=37./180.*PI; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=true;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";/*nxy=101;snxy=101;*/xaccur=1e-3;xaccurr=1e-3;break; // heat?, rhonor?
+// [init.cpp]: fn=3550 stN=7530 r=5.99M Tp/Te=19.98 Te=1.280e+11 rate=1.334e-08 he=0.400 rho=0
+//   [intensity.cpp]: fnum=3550; f=230.9; I=17.844Jy LP=8.25% EVPA=71.0deg CP=0.031% non-pol I=19.76Jy 
+//                                          [intensity.cpp]: chi=1491.339828,chi_I=3313.771192
+// case 13047768: fmin=3500;fmax=4500;sep=25;kmin=7;kmax=7;sp=0;rhonor=2e5         ; heat=0.15; th=37./180.*PI; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=true;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";/*nxy=101;snxy=101;*/xaccur=1e-3;xaccurr=1e-3;break; // heat?, rhonor?
+// [init.cpp]: fn=3700 stN=7542 r=5.99M Tp/Te=96.49 Te=2.861e+10 rate=1.106e-08 he=0.150 rho=0
+// [intensity.cpp]: fnum=3700; f=230.9; I=2.096Jy LP=3.35% EVPA=81.4deg CP=0.957% non-pol I=2.57Jy 
+// [intensity.cpp]: chi=215.703900,chi_I=425.827309
+// THIS GIVES NANs after a few hours (too low res? Problem goes away with xsnxy=121):
+case -13047768: fmin=3500;fmax=4500;sep=25;kmin=4;kmax=10;sp=0;rhonor=2e5         ; heat=0.15; th=37./180.*PI; dphi=4.*PI/3.;thlimit=26./180.*PI;fdiff=20;isBcut=false;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";xsnxy=81;xaccur=1e-3;xaccurr=1e-3;break; // heat?, rhonor?
+case 13047768: fmin=3500;fmax=4500;sep=25;kmin=4;kmax=10;sp=0;rhonor=2e5         ; heat=0.15; th=37./180.*PI; dphi=4.*PI/3.;thlimit=26./180.*PI;fdiff=20;isBcut=false;isBred=false;magn_cap=4;Te_jet_par=35.;include_jet=1;TEMPERATURE_PRESCRIPTION="sharma";xsnxy=121;xaccur=1e-3;xaccurr=1e-3;break; // heat?, rhonor?
+
+
+// case 78114: fmin=5450;fmax=5950;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
+ case 78114: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 
  case 78115: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=7;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=40;magn_cap_rho=200.;Te_jet_par=35.;include_jet=0;break; 
 
  case 781144: fmin=5550;fmax=5550;sep=25;kmin=7;kmax=9;sp=0;rhonor=100118.5683; heat=0.0497; th=2.45327; dphi=4.*PI/3.;thlimit=0.025;fdiff=0;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=1;break; 

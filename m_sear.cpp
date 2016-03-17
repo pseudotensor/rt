@@ -8,6 +8,11 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
 	 xIint=1e-10,   //8. initial intensity along each ray for radiative transfer
 	 xIang=0.1;     //9. initial polarized phases along each ray for radiative transfer
+
+//  switch (atoi(descr)){
+// #include "lightup_jet.cpp"
+//  }
+
 doub step=xstep,   //local variables, which control radiative transfer
 	 sstep=xsstep,
 	 Iint=xIint,
@@ -22,8 +27,13 @@ doub ytotin[sflen][4],//for calculations of auxiliary spectrum
 	 yLPo[sflen][4], 
 	 yCP[sflen][4], 
 	 yEVPA[sflen][4];
-int snxy=xsnxy,       //global variable correspondent to xsnxy
-    testN,            //particular deviation from given initial conditions - used to unrigorously avoid local minima in steepest descent
+
+//  switch (atoi(descr)){
+// #include "lightup_jet.cpp"
+//  }
+
+// int snxy=xsnxy;       //global variable correspondent to xsnxy
+int testN,            //particular deviation from given initial conditions - used to unrigorously avoid local minima in steepest descent
 	ind,              //number of time frames for spectrum evaluation
 	fmin,             //minimum ID of fluid simulation snapshot
 	fmax,             //maximum ID of fluid simulation snapshot
@@ -36,20 +46,18 @@ accurr=xaccurr;
 fact=xfact;
 ss=xss;
 
-//selecting one model to test
+// selecting one model to test
 // sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
-// cas=atoi(descr);
-
-//  fmin=5500;fmax=5525;fdiff=20;
-
 // case 771390: 
-fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;
+// fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;
 
 
- switch (atoi(descr)){
+switch (atoi(descr)){
 #include "lightup_jet.cpp"
- }
- cout<<YELLOW"[m_sear.cpp]: "RESET<<"fnum:"<<fnum<<" cas: "<<cas<<endl;
+}
+int snxy=xsnxy;       //global variable correspondent to xsnxy
+
+cout<<YELLOW"[m_sear.cpp]: "RESET<<"fnum:"<<fnum<<" cas: "<<cas<<endl;
 
 ind=co;               //number of snapshots = 2nd command line argument
 testN=atoi(descr);    //ID of initial deviation from global defined model = job array ID
@@ -82,13 +90,12 @@ heat*=(1+dheat);      //compute model parameters for a local model
 rhonor*=(1+drho);
 th+=dtheta;
 
-printf(YELLOW"[m_sear.cpp] "RESET"in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d\n",co,sp,th,heat,rhonor,fdiff);
+ printf(YELLOW"[m_sear.cpp] "RESET"in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d, snxy=%d\n",co,sp,th,heat,rhonor,fdiff,snxy);
 doub ddr=1.,          //differences of basic model parameters over 1 steepest descent iteration
 	 ddh=0.02, 
 	 dth=0.01;
 niter=0;           
 iswrite=false;        //do not write each computed model to file, since models are only slightly different by dheat, drho, dtheta
-
 dheat=0.02;           //small deviations of basic model parameters for the purpose of computing a Jacobian
 drho=0.02;            //these numbers are determined with consideration of convergence tests
 dtheta=0.01;
@@ -175,10 +182,10 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
 	}
 
 	{
-      doub xisq=0.;
+      doub chisq_old=0.;
       for(il=0;il<nP;il++)
         //RG:WHY model oo=0 ?
-		xisq+=resid[il][0]*resid[il][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
+		chisq_old+=resid[il][0]*resid[il][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
 
 
       //RG: new fct to compute chi squared (TESTING)
@@ -191,21 +198,21 @@ while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is s
         CP[i]=yCP   [i][0];
       }
       chisquare(I,LP,CP,chisq,chisq_I);
-      printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
+      printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,chisq_old=%f\n"RESET,chisq,chisq_I,chisq_old);
 
 
       // OUTPUT
 
-      printf(YELLOW"[m_sear.cpp] "RESET"heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",inp[0][0], inp[0][1], inp[0][2], xisq);
+      printf(YELLOW"[m_sear.cpp] "RESET"heat=%.4f, rhonor=%.1f, th=%.4f, chisq_old=%.3f\n",inp[0][0], inp[0][1], inp[0][2], chisq_old);
 
-      stringstream sss;                   //write into "xisqa" file 0-th model parameters and correspondent reduced \chi^2
+      stringstream sss;                   //write into "chisqa" file 0-th model parameters and correspondent reduced \chi^2
       sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;
-      string outstr=dir+"xisqa"+sss.str(); 
+      string outstr=dir+"chisqa"+sss.str(); 
       outstr+=".dat";
       FILE * xFile; 
       xFile = fopen (outstr.c_str(),"a");
-      if (niter==1) fprintf(xFile,"a \t xisq \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
-      fprintf(xFile,"%.5f  %.1f \t %.4f \t %.4f  %.4f \t %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
+      if (niter==1) fprintf(xFile,"a \t chisq_old \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
+      fprintf(xFile,"%.5f  %.1f \t %.4f \t %.4f  %.4f \t %.3e\n",a,chisq_old,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
       fclose(xFile);
 	};
 
@@ -302,9 +309,9 @@ resid[8][oo]=(xLPo[7]-tofit[7][2])/dLP[1];
 resid[9][oo]=(xLPo[8]-tofit[8][2])/dLP[2];
 resid[10][oo]=(xCP[7]-tofit[7][4])/dCP;
 resid[11][oo]=(xCP[8]-tofit[8][4])/dCP;
-doub xisq=0.;
+doub chisq_old=0.;
 for(il=0;il<nP;il++)                            //compute reduced \chi^2
-	xisq+=resid[il][0]*resid[il][0]/(nPeff-3);
+	chisq_old+=resid[il][0]*resid[il][0]/(nPeff-3);
 
 string stra = sss.str();                        //write best-fitting model into "bestfita" file
 FILE * pFile;
