@@ -7,6 +7,12 @@
 //const string MODEL="dipole"; // dipole,quadrupole,thickdisk7
 const int nthreads=24; // 24: bh01;// 8;//Orange
 const string ASTRORAY_PATH = "/home/rgold/rt/";
+
+#define SgrA 0
+#define M87 1
+#define SOURCE SgrA
+// #define SOURCE M87
+
 #define THINNERMAD0 0
 #define THICKDISK7 7
 #define DIPOLE 2
