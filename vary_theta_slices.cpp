@@ -1,6 +1,6 @@
-// RG: vvv from lightup_jet.cpp
+// RG: vvv from models.cpp
 // case 100: fmin=6100;fmax=6199;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4.;magn_floor=0.09*cas-8;break;//changing azimuthal camera angle - 4*PI/3
-// RG: ^^^ from [lightup_jet.cpp]
+// RG: ^^^ from [models.cpp]
  case 100: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4;trace_theta_slice_angle=PI*(cas-100)/100.; dphi=4.*PI/3.;thlimit=0.05;fdiff=0;isBcut=false;isBred=true;magn_cap=4.;break;//changing azimuthal camera angle - 4*PI/3
  case 101: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;trace_theta_slice_angle=PI*(cas-100)/100.;fdiff=0;isBcut=false;isBred=true;magn_cap=4.;break;//changing azimuthal camera angle - 4*PI/3
  case 102: fmin=6100;fmax=6100;kmin=7;kmax=7;sp=0;rhonor=147780.66084; heat=0.16992; th=1.4; dphi=4.*PI/3.;thlimit=0.05;trace_theta_slice_angle=PI*(cas-100)/100.;fdiff=0;isBcut=false;isBred=true;magn_cap=4.;break;//changing azimuthal camera angle - 4*PI/3
