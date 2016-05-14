@@ -44,7 +44,7 @@ rhonor=3e5;           //initial density for iterations
 drho=0.02;            //density relative offset to compute Jacobian
 
 switch (cas){
-#include "lightup_jet.cpp"
+#include "models.cpp"
 }
 
 sep=(fmax-fmin)/(ind-1);//ID difference between consecutive considered fluid simulation snapshots
@@ -171,8 +171,9 @@ for(heat=heat_min; heat<=heat_max; heat+=0.1){     // choose a set of heat param
 	xisq/=dof;                         //reduced \chi^2 //RG:FLAG dof~>dof-1! (fit heat/rhonor)
 
 	//RG: new fct to compute chi squared (TESTING)
-	doub chisq=0.,chisq_I=0.; 
-	chisquare(xtotin,xLPo,xCP,chisq,chisq_I,12,7,0);
+	doub chisq=0.,chisq_I=0.;
+    doub resid_1d[14]; // need to restructure this in the same way as in [m_sear.cpp]
+	chisquare(xtotin,xLPo,xCP,chisq,chisq_I,resid_1d,12,7,0);
     // Compute chi^2 TO *POLARIZED* SPECTRUM
 	// chisquare(xtotin,xLPo,xCP,xisq,chisq_I,12,7,0);
 	printf(YELLOW"[m_space.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
