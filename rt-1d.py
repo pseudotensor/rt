@@ -573,8 +573,14 @@ if string.lower(PLOT_SED)=="yes":
 #EVPA: Electric vector position angle
 #CP:   circular polarization fraction at frequency nu
     # tofit = [[8.450, 0.683, 0., 0., -0.2500], [14.90, 0.871, 0., 0., -0.6200], [22.50, 0.979, 0.1900, 131.0, 0.], [43.00, 1.135, 0.5500, 94.25, 0.], [87.73, 1.841, 1.420, -4., 0.], [102.0, 1.908, 0., 0., 0.], [145.0, 2.275, 0., 0., 0.], [230.9, 2.637, 7.398, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, 0., 0., 0.], [857.0, 2.867, 0., 0., 0.], [1500., 1., 0., 0., 0.], [3000., 1., 0., 0., 0.], [5000., 1., 0., 0., 0.]];
-    tofit = [[8.450, 0.683, None, None, -0.2500], [14.90, 0.871, None, None, -0.6200], [22.50, 0.979, 0.1900, 131.0, None], [43.00, 1.135, 0.5500, 94.25, None], [87.73, 1.841, 1.420, -4., None], [102.0, 1.908, None, None, None], [145.0, 2.275, None, None, None], [230.9, 2.637, 7.398, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, None, None, None], [857.0, 2.867, None, None, None], [1500., 1., None, None, None], [3000., 1., None, None, None], [5000., 1., None, None, None]];
+
+    tofit_ASTRORAYv1 = [[8.450, 0.683, None, None, -0.2500], [14.90, 0.871, None, None, -0.6200], [22.50, 0.979, 0.1900, 131.0, None], [43.00, 1.135, 0.5500, 94.25, None], [87.73, 1.841, 1.420, -4., None], [102.0, 1.908, None, None, None], [145.0, 2.275, None, None, None], [230.9, 2.637, 7.398, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, None, None, None], [857.0, 2.867, None, None, None], [1500., 1., None, None, None], [3000., 1., None, None, None], [5000., 1., None, None, None]];
+    tofit = [[8.450, 0.683, None, None, -0.2500], [14.90, 0.871, None, None, -0.6200], [22.50, 0.979, 0.1900, 131.0, None], [43.00, 1.135, 0.5500, 94.25, None], [87.73, 1.841, 1.420, -4., None], [102.0, 1.908, None, None, None], [145.0, 2.275, None, None, None], [230.9, 2.637, 6.0, 111.5, -1.200], [349.0, 3.181, 6.499, 146.9, -1.500], [674.0, 3.286, None, None, None], [857.0, 2.867, None, None, None], [1500., 1., None, None, None], [3000., 1., None, None, None], [5000., 1., None, None, None]]; # LP@230GHz 6%
+
     tofit=array(tofit)
+    LP_errors_ASTRORAYv1 = array([0.50, 0.658, 0.605])
+    LP_errors = array([1.0, 1.0, 1.0]) # allow larger error to account for intrinsic variability
+    CP_errors = array([0.3])
 
     SgrA_SED_Observed=[[],[]] # [nu_Ghz,F_nu] [WIP]
     SgrA_LP_Observed=[[],[]] # [nu_Ghz,LP] [WIP]
@@ -587,7 +593,7 @@ if string.lower(PLOT_SED)=="yes":
         return 0.248*nu**0.45 * exp(-(nu/1100.)**2)
 
 
-    def ChiSq(F,nu,observed=tofit,SED_errors=SED_errors,FitLP=False):
+    def ChiSq(data,observed=tofit,SED_errors=SED_errors,FitLP=False,FitCP=False):
     # def ChiSq(data,FitLP=False,FitCP=False,FROM=4,TO=10):
         '''Given array data containing frequencies, fluxes F, LP, CP, 
            return chi^2/dof'''
@@ -606,7 +612,6 @@ if string.lower(PLOT_SED)=="yes":
 
         dof=size(F)
         if FitLP:
-            LP_errors = array([0.50, 0.658, 0.605])
             # LP_errors*= 2 
             LP_measurements=array([4,7,8]) # 87,230,349Ghz
             Chisq += ((LP[0]-LP_measurements[0])/LP_errors[0])**2
@@ -628,6 +633,29 @@ if string.lower(PLOT_SED)=="yes":
         npar=3 ## fit for i,rho and T_e
         dof   -= npar 
         # print "ChiSq(): effectively dof="+str(dof)+" ("+str(npar)+" free parameters)"
+
+        F230GHz_Dexter=3.75; dF230Ghz_Dexter=0.48; spectral_index=-0.18; dspectral_index=0.34; # Dexter+2010 Submillimeter bump paper
+        chisq_Dexter=pow((F[7-FROM]-F230GHz_Dexter)/dF230Ghz_Dexter,2) + pow(((F[9-FROM]-F[7-FROM])/(tofit[9][0]-tofit[7][0]) - spectral_index)/dspectral_index,2); # range for slope is more like [230GHz-770GHz]
+
+        # CK's chi^2 ...WIP... chi^2=((sim - obs) / sigma)^2
+        # nu    = [95.589d, 151.77d, 359.224d, 660.735d] * 1d9
+        # obs   = [ 1.897d, 2.611d, 3.592d, 2.688d]
+        # sigma = [0.639+0.645,0.878+0.872,1.303+1.267,1.385+1.335] / 2d
+        F_CK = array([ # {nu, F, dF}
+            [95.589, 1.897, 0.64], 
+            [151.77, 2.611, 0.9], 
+            [359.224, 3.592, 1.3],
+            [660.735, 2.688, 1.3]
+            ]);
+        chisq_CK=0;
+        # for( int CK_idx=0; CK_idx<=3; CK_idx++) {
+        #   chisq_CK+= (F[]-F_CK[CK_idx][1])/F_CK[CK_idx][2]; # interpolate or change modelled frequencies ?
+        # }
+        chisq_CK+= pow((F[5-FROM]-F_CK[0][1])/F_CK[0][2],2); # frequencies inconsistent nu=102 vs nu=96
+        chisq_CK+= pow((F[6-FROM]-F_CK[1][1])/F_CK[1][2],2); # frequencies inconsistent nu=145 vs nu=152
+        chisq_CK+= pow((F[8-FROM]-F_CK[2][1])/F_CK[2][2],2); # frequencies inconsistent nu=359 vs nu=349
+        chisq_CK+= pow((F[9-FROM]-F_CK[3][1])/F_CK[3][2],2); # frequencies inconsistent nu=674 vs nu=661
+        print "chi^2_Dexter=",chisq_Dexter," chi^2_CK=",chisq_CK,"\n"
 
         return Chisq/dof
 
@@ -699,6 +727,11 @@ if string.lower(PLOT_SED)=="yes":
             plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.25,lw=3,label="FIT") 
             #errorbar(nu_obs,SgrA_SED_FIT(nu_obs),yerr=SED_errors,fmt='ks',label="observed")
             errorbar(tofit[:,0],tofit[:,panel],yerr=SED_errors,fmt='ks',label="observed",markersize=8)
+        elif panel==2:
+            errorbar(tofit[[4,7,8],0],tofit[[4,7,8],panel],yerr=LP_errors,fmt='ks',label="observed",markersize=8)
+        elif panel==3:
+            errorbar(tofit[[7,8],0],tofit[[7,8],4],yerr=CP_errors[0],fmt='ks',label="observed",markersize=8)
+            
         #elif panel==4:
             # not enough space
             # legend(loc="lower right") # ,fontsize=12)
@@ -709,7 +742,8 @@ if string.lower(PLOT_SED)=="yes":
             gca().set(xlabel=r"$\nu[GHz]$")
         gca().set(ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
         xlim(80,900)
-        tight_layout(pad=0.2,w_pad=0.1,h_pad=0)
+        # tight_layout(pad=0.2,w_pad=0.1,h_pad=0)
+        tight_layout()
         savefig("F_LP_CP_EVPA.png")
         savefig("F_LP_CP_EVPA.pdf")
 
