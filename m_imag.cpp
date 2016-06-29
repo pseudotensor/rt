@@ -8,7 +8,7 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 
 	 xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-  xsnxy=101,  //5. number of points N along one side in the picture plane for N x N intensity grid
+  xsnxy=nxy,  //5. number of points N along one side in the picture plane for N x N intensity grid
   xstep=1e-2,   //6. step size in geodesic computation
   //xstep=1e-3,   //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
@@ -59,9 +59,9 @@ switch (cas){      //selection of a model (only few examples are shown)
       //#include "vary_r_slices.cpp"
       //#include "vary_magn.cpp"
       //#include "vary_thlimit.cpp"
-      #include "lightup_jet.cpp"
+      #include "models.cpp"
 };
-printf("Bpo=%.3f, fdiff=%d\n th=%f\n",Bpo,fdiff,th);
+printf(YELLOW"[m_imag.cpp]: "RESET"Bpo=%.3f fdiff=%d th=%f\n",Bpo,fdiff,th);
 
 
 /* SETTING UP MAIN LOOP OVER SNAPSHOTS */

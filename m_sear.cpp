@@ -3,17 +3,23 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
 	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 xsnxy=151,    //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xsnxy=nxy,    //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=1e-2,    //6. step size in geodesic computation
 	 xsstep=-0.06, //7. step size in radiative transfer computation
 	 xIint=1e-10,   //8. initial intensity along each ray for radiative transfer
 	 xIang=0.1;     //9. initial polarized phases along each ray for radiative transfer
+
+//  switch (atoi(descr)){
+// #include "models.cpp"
+//  }
+
 doub step=xstep,   //local variables, which control radiative transfer
 	 sstep=xsstep,
 	 Iint=xIint,
 	 Iang=xIang,
 	 devsq=0.;
 doub resid[sflen][4], //residuals for \chi^2 minimization algorithm
+     resid_1d[sflen], //residuals for \chi^2 minimization algorithm
 	 Jac[sflen][3],   //correspondent Jacobian
 	 bb[3],           //RHS vector for the next minimization iteration
 	 matr[3][3],      //LHS matrix for the next minimization iteration
@@ -22,8 +28,13 @@ doub ytotin[sflen][4],//for calculations of auxiliary spectrum
 	 yLPo[sflen][4], 
 	 yCP[sflen][4], 
 	 yEVPA[sflen][4];
-int snxy=xsnxy,       //global variable correspondent to xsnxy
-    testN,            //particular deviation from given initial conditions - used to unrigorously avoid local minima in steepest descent
+
+//  switch (atoi(descr)){
+// #include "models.cpp"
+//  }
+
+// int snxy=xsnxy;       //global variable correspondent to xsnxy
+int testN,            //particular deviation from given initial conditions - used to unrigorously avoid local minima in steepest descent
 	ind,              //number of time frames for spectrum evaluation
 	fmin,             //minimum ID of fluid simulation snapshot
 	fmax,             //maximum ID of fluid simulation snapshot
@@ -36,31 +47,36 @@ accurr=xaccurr;
 fact=xfact;
 ss=xss;
 
-//selecting one model to test
+// selecting one model to test
 // sp=0;fmin=12424;fmax=22424;rhonor=16689876.83473; heat=0.53157;th=2.5056;thlimit=0.1;fdiff=0; isBcut=false;isBred=false;
-// cas=atoi(descr);
-
-//  fmin=5500;fmax=5525;fdiff=20;
-
 // case 771390: 
-fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;
+// fmin=5940;fmax=5950;sep=1;kmin=0;kmax=10;sp=0;rhonor=150000.; heat=0.10; th=1.0; dphi=4.*PI/3.;thlimit=0.05;fdiff=40;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=35.;include_jet=0;
 
 
- switch (atoi(descr)){
-#include "lightup_jet.cpp"
+switch (atoi(descr)){
+#include "models.cpp"
+}
+int snxy=xsnxy;       //global variable correspondent to xsnxy
+
+if (snxy!=nxy) {
+  printf(YELLOW"[m_sear.cpp]: "RED"snxy=%d but nxy=%d (must be equal). This annoyance should be fixed at some point"RESET"\n",snxy,nxy);
+  exit(1);
  }
- cout<<YELLOW"[m_sear.cpp]: "RESET<<"fnum:"<<fnum<<" cas: "<<cas<<endl;
+// cout<<YELLOW"[m_sear.cpp]: "RESET<<"fnum:"<<fnum<<" cas: "<<cas<<endl;
 
 ind=co;               //number of snapshots = 2nd command line argument
 testN=atoi(descr);    //ID of initial deviation from global defined model = job array ID
 
 //RG:FLAG ~> const global ?
 nP=12;                //fit at most for 7 total fluxes, 3 LP fractions, 2 CP fractions 
+ nP=7; // only fluxes
 
 if(trustLP87)            //either include or not include in the fit the LP fraction at 87GHz
 	nPeff=nP; 
 else 
 	nPeff=nP-1;
+nPeff++; // only fluxes
+printf(YELLOW"[m_sear.cpp]: "RESET"nP=%d nPeff=%d\n",nP,nPeff);
 
 //if (ind<2) sep=2;
 sep=(fmax-fmin)/max(ind-1,1);//compute difference of IDs of two consecutive snapshots
@@ -82,19 +98,17 @@ heat*=(1+dheat);      //compute model parameters for a local model
 rhonor*=(1+drho);
 th+=dtheta;
 
-printf(YELLOW"[m_sear.cpp] "RESET"in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d\n",co,sp,th,heat,rhonor,fdiff);
+ printf(YELLOW"[m_sear.cpp] "RESET"in=%d shots; sp=%d; th=%.4f; heat=%.4f; rhonor=%.1f; fdiff=%d, snxy=%d\n",co,sp,th,heat,rhonor,fdiff,snxy);
 doub ddr=1.,          //differences of basic model parameters over 1 steepest descent iteration
 	 ddh=0.02, 
 	 dth=0.01;
 niter=0;           
 iswrite=false;        //do not write each computed model to file, since models are only slightly different by dheat, drho, dtheta
-
 dheat=0.02;           //small deviations of basic model parameters for the purpose of computing a Jacobian
 drho=0.02;            //these numbers are determined with consideration of convergence tests
 dtheta=0.01;
 
-while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) { //convergence is stated if ALL model parameters change only slightly over 1 iteration
-
+while((fabs(ddh)>0.003)||(fabs(ddr)>0.01)||(fabs(dth)>0.005)){//convergence is stated if ALL model parameters change only slightly over 1 iteration
 	niter++;          //iteration counter
     printf(YELLOW"[m_sear.cpp]: "RESET"niter=%d heat=%f rhonor=%f th=%f\n",niter,heat,rhonor,th);
 	inp[0][0]=heat;   //0-th model + small deviations along "heat" axis, "rhonor" axis, and "theta" axis
@@ -132,10 +146,14 @@ while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) { //converge
         th=inp[oo][2];
             
         printf(YELLOW"[m_sear.cpp]: "RESET"sep=%d,fnum=%d,oo=%d,th=%f,rhonor=%f,heat=%f\n",sep,fnum,oo,th,rhonor,heat);
+
         // SETUP MODEL
         init(sp,fmin,fmax,sep);     
+        // cout<<"YO1"<<endl;
+
         #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
         #include "intensity.cpp" // COMPUTE SPECTRUM FOR EACH FLUID SIMULATION SNAPSHOT AND EACH MODEL
+        // cout<<"YO3"<<endl;
 
         // RG: Free memory? Or is uu free
         //#pragma omp barrier //RG: DONT WE NEED TO SYNCH HERE?
@@ -157,56 +175,58 @@ while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) { //converge
 
     // Chi^2
     // GIVEN THE MODELS, COMPUTE NORMALIZED RESIDUALS (wrt to observed spectra)
-	
-    for(oo=0;oo<4;oo++){              // LOOP over 4 models
-      for(il=4;il<=10;il++)           // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
-        resid[il-4][oo]=(ytotin[il][oo]-tofit[il][1])/dFnu[il]; // F 
+    doub chisq=0.,chisq_I=0.; 
+    //for(oo=0;oo<4;oo++){              // LOOP over 4 models
+    for(oo=0;oo<1;oo++){ // DEACTIVATING FOR NOW WIP // LOOP over 4 models
+      // doub *resis_1d=resid[][oo];
 
-      if (trustLP87) resid[7][oo]=(yLPo[4][oo]-tofit[4][2])/dLP[0]; // LP nu= 87Ghz
-      else resid[7][oo] = 0.;
-
-      resid[8][oo]=(yLPo[7][oo]-tofit[7][2])/dLP[1]; // LP nu=230Ghz
-      resid[9][oo]=(yLPo[8][oo]-tofit[8][2])/dLP[2]; // LP nu=345Ghz
-      resid[10][oo]=(yCP[7][oo]-tofit[7][4])/dCP;    // CP nu=230Ghz
-      resid[11][oo]=(yCP[8][oo]-tofit[8][4])/dCP;    // CP nu=345Ghz
-
-      // RG: COULD ADD MORE (New Flux measurements,EVPA,source size,...) HERE ...WIP...
-	}
-
-	{
-      doub xisq=0.;
-      for(il=0;il<nP;il++)
-        //RG:WHY model oo=0 ?
-		xisq+=resid[il][0]*resid[il][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
-
-
-      //RG: new fct to compute chi squared (TESTING)
-      doub chisq=0.,chisq_I=0.; 
       // chisquare(ytotin,yLPo,yCP,chisq,chisq_I,nP,7,3);
       doub I[sflen],LP[sflen],CP[sflen];//=[0,0,0,0,0,0,0,0,0,0,0,0,0];
-
-      for(int i=0;i<nP;i++) {
-        I [i]=ytotin[i][0];
-        LP[i]=yLPo  [i][0];
-        CP[i]=yCP   [i][0];
+      for(int i=0+4;i<nP+4;i++) {
+        I [i]=ytotin[i][oo];
+        printf(YELLOW"[m_sear.cpp]: "RESET"I[%d]=%f totin[%d]=%f\n",i,I[i],i,totin[i]);
+        I [i]=totin[i];
+        LP[i]=LPo  [i];
+        // CP[i]=CP   [i];
+        // I [i]=ytotin[i][oo];
+        // LP[i]=yLPo  [i][oo];
+        // CP[i]=yCP   [i][oo];
+        // resid_1d[i]=resid[i][oo]; // computed in chisquare()
+      }
+      //RG: new fct to compute chi squared (TESTING)
+      // chisquare(I,LP,CP,chisq,chisq_I);
+      // chisquare(I, LP, CP, chisq, chisq_I, resid_1d);
+      chisquare(totin, LPo, CP, chisq, chisq_I, resid_1d);
+      for(int i=kmin;i<nP+kmin;i++) {
+        resid[i][oo]=resid_1d[i];
+        printf(YELLOW"[m_sear.cpp]: "RESET"resid[%d]=%f I[%d]=%f LP[%d]=%f\n",i,resid[i][oo],i,I[i],i,LP[i]);
       }
 
-      chisquare(I,LP,CP,chisq,chisq_I);
-      printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,xisq=%f\n"RESET,chisq,chisq_I,xisq);
+
+	} // for(oo=0;oo<4;oo++){ // LOOP over 4 models // for(il=4;il<=10;il++) // LOOP THROUGH nu only up until k<=10 because thats where there are errorbars // and check for kmin>=4
+
+
+	{
+      doub chisq_old=0.;
+      for(int measurement_idx=0;measurement_idx<nP;measurement_idx++)
+        //RG:WHY model oo=0 ?
+		chisq_old+=resid[measurement_idx][0]*resid[measurement_idx][0]/(nPeff-3); //calculate \chi^2/dof , 3 parameters are varied: inclination, rho_nor, C
+
+      printf(YELLOW"[m_sear.cpp]: "GREEN"chisq=%f,chisq_I=%f,chisq_old=%f\n"RESET,chisq,chisq_I,chisq_old);
 
 
       // OUTPUT
 
-      printf(YELLOW"[m_sear.cpp] "RESET"heat=%.4f, rhonor=%.1f, th=%.4f, xisq=%.3f\n",inp[0][0], inp[0][1], inp[0][2], xisq);
+      printf(YELLOW"[m_sear.cpp] "RESET"heat=%.4f, rhonor=%.1f, th=%.4f, chisq_old=%.3f\n",inp[0][0], inp[0][1], inp[0][2], chisq_old);
 
-      stringstream sss;                   //write into "xisqa" file 0-th model parameters and correspondent reduced \chi^2
+      stringstream sss;                   //write into "chisqa" file 0-th model parameters and correspondent reduced \chi^2
       sss<<(int)100*a<<"in"<<co<<"N"<<testN<<"fdiff"<<fdiff;
-      string outstr=dir+"xisqa"+sss.str(); 
+      string outstr=dir+"chisqa"+sss.str(); 
       outstr+=".dat";
       FILE * xFile; 
       xFile = fopen (outstr.c_str(),"a");
-      if (niter==1) fprintf(xFile,"a \t xisq \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
-      fprintf(xFile,"%.5f  %.1f \t %.4f \t %.4f  %.4f \t %.3e\n",a,xisq,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
+      if (niter==1) fprintf(xFile,"a \t Chi^2 \t inclination \t heat \t rhonor \t mdot [year/Msun] \n");
+      fprintf(xFile,"%.5f  %.1f \t %.4f \t %.4f  %.4f \t %.3e\n",a,chisq_old,inp[0][2],inp[0][0],inp[0][1],rate*year/Msun);
       fclose(xFile);
 	};
 
@@ -264,15 +284,17 @@ while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) { //converge
 
     //RG: ADD magn_cap, Te_jet as parameters here (replace heat?)
 
-	if (niter>20) break;                              //limit to 20 iterations
+	if (niter>20){                              //limit to 20 iterations
+		break;
+	};
+};
 
-}; // while( (fabs(ddh)>0.003) || (fabs(ddr)>0.01) || (fabs(dth)>0.005) ) {
-
-printf(YELLOW"[m_sear.cpp]: "CYAN"DONE with FITTING. FINAL PARAMETERS: th=%f rhonor=%f heat=%f"RESET"\n",th,rhonor,heat);
 
 
 // BEST-FIT: 
 // compute spectrum for the final best-fitting solution
+
+ printf(YELLOW"[m_sear.cpp]: "CYAN"FITTING FINISHED! COMPUTING BEST-FIT MODEL..."RESET"\n");
 
 stringstream sss;
 //sss<<(int)100*a;
@@ -303,9 +325,9 @@ resid[8][oo]=(xLPo[7]-tofit[7][2])/dLP[1];
 resid[9][oo]=(xLPo[8]-tofit[8][2])/dLP[2];
 resid[10][oo]=(xCP[7]-tofit[7][4])/dCP;
 resid[11][oo]=(xCP[8]-tofit[8][4])/dCP;
-doub xisq=0.;
+doub chisq_old=0.;
 for(il=0;il<nP;il++)                            //compute reduced \chi^2
-	xisq+=resid[il][0]*resid[il][0]/(nPeff-3);
+	chisq_old+=resid[il][0]*resid[il][0]/(nPeff-3);
 
 string stra = sss.str();                        //write best-fitting model into "bestfita" file
 FILE * pFile;

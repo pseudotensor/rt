@@ -7,9 +7,9 @@ int get_electron_temperature (doub T_sim, doub magn, doub& tet, doub& tpt) {
    ****************/
 
   if(T_sim>maxT)                       //if temperature is above allowed, then set it to maximum allowed
-	T_sim=maxT;
+    T_sim=maxT;
   if(T_sim<minT)                       //if temperature is below allowed, then set it to minimum allowed
-	T_sim=minT;
+    T_sim=minT;
   int indT=stNt;                      //number of points on temperature look-up grid //RG: WHY INTRODUCE ANOTHER VARIABLE? openMP thread safety?
   doub Ta=ts[0],                      //minimum temperature
     Tb=ts[indT];                   //maximum temperature
@@ -28,8 +28,8 @@ int get_electron_temperature (doub T_sim, doub magn, doub& tet, doub& tpt) {
       };
 	};
   } else {
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
-	printf(YELLOW"[evalpointzero.cpp]:"RED" Ta=%f Tb=%f Tz=%f T_sim=%f\n"RESET,Ta,Tb,Tz,T_sim);
+	printf(YELLOW"[electron_temperature.cpp]:"RED" Temperature lookup error \nExiting\n"RESET);
+	printf(YELLOW"[electron_temperature.cpp]:"RED" Ta=%f Tb=%f Tz=%f T_sim=%f\n"RESET,Ta,Tb,Tz,T_sim);
     //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
 	exit(-1);
   };
@@ -45,19 +45,26 @@ int get_electron_temperature (doub T_sim, doub magn, doub& tet, doub& tpt) {
    *******************************/
   
   if (TEMPERATURE_PRESCRIPTION=="sharma") {
+    ;//return(0);
   }
   else if (TEMPERATURE_PRESCRIPTION=="sharma+isoth") {
+
     doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
     tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
-  }
+    // return(0);
+  } 
   else if (TEMPERATURE_PRESCRIPTION=="constant_tetp_fraction") {
     tet = ts[ia]/Te_jet_par; // tp/te=3; (assumes ts[ia]=ts[ib])
-  }
+    // return(0);
+  } 
   else {
-    printf(YELLOW"[evalpointzero.cpp]: "RED"NEED TO CHOOSE VALID ELECTRON-TEMPERATURE PRESCRIPTION"RESET"\n");
-    exit(1);
+    printf(YELLOW"[electron_temperature.cpp]: "RED"TEMPERATURE_PRESCRIPTION=%s NEED TO CHOOSE VALID ELECTRON-TEMPERATURE PRESCRIPTION"RESET"\n",TEMPERATURE_PRESCRIPTION.c_str());
+    // exit(1);
+    doub Te_jet=Te_jet_par*me*cc*cc/kb; // SCS:35 SCS+jet:10
+    tet = tet*exp(-magn/magn_cap) + Te_jet*(1.-exp(-magn/magn_cap));
+
   }
 
-  // get_electron_temperature fct
   return(0);
-}
+
+} // get_electron_temperature fct

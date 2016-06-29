@@ -1,7 +1,7 @@
 // function implements the equations of GR polarized radiative transfer in polarized coordinates
 int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
-  // int trans (doub llog, const doub yyy[], doub ff[], void *pas, int counter_pt_on_geodesic) { //RG:WIP
-	//sinh transformation of affine parameter t allows to convert scales close to the BH and far from the BH to a single uniform grid
+
+     // sinh transformation of affine parameter t allows to convert scales close to the BH and far from the BH to a single uniform grid
      doub det=-3.*cosh(llog),
           t=1.+ 3.* sinh(llog)/r0;
 	 //evaluation of plasma emissivities/absorptivities/rotativities at a given point
@@ -68,5 +68,6 @@ int trans (doub llog, const doub yyy[], doub ff[], void *pas) {
 	    exit(1);
       };
     };
+
     return(0);
 }

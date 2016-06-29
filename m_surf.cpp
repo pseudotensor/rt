@@ -1,24 +1,28 @@
 { // surf region close to best fit
-
-doub xaccur=3e-3,  //1. absolute accuracy of geodesics computation
-	 xaccurr=1e-2, //2. absolute accuracy of radiative transfer integration
+doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
+	 xaccurr=5e-4, //2. absolute accuracy of radiative transfer integration
      xfact=1.0,    //3. relative size of the integration region
-	 xss=1e-2,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-	 xsnxy=111,    //5. number of points N along one side in the picture plane for N x N intensity grid
+	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
+	 xsnxy=nxy,    //5. number of points N along one side in the picture plane for N x N intensity grid
 	 xstep=0.1,    //6. step size in geodesic computation
-	 xsstep=-0.09, //7. step size in radiative transfer computation
-	 xIint=2e-9,   //8. initial intensity along each ray for radiative transfer
+	 xsstep=-0.06, //7. step size in radiative transfer computation
+	 xIint=1e-10,   //8. initial intensity along each ray for radiative transfer
 	 xIang=1.;     //9. initial polarized phases along each ray for radiative transfer
 doub step=xstep,   //local variables, which control radiative transfer
 	 sstep=xsstep,
 	 Iint=xIint,
-	 Iang=xIang;
+     Iang=xIang,
+     fmin,fmax;
 int snxy=xsnxy;    //global variable correspondent to xsnxy
 
 accur=xaccur;      //assigning values to global variables, which control radiative transfer
 accurr=xaccurr;
 fact=xfact;
 ss=xss;
+
+// switch (atoi(descr)){
+// #include "models.cpp"
+//  }
 
 //must specify models for each spin - choose your models!
 if(sp==0){rhonor=1030713.25; heat=0.42107;  th=0.7328;}
@@ -30,13 +34,22 @@ if(sp==4){rhonor= 397281.19; heat=0.41343;  th=2.1439;}
   //fmin=6950,      //specify the minimum and maximum fluid simulation snapshot ID
   //fmax=9950,
 
-// #include "lightup_jet.cpp"
 // case 71914: 
 
 // doub fmin=5500,fmax=5520;kmin=4;kmax=10;sp=0;rhonor=371131.52176; heat=0.24979; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=20;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.; include_jet=1;
 
 // case 42300: 
-doub fmin=2140;doub fmax=2160;sep=1;kmin=0;kmax=10;sp=0;rhonor=2.0e8; heat=0.1; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;
+// doub fmin=2140;doub fmax=2160;sep=1;kmin=0;kmax=10;sp=0;rhonor=2.0e8; heat=0.1; th=1.4; dphi=4.*PI/3.;thlimit=0.05;fdiff=50;isBcut=false;isBred=true;magn_cap=4;Te_jet_par=10.;
+
+
+int ind=atoi(descr);//job array ID = number of fluid simulation snapshots
+ // ind=21;
+ // printf(YELLOW"[m_surf.cpp]: "RED"HARDWIRED: ind=%d"RESET"\n",ind);
+int	sep=(fmax-fmin)/(ind-1);//calculate ID difference between consecutive snapshots
+
+switch (atoi(descr)){
+#include "models.cpp"
+ }
 
 
 int nnx=40;         //number of steps along each variable for models slightly different from the best-fitting
@@ -53,11 +66,9 @@ doub ch=0.,         //step variables
 	 cth=0.,
      delta=1e-10;   //small delta ensures last value of step variable is still within the range
 
- int ind=atoi(descr);//job array ID = number of fluid simulation snapshots
-
 doub xth=th;
 
-int	sep=(fmax-fmin)/(ind-1);//calculate ID difference between consecutive snapshots
+
 
 //three main cycles - surfing three planes of two pairs of model parameters
 if(co==1){// accretion rate & viewing angle theta

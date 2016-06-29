@@ -77,7 +77,7 @@ switch (cas){      //selection of a model (only few examples are shown)
 	case 37: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=2.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 2*PI/3
 	case 38: sp=0;rhonor=147780.66084; heat=0.16992;th=2.4840;dphi=4.*PI/3.;thlimit=0.1;fdiff=30;isBcut=false;isBred=false;break;//changing azimuthal camera angle - 4*PI/3
 
-      #include "lightup_jet.cpp"
+      #include "models.cpp"
 };
 
 
@@ -107,7 +107,7 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){             //cycle over fluid simulation s
 	avTe6+=Te6/ind;
 };
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;
-// printf(YELLOW"[m_quick.cpp]:"RESET" Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
+printf(YELLOW"[m_quick.cpp]:"RESET"DONE! Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);
 
  stringstream ytr;                               //writing average spectrum into "quicka" file, specifying "ind"
  stringstream rt_pars;
@@ -115,6 +115,12 @@ ytr<<(int)100*a<<"in"<<ind<<"case"<<cas;
 rt_pars<<"th"<<(float)th<<"rhonor"<<(float)rhonor<<"Cheat"<<heat;
 string stra = ytr.str();
 FILE * pFile; 
+
+// Chi^2
+ doub chisq=0.,chisq_I=0.;doub resid[14];//[4];
+ chisquare(xtotin,xLPo,xCP,chisq,chisq_I,resid);
+printf(YELLOW"[m_quick.cpp]: "GREEN"chisq=%f,chisq_I=%f\n"RESET,chisq,chisq_I);
+
 
 //RG: 
 //cout << YELLOW"[m_quick.cpp]:"RESET" FILE:"+dir+"quicka"+stra+fif+".dat" << "\n";

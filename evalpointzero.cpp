@@ -60,7 +60,7 @@ doub knorm,            //normalization of spatial part of k vector (while k^\mu 
 	 sin2k,            //sine of double angle of B vector projected onto e1, e2 plane with respect to (-e1) vector - helps in radiative transfer
 	 cos2k,            //correspondent cosine
 	 Bnu,              //thermal source term in LFCRF
-     fr,               //full redshift/Doppler shift
+     fr,               //full redshift/Doppler shift //RG:What does "full" mean?
 	 nufr,             //frequency in LFCRF taking redshift into account
 	 nW,               //effectively a ratio of observed to cyclotron frequency with some convenient factor
 	 jIc,aIc,          //thermal emissivity and absorptivity in total intensity
@@ -847,6 +847,9 @@ doub emissivity_coeff = (sqrt(3.)*ee*ee*ee*rho*rgrav/2.)/(4.*PI*cc*cc*me);
 // jVc = fljVc*(ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
 
 jIc = emissivity_coeff * kbperp * jIc_lookuptab;  //this emissivity is already per unit distance; unit distance is M=rgrav/2
+
+if (BREMSSTRAHLUNG==true) jIc += j_br(rho, tet, nufr);
+
 jQc = emissivity_coeff * kbperp * jQc_lookuptab;
 jVc = fljVc * emissivity_coeff * kbpar * jVc_lookuptab;//plus sign for the "k" vector defined above
 
@@ -935,7 +938,6 @@ if (Be1*Be1+Be2*Be2==0) {
 jIc_nth = emissivity_coeff * kbperp * jIc_nth_lookuptab;
 jQc_nth = emissivity_coeff * kbperp * jQc_nth_lookuptab;
 jVc_nth = fljVc * (ee*ee*ee*rho*rgrav/2.)/(sqrt(3.)*PI*cc*cc*me) * kbpar * jVc_nth_lookuptab;//plus sign for the "k" vector defined above
-
 
 //physical absorptivities
 //char absorption[16] = "kirchhoff"; // RG: MAKE THIS A USER CHOICE e.g. inside win_lin_Jon.c

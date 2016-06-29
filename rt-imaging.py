@@ -191,29 +191,29 @@ freq_unit=1e-9 # uv plane scale
 uvspacing = image_size_rad/nxy
 
 
-# if TIME_AVERAGE:
-if True: # always use this code even when not time-averaging (just a special case)
-    data = empty((nxy+1,nxy+1,5))
-    IMAGE_FILES = [entry for entry in sys.argv[1:] if "shotimag" in entry]
-    filename=filename.replace(iter,iter+"-"+IMAGE_FILES[-1].split("fn")[1].split("case")[0])
-    print filename
-    for filename_snapshot in IMAGE_FILES:
-        fp = open(filename_snapshot,"rb")
-        header = fromfile(fp,count=20)
-        nxy=int(header[2])
-        data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_FILES)
-        fp.close()
-# else:
-#     fp = open(filename,"rb")
-#     data = fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5) 
-#     # data = fromfile(fp,dtype=float64).reshape(nxy,nxy,5) 
-#     # 4 different channels I,Q,U,V +1 additional "slot"
-#     # total intensity I
-#     # linearly polarized intensity Q,U
-#     # circularly polarized intensity V
-#     fp.close()
-# # filename_out = filename_out.replace(str(nxy),"case"+str(nxy))
+data = empty((nxy+1,nxy+1,5))
+IMAGE_FILES = [entry for entry in sys.argv[1:] if "shotimag" in entry]
+filename=filename.replace(iter,iter+"-"+IMAGE_FILES[-1].split("fn")[1].split("case")[0])
+print filename
+for filename_snapshot in IMAGE_FILES:
+    fp = open(filename_snapshot,"rb")
+    header = fromfile(fp,count=20)
+    nxy=int(header[2])
+    data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_FILES)
+    fp.close()
 filename_out = filename.replace(".dat",".png")
+
+## HEADER INFO (see [imaging.cpp]) ##
+a=header[0];th=header[1];nxy=int(header[2]);
+ #    header[3]=double(sftab[kk][0]);
+ #    header[4]=double(sftab[kk][1]);
+heat=header[5];rhonor=header[6]
+I_img_avg=header[7];LP_img_avg=header[8];EVPA_img_avg=header[9];CP_img_avg=header[10]
+ #    header[11]=double(err[kk]);
+TpTe=header[12]
+mdot=header[13] # in [year/Msun]
+
+print "Image-averaged (zero-baseline) flux: ",I_img_avg
 
 try:
     if VARY=="r":
@@ -427,16 +427,19 @@ if string.lower(SCATTERING)=="on" or string.lower(SCATTERING)=="yes":
     # plt.imshow(new_output, aspect=0.5, vmin=vmin, vmax=vmax)
 ############################
 
+    I_xy = data[:,:,0]
     for CHANNEL in range(shape(data)[-1]):
         data[:,:,CHANNEL] = ndimage.gaussian_filter(data[:,:,CHANNEL],sigma=sigma) ## sigma is in pixel units
     #    CHANNEL *= kernel
     #    CHANNEL *= fresnel_kernel
         # 
+        # data[:,:,CHANNEL]=data[:,:,CHANNEL]/mean(I_xy)*I_img_avg # get I,Q,U,V units in Jy, such that mean(I_xy)=I_img_avg
 
-I_xy = data[:,:,0]
-Q_xy = data[:,:,1]
-U_xy = data[:,:,2]
-V_xy = data[:,:,3]
+units_Jy=I_img_avg/mean(data[:,:,0])
+I_xy = data[:,:,0]*units_Jy
+Q_xy = data[:,:,1]*units_Jy
+U_xy = data[:,:,2]*units_Jy
+V_xy = data[:,:,3]*units_Jy
 
 # EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
 EVPA_xy = 180./2. - 0.5*angle(Q_xy+1j*U_xy,deg=True)
@@ -509,12 +512,14 @@ EVPA_uv = angle(Pbreve_uv/I_uv) * 90./pi ## Michael: EVPA CORRECT
 # GLOBAL intensity scale to save space with tick labels
 # I_xy_scale=1 # 1e4
 I_xy_scale=10**-round(log10(amax(I_xy))) # automatic nearest power 10
-I_uv_scale=10**-round(log10(amax(I_uv))) # automatic nearest power 10
+I_uv_scale=10**-round(log10(amax(abs(I_uv)))) # automatic nearest power 10
 Q_xy_scale=10**-round(log10(amax(Q_xy))) # automatic nearest power 10
 U_xy_scale=10**-round(log10(amax(U_xy))) # automatic nearest power 10
 LP_xy_scale=10**-round(log10(amax(LP_xy))) # automatic nearest power 10
 V_xy_scale=10**abs(round(log10(amax(V_xy)))) # automatic nearest power 10
-V_xy_scale=max(V_xy_scale,10**abs(round(log10(amin(V_xy))))) # automatic nearest power 10
+# Not good... amin(V_xy)<0 !
+# V_xy_scale=max(V_xy_scale,10**abs(round(log10(amin(V_xy))))) # automatic nearest power 10
+V_xy_scale=max(V_xy_scale,10**round(log10(amax(abs(V_xy))))) # automatic nearest power 10
 
 
 ## PRODUCE ARTIFICIAL RING DATA IN uv SPACE ##
@@ -537,7 +542,8 @@ for i in range(shape(u_no_zeropadding)[0]):
 # RG: None does not work because ticks are set based on these values
 # RG: FINISH data depend limits
 # figure(0):             [I_xy          ,Q_xy       ,U_xy       ,V_xy      ]
-limits_colors_xy = array([(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))])*I_xy_scale
+limits_colors_xy = array([(0,amax(I_xy)*I_xy_scale),(amin(Q_xy)*Q_xy_scale,amax(Q_xy)*Q_xy_scale),(amin(U_xy)*U_xy_scale,amax(U_xy)*U_xy_scale),(amin(V_xy)*V_xy_scale,amax(V_xy)*V_xy_scale)])
+# limits_colors_xy = array([(0,amax(I_xy)*I_xy_scale),(amin(Q_xy)*Q_xy_scale,amax(Q_xy)*Q_xy_scale),(amin(U_xy)*U_xy_scale,amax(U_xy)*U_xy_scale),(amin(V_xy)*V_xy_scale,amax(V_xy)*V_xy_scale)])
 # limits_colors_xy = [(0,8e-4),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),amax(U_xy)),(amin(V_xy),amax(V_xy))]
 #limits_colors_xy = [(0,6e-4),(-4e-5,4e-5),(-4e-5,4e-5),(-1e-5,1e-5)]
 # # figure(8):              [I_xy    ,mbreve_xy,EVPA_xy  ,CP_xy   ]
@@ -546,10 +552,10 @@ limits_colors_xy = array([(0,amax(I_xy)),(amin(Q_xy),amax(Q_xy)),(amin(U_xy),ama
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(-90.,90.),(0,amax(V_xy))]
 
 # for panel in [0,1,3]:
-titles_4panel_xy[0]=titles_4panel_xy[0][:-1]+r" \times 10^"+str(int(log10(I_xy_scale)))+"$"
-titles_4panel_xy[1]=titles_4panel_xy[1][:-1]+r" \times 10^"+str(int(log10(LP_xy_scale)))+"$"
-titles_4panel_xy[3]=titles_4panel_xy[3][:-1]+r" \times 10^"+str(int(log10(V_xy_scale)))+"$"
-titles_miniversion_4panel_uv[0]=titles_miniversion_4panel_uv[0][:-2]+r" \times 10^"+str(int(log10(I_uv_scale)))+"|$"
+titles_4panel_xy[0]=titles_4panel_xy[0][:-1]+r" \times 10^{"+str(int(log10(I_xy_scale)))+"}$"
+titles_4panel_xy[1]=titles_4panel_xy[1][:-1]+r" \times 10^{"+str(int(log10(LP_xy_scale)))+"}$"
+titles_4panel_xy[3]=titles_4panel_xy[3][:-1]+r" \times 10^{"+str(int(log10(V_xy_scale)))+"}$"
+titles_miniversion_4panel_uv[0]=titles_miniversion_4panel_uv[0][:-2]+r" \times 10^{"+str(int(log10(I_uv_scale)))+"}|$"
 
 # limits_colors_4panel_xy = [(0,amax(I_xy)),(0,amax(abs(Q_xy+1j*U_xy))),(0.,180.),(amin(V_xy),amax(V_xy))]
 limits_colors_4panel_xy = [
@@ -610,9 +616,11 @@ if "IQUV" in WANTED_PLOTS:
         
         ## image plane ##
         fig_xy.add_subplot(221+plot_loop)
-        pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
-        #clim(limits_colors_xy[plot_loop])
+        pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
+        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+        # pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
+        # colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
+        # #clim(limits_colors_xy[plot_loop])
         
         plot_shadows("xy")
         if plot_loop in [2,3]:
@@ -675,8 +683,8 @@ if "IP" in WANTED_PLOTS:
         # pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop])
         pcolormesh(X,Y,[I_xy*I_xy_scale,abs(Q_xy+1j*U_xy)*LP_xy_scale,EVPA_xy,V_xy*V_xy_scale][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3],rasterized=True)
         if plot_loop==3:
-            colorbar(ticks=around(arange(round(limits_colors_4panel_xy[plot_loop][0],1),round(limits_colors_4panel_xy[plot_loop][1],1),0.2),1),pad=0)
-            # colorbar(ticks=(limits_colors_4panel_xy[plot_loop][0],0,limits_colors_4panel_xy[plot_loop][1]),pad=0)
+            # colorbar(ticks=around(arange(round(limits_colors_4panel_xy[plot_loop][0],1),round(limits_colors_4panel_xy[plot_loop][1],1),0.2),1),pad=0)
+            colorbar(ticks=(round(limits_colors_4panel_xy[plot_loop][0],1),0,round(limits_colors_4panel_xy[plot_loop][1],1)),pad=0)
         elif plot_loop==2:
             colorbar(ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5),pad=0)
         else:
@@ -689,7 +697,8 @@ if "IP" in WANTED_PLOTS:
 
         if plot_loop==0:
             # plot_polticks()
-            plot_polticks(scale_quiver=3e-3)
+            plot_polticks(scale_quiver=3e1*I_img_avg*(observing_frequency/230.)**2.)
+            # plot_polticks(scale_quiver=3e-3) # 4e1*I_img_avg*)
             # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
         plot_shadows("xy")
         if plot_loop in [2,3]:
@@ -786,7 +795,8 @@ figure(9)
 ## WORKS WELL FOR 230Ghz (SGR A*)
 every=6
 I_threshold=0.05 
-scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+# scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+scale_quiver=1e-4/I_img_avg # 0.2 * amax(I_xy)  # 0.2  good for LP/I
 width_quiver=0.01 # 0.01 good for LP/I
 ## WORKS WELL FOR 102Ghz (SGR A*)
 # every=6
@@ -914,7 +924,8 @@ colorbar(pad=0)
 
 plot_shadows("xy")
 # plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
-plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.)
+# plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.)
+plot_polticks(width_quiver=0.01,scale_quiver=3e1*I_img_avg*(observing_frequency/230.)**2.)
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})

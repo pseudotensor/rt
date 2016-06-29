@@ -57,29 +57,63 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
 doub in[sflen][5];                                             //define array for computing intensity
 
 for(kk=kmin;kk<=kmax;kk++){                                    
-	for(il=0;il<5;il++)
-      in[kk][il]=0.;                                           
-	doub hei=2./snxy,                                          //distance between neighbooring points in picture plane // RG: image plane side length = 2?
-      maxy=fact*sftab[kk][1];                                  //size of the integration regions in picture plane 
-	for(ix=0;ix<=snxy-3;ix+=2)                                 //2D integration loop over picture plane
-      for(iy=0;iy<=snxy-3;iy+=2)
-        for(il=0;il<5;il++)                                //for each kind of intensity
-				//2nd order accuracy of the integrator - works best RG: What does best mean? In what way?
-				in[kk][il]+=((*ausin)[ix][iy][kk][il] + (*ausin)[ix][2 + iy][kk][il] + 4*(*ausin)[1 +ix][iy][kk][il] + 4*(*ausin)[1 + ix][2 + iy][kk][il] + (*ausin)[2 +ix][iy][kk][il] +
-				4*((*ausin)[ix][1 + iy][kk][il] + 4*(*ausin)[1 + ix][1 +iy][kk][il] + (*ausin)[2 + ix][1 + iy][kk][il]) + (*ausin)[2 + ix][2 +iy][kk][il])*hei*hei/9.;
-	for(ix=0;ix<=snxy-1;ix++)                                  //integration over x boundary - 1-st order
-		for(il=0;il<5;il++)
-			in[kk][il]+=((*ausin)[ix][snxy-1][kk][il] + (*ausin)[ix][snxy][kk][il] + (*ausin)[1 + ix][snxy-1][kk][il] + (*ausin)[1 + ix][snxy][kk][il])*hei*hei/4.;
-	for(iy=0;iy<=snxy-2;iy++)                                  //integration over y boundary - 1-st order
-		for(il=0;il<5;il++)
-			in[kk][il]+=((*ausin)[snxy-1][iy][kk][il] + (*ausin)[snxy-1][1 + iy][kk][il] + (*ausin)[snxy][iy][kk][il] + (*ausin)[snxy][1 + iy][kk][il])*hei*hei/4.;
-	for(il=0;il<5;il++)                                        //normalization over integration region size
-		in[kk][il]*=maxy*maxy;  
-	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                               //normalization for angular size of Sgr A* region - recompute for your object!
-	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0];//compute total LP fraction
-	CP[kk]=100.*in[kk][3]/in[kk][0];                                     //compute CP fraction
-	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180.);       //compute EVPA
-	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                                           //normalize 5-th intensity as total intensity
+
+	for(il=0;il<5;il++) in[kk][il]=0.;                         // INITIALIZE TO ZERO
+
+	doub hei=2./snxy;                                          //distance between neighbooring points in picture plane //RG: image plane side length = 2?
+    doub maxy=fact*sftab[kk][1];                               //size of the integration regions in picture plane 
+
+    if (INTERPOLATION_METHOD=="SUM") {
+      for(ix=0;ix<=snxy;ix+=1)                                 //2D integration loop over picture plane
+        for(iy=0;iy<=snxy;iy+=1)
+          for(il=0;il<5;il++) {                               //for each kind of intensity [I,Q,U,V,5th diagnostic]
+
+            //RG: CHECK BY TRYING SEVERAL FROM THIS LINK AND COMPARE
+            // https://www.kth.se/social/upload/52a04c17f27654620e188bb0/Ant-Integration.pdf
+
+            if ((il+ix+iy==0) && (kk==kmin)) printf(YELLOW"[intensity.cpp]: "RESET"INTERPOLATION METHOD=SUM\n");
+            in[kk][il]+=(*ausin)[ix][iy][kk][il]*hei*hei; // ASSUME CONST VALUE WITHIN CELLS (0th ORDER, i.e. O(dx) APPROXIMATION)
+          }
+    }
+
+    else if (INTERPOLATION_METHOD=="ASTRORAYv1.0") {
+
+      for(ix=0;ix<=snxy-3;ix+=2)                              //2D integration loop over picture plane
+        for(iy=0;iy<=snxy-3;iy+=2)
+          for(il=0;il<5;il++) {                               //for each kind of intensity [I,Q,U,V,5th diagnostic]
+
+
+            // 2nd order 2D stencil shifted:
+            //    ~> j
+            // |   / 1  4 1 \ 
+            // v  (  4 16 4  )
+            // i   \ 1  4 1 / 
+
+            // 2nd order accuracy of the integrator - works best RG: What does best mean? In what way?
+            in[kk][il]+=((*ausin)[ix][iy][kk][il] + (*ausin)[ix][2 + iy][kk][il] + 4*(*ausin)[1 +ix][iy][kk][il] + 4*(*ausin)[1 + ix][2 + iy][kk][il] + (*ausin)[2 +ix][iy][kk][il] +
+                         4*((*ausin)[ix][1 + iy][kk][il] + 4*(*ausin)[1 + ix][1 +iy][kk][il] + (*ausin)[2 + ix][1 + iy][kk][il]) + (*ausin)[2 + ix][2 +iy][kk][il])*hei*hei/9.;
+          } // for x for y for il
+
+
+            // BOUNDARY
+
+            for(ix=0;ix<=snxy-1;ix++)                                  //integration over x boundary - 1-st order
+              for(il=0;il<5;il++) {
+                in[kk][il]+=((*ausin)[ix][snxy-1][kk][il] + (*ausin)[ix][snxy][kk][il] + (*ausin)[1 + ix][snxy-1][kk][il] + (*ausin)[1 + ix][snxy][kk][il])*hei*hei/4.;
+              }
+            for(iy=0;iy<=snxy-2;iy++)                                  //integration over y boundary - 1-st order
+              for(il=0;il<5;il++) {
+                in[kk][il]+=((*ausin)[snxy-1][iy][kk][il] + (*ausin)[snxy-1][1 + iy][kk][il] + (*ausin)[snxy][iy][kk][il] + (*ausin)[snxy][1 + iy][kk][il])*hei*hei/4.;
+              }
+    } // else if (INTERPOLATION_METHOD=="ASTRORAYv1.0") {
+
+	for(il=0;il<5;il++) in[kk][il]*=maxy*maxy;                            // normalization over integration region size  
+
+	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                             // normalization for angular size of Sgr A* region - recompute for your object!
+	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0]; // compute total LP fraction <LP> = <Q,U>/<I>
+	CP[kk]=100.*in[kk][3]/in[kk][0];                                      // compute CP fraction       <CP> = <V>  /<I>
+	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180.);        // compute EVPA
+	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                               // normalize 5-th intensity as total intensity
 	printf(YELLOW"[intensity.cpp]:"RESET" fnum=%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 };
 
@@ -87,11 +121,11 @@ for(kk=kmin;kk<=kmax;kk++){
 // Chi^2
 //RG:FLAG Chi^2/dof should be computed by a single fct! Different (w/o nu[5-10]) Chi^2 in m_search e.g.
 // ~> FCT WRITTEN 2B INCORPORATED... Oct 21st 2015
-doub chi=0.,chi_I=0.;
-chisquare(totin,LPo,CP,chi,chi_I); // ~> see [chisquare.cpp]
+doub chi=0.,chi_I=0.;doub resid[14]; //[4];
+chisquare(totin,LPo,CP,chi,chi_I,resid); // ~> see [chisquare.cpp]
 printf(YELLOW"[intensity.cpp]: "MAGENTA"chi=%f,chi_I=%f"RESET"\n",chi,chi_I);
 
-// Hm something is diffent...
+// Hm something is different...
 // chisquare(): chi^2/dof=9.856375 chi^2_I/dof=13.966356
 //              [intensity.cpp]: chi=9.856375,chi_I=13.966356
 // # Chi^2/dof = 8.267417 [Based on SED only] poliresa file

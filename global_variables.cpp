@@ -29,52 +29,40 @@ int geodesic_output_every_x = 5; // output geodesic information for every 20th g
 int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
 
 bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
-string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
-// string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma,sharma+isoth,constant_tetp_fraction
+string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma , sharma+isoth , constant_tetp_fraction
+// string TEMPERATURE_PRESCRIPTION="constant_tetp_fraction"; // "sharma+isoth"; // sharma , sharma+isoth , constant_tetp_fraction
+// string TEMPERATURE_PRESCRIPTION="sharma"; // "sharma+isoth"; // sharma , sharma+isoth , constant_tetp_fraction
+const string INTERPOLATION_METHOD="ASTRORAYv1.0"; // "SUM"; // can be "SUM","ASTRORAYv1.0",...
+const string DRIVE_FIT_TO="ASTRORAYv1.0"; // can be "DEXTER","CK","ASTRORAYv1.0","ASTRORAYv1.0_unpolarized",...
+
+bool BREMSSTRAHLUNG=false; // INCLUDE ee & ei BREMSSTRAHLUNG EMISSIVITY ?
 
 const doub PI = 4.0*atan(1.0);
 
 const bool avoid_pole=true; // grep for critan ~> [evalpointzero.cpp]
-// const bool avoid_pole=false; // grep for critan ~> [evalpointzero.cpp]
+// const bool avoid_pole=false; // grep for critan ~> [evalpointzero.cpp] // gives trouble
 
 //Sgr A see math/checks_GRMHD_code.nb->Intensity functions->Check definitions of distance to Sgr A*, percentages, position angles
 doub Jy2cgs        = 1e23; // 1Jy=10^23 erg/(s cm^2 Hz) [cgs]
+#if SOURCE==SgrA
+const doub rgrav=1.33e+12;    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
+// const doub rgrav=2.66e+12;    // Gravitational radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
 doub ang_size_norm = 66.4648/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc // M=4.5e6Msun 
 // doub ang_size_norm = 196.5443582815904/Jy2cgs; // 10^23 (rg^2/D^2) // D=8.4kpc=3e22cm // M=4.5e6Msun 
-
+#elif SOURCE==M87
+// const doub rgrav=1.33e+15;    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~4.4e9 Msun RG:TODO RENAME TO rs!
+const doub rgrav=1.099e+15;    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~3.4e9 Msun RG:TODO RENAME TO rs! // Broderick & Loeb 2009
+doub ang_size_norm = pow(rgrav/1.33e12,2)*pow(8.4/16.7e3,2)*66.4648/Jy2cgs; // 10^23 (rg^2/D^2) // D=?Mpc // M=?Msun 
+#endif 
 // MODELS
 // const char avery_toy_jet[64]="yes"; // global flag  to turn on/off Avery's toyjet + RIAF model 
 const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet + RIAF model 
 
 // bool use_radial_extension=false; //RG: SET rho=0 (~> no emission/absorption/FR/FC) outside rcut
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
+const string RADIAL_EXT_FILE="dxdxp.dat"; // "usgdump2d";
+
 const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column densities": as the name suggests
-
-// int ndd;
-// THICKDISK7
-// if ( !strcmp(astr[0],"thickdisk7") ) {
-
-// if (true) {
-// if (!strcmp(dir,"thickdisk7") {
-
-// const int i = someCondition ? calculatedValue : defaultValue;
-// DOES NOT WORK
-//const int ndd = (astr[0].c_str()=="thickdisk7") ? 650 : 350;
-//const string astr[1]={"thickdisk7"};
-
-// THIS WORKS ON http://www.tutorialspoint.com/compile_cpp_online.php but not here...
-// const int ndd= astr[0]=="thickdisk7" ? 650 : 350;
-
-// WORKS
-// const int ndd = (true) ? 650 : 350;
-// const int speed = (shiftKeyDown) ? 10 : 1;
-const int ndd=650;           //radial dimension of coordinate/coordinate transformation matrices
-// OTHER MODELS
-// }
-//else {
-// const int ndd=350;           //radial dimension of coordinate/coordinate transformation matrices
-// const int ndd=288+1;           //radial dimension of coordinate/coordinate transformation matrices
-// }
 
 const int sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -82,10 +70,12 @@ const int sflen=14,          //number of frequencies of interest for flux calcul
   dd=3,              //record size of average temperature & density file
 
 // THICKDISK7,THICKDISKHR3?,DIPOLE3DFIDUCIALA,QUADRUPOLE
+#if MODEL==THICKDISK7 || MODEL==DIPOLE || MODEL==QUADRUPOLE
   wdd=11,            //record size of fluid simulations dump file
 // a=0 MAD rtf2_15r35_a0.0_0_0_0 , thinnermad*
-//  wdd=11+3,          //record size of fluid simulations dump file
-
+#elif MODEL==THINNERMAD
+  wdd=11+3,          //record size of fluid simulations dump file
+#endif
   maxfield=200,      //maximum number of fluid simulations dump files, which can fit in shared memory
 //maxco=3000,        //maximum number of points on a geodesic
 // on bh01 maxco=80000 is ok, but maxco=90000 the code just silently quits ~> exceed heap size limit??
@@ -95,14 +85,15 @@ const int sflen=14,          //number of frequencies of interest for flux calcul
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
   nxy=151 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
-  snxy=151;          //maximum resolution in picture plane for flux calculations
+  snxy=nxy;          //maximum resolution in picture plane for flux calculations
 
-const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
-//RG:TEST units in M ~> SEG-FAULT in init.cpp
-// const doub rgrav=2.66e+12,    // Gravitational radius of Sgr A* //RG: in cm corresponds to M_BH~4.4e6 Msun RG:TODO RENAME TO rs!
-// const doub rgrav=1.33e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~4.4e9 Msun RG:TODO RENAME TO rs!
-// const doub rgrav=1.099e+15,    //Schwarzschild radius of M87 //RG: in cm corresponds to M_BH~3.4e9 Msun RG:TODO RENAME TO rs! // Broderick & Loeb 2009
-	       rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
+
+
+const doub 
+           // DEFAULT
+           rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
+           // WIP
+// rrmax=7.11445236e+03,      //radius in rgrav, where outer temperature and density are defined
 	       rhoout=130.,       //outer density for Sgr A*
 		   Tout=1.5e+7,       //outer temperature for Sgr A*
 		   mp=1.67e-24,       //proton mass [g]
@@ -110,6 +101,7 @@ const doub rgrav=1.33e+12,    //Schwarzschild radius of Sgr A* //RG: in cm corre
 		   cc=3.e+10,         //speed of light
 		   kb=1.38e-16,       //Boltzmann constant 
 		   ee=4.8e-10,        //electron charge
+           h_planck=6.6260755e-27, // Planck's constant h (not hbar) units: [erg s]
 		   The=me*cc*cc/kb,   //rest mass temperature of electron
 		   year=86400.*365.25,//year in seconds
            Msun=2.00e+33,     //solar mass [g]
@@ -140,6 +132,8 @@ const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=1
 
 //DEFAULT (SGR A*)
 const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
+// DEXTER 40Mx40M @ 230GHz
+// const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 10.0}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 //M87 WIP: STARTED MODIFYING 230Ghz entry... but bizarre code behavior...
 //const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 5.0}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 
