@@ -7,11 +7,13 @@ doub xaccur=3e-4,  //1. absolute accuracy of geodesics computation
 //RG: 1e-6 too many points requested...
 
 	 xfact=1.0,    //3. relative size of the integration region
-	 xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
-  xsnxy=nxy,  //5. number of points N along one side in the picture plane for N x N intensity grid
-  xstep=1e-2,   //6. step size in geodesic computation
-  //xstep=1e-3,   //6. step size in geodesic computation
-	 xsstep=-0.06, //7. step size in radiative transfer computation
+     xss=3e-3,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
+     // xss=5e-1,     //4. fractional distance from BH horizon to the sphere, where geodesic integration stops
+     xsnxy=nxy,  //5. number of points N along one side in the picture plane for N x N intensity grid
+     xstep=1e-2,   //6. step size in geodesic computation
+     // xstep=1e-3,   //6. step size in geodesic computation
+     xsstep=-0.06, //7. step size in radiative transfer computation
+     // xsstep=-0.01, //7. step size in radiative transfer computation
 	 xIint=1e-10,  //8. initial intensity along each ray for radiative transfer
 	 xIang=0.1;    //9. initial polarized phases along each ray for radiative transfer
 doub step=xstep,   //local variables, which control radiative transfer
@@ -81,9 +83,34 @@ for(fnum=fmin;fnum<=fmax;fnum+=sep){//compute images, parallelization with OpenM
   
   init(sp,fmin,fmax,sep); //RG: sep not used in init()... remove!
 
-  // RG: IS DYNAMIC SCHEDULING REALLY NEEDED?
-  #pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
-  #include "imaging.cpp"	
+  // OPTION TO CYCLE OVER CAMERA VIEWING ANGLE, INCLINATION, ETC FOR GIVEN CASE
+  const string SCAN_THROUGH=""; // "view";
+  doub SCAN_THROUGH_MAX=0.;
+  if      (SCAN_THROUGH=="view") {
+    SCAN_THROUGH_MAX=2.*PI; // [0,2pi] in dphi
+    dphi=0.;
+  }
+  else if (SCAN_THROUGH=="inclination") {
+    SCAN_THROUGH_MAX=PI;    // [0,pi] in th
+    th=0.;                  // MIGHT WANT TO AVOID POLES... :-s
+  }
+  else
+    SCAN_THROUGH_MAX=0;    // DEACTIVATE
+
+
+  for (doub scan_through_value=0;scan_through_value<=SCAN_THROUGH_MAX;scan_through_value+=max(SCAN_THROUGH_MAX/100.,1e-9)){
+
+    if (SCAN_THROUGH=="view") dphi=0.+scan_through_value;
+    
+    if (SCAN_THROUGH!="") {
+      printf(YELLOW"[m_imag.cpp]: "RESET"SCANNING THROUGH %s, currently at %f...\n",SCAN_THROUGH.c_str(),scan_through_value);
+    }
+
+    // RG: IS DYNAMIC SCHEDULING REALLY NEEDED?
+#pragma omp parallel for schedule(dynamic,1) num_threads(nthreads) shared(ittot)
+#include "imaging.cpp"	
+
+  } // SCAN_THROUGH LOOP
 
 }
 ans=(clock() - start) / (doub)CLOCKS_PER_SEC;printf ("Time = %.2f s; th=%.3f; heat=%.3f\n", ans,th,heat);

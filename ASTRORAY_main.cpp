@@ -90,23 +90,14 @@ typedef struct {doub lamx[maxco],cooxx[12][maxco];doub llmin,llmax,nu;int indx;}
 extern int bisection_search(doub target, doub arr[], doub lower_bound, doub upper_bound, int size, int& target_idx, int& lower_bound_idx, int& upper_bound_idx);
 extern void temperature_diag(doub rr, doub costh, doub ph, doub T_sim, doub tet, doub tpt, doub rho, doub rhonor, int currth, int geodesic_idx);
 
-//geodesic solver
+// GEODESIC SOLVER
 extern int solvegeodesic(doub t, const doub y[], doub f[], void *params);//line can be commented out
 #include "geodes.cpp"
 
-//solving for electron temperature starting from the known outer properties of the system
+// GIVEN PROPERTIES AT LARGE RADII, SOLVE FOR ELECTRON TEMPERATURE
 extern int solvetemperature (doub rz, const doub zz[],doub TeTp[],void *pas);
 #include "solvetemp.cpp"
 
-//RG:CLEANUP!
-//initialization
-//RG:FIXME "UNDEFINED REFERENCE"
-//extern int setup_averys_toyjet(int i,int j,int k, float uu[phlen][thlen][rlen][wdd]);//, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
-//extern int setup_averys_toyjet(int i,int j,int k);//, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
-//extern int setup_averys_toyjet(doub coord, float Br,float Btheta,float Bphi,float ur,float utheta,float uphi,float rhoL, doub restL);
-//extern int setup_averys_toyjet();//, float restL);
-
-// extern doub F_intp_lin(double F[2][rlen], double target_point); //FIXME
 extern doub F_intp_lin(doub F[][rlen], doub target_point);
 extern void BL_metric(doub gmunu[][4], doub ginvmunu[][4], doub r, doub costh);
 extern void KS_metric(doub gmunu[][4], doub ginvmunu[][4], doub r, doub costh);

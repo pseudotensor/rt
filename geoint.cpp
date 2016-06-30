@@ -181,8 +181,12 @@ while (t < t1){                //RG: t~[0,2] geodesics show kinks for t~2
     //if (step<0) printf(YELLOW"[geoint.cpp]: "RED"Negative step size in geoint: step=%g h=%g\n"RESET,step,h);
     // if (false)
 
-      // if (ix==0) printf(YELLOW"[geoint.cpp]: "RED"TIME STEP TOO LARGE! affine parameter t=%f h=%f step=%f"RESET"\n",t,h,step);
-        h=step;
+      if ((ix==0) && (currth==1)) {
+        printf(YELLOW"[geoint.cpp]: "RED"TIME STEP TOO LARGE! affine parameter t=%f h=%f step=%f   Enforce h=step"RESET"\n",t,h,step);
+        // printf(YELLOW"[geoint.cpp]: "RED"h=%f step=%f . Would normally do this: h=step;\n"RESET,h,step);
+      }
+      h=step;
+    
       }
 
     doub d_to_image_fudge = 1.01;
@@ -222,14 +226,19 @@ if (GEODESIC_DIAGNOSTIC) { // GEODESIC DIAGNOSTIC
 
   stringstream geodesic_sstr;
   FILE * pFile; 
+  
+  // RG:2DO WRITE HEADER
 
   geodesic_sstr<<"geodesics"<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"geodesic";
   string append_label;
   append_label=geodesic_sstr.str();
 
+  // if ((geodesic_output_x+geodesic_output_y>0) && (iix==geodesic_output_x) && (iiy==geodesic_output_y)) { // FOCUS ON ONE PIXEL
+  if ((iix==geodesic_output_x) && (iiy==geodesic_output_y)) { // FOCUS ON ONE PIXEL
+
   // if (iix%geodesic_output_every_x==0 && iiy%geodesic_output_every_y==0) { // sample full 2d picture plane
   // if (iix%geodesic_output_every_x==0 && iiy==nxy/2) { // sample y=const slice of picture plane
-  if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
+  // if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
     
     int geodesic_label=ix;
     stringstream geodesic_sstr_append;

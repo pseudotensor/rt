@@ -1,11 +1,8 @@
 for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
 
-  //RG: 
-  //printf("ix=%d",ix);
-
 	    int kk,
 		iiy=ix % (nxy+1),                                      //find geodesic coordinates along x and y directions
-		iix=(int)ix/(snxy+1);
+		iix=(int)ix/(nxy+1);
 	for(kk=kmin;kk<=kmax;kk+=kstep){                           //cycle over chosen frequencies
 		doub t,
              maxy=fact*sftab[kk][1],                           //get a size in picture plane for each frequency
@@ -15,10 +12,9 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 			 beta=atan2(yg,xg);                                //polar angle in picture plane
 
 
-
-        /*****************************************
-		 * new geodesic integration for each ray *
-         *****************************************/
+        /*************************************
+		 * GEODESIC INTEGRATION FOR EACH RAY *
+         *************************************/
 
 		#include "geoint.cpp"
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
@@ -105,6 +101,10 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 
 	stringstream sstr;                                                             //prepare to write images into "shotimag" files
 	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"f"<<floor(sftab[kk][0])<<"fn"<<fnum<<"case"<<cas<<"_"<<nxy;
+    if (SCAN_THROUGH=="view") {
+      fif="view";
+      sstr<<"_"<<dphi;
+    }
 	string stra = sstr.str();
 
 	ofstream image_output_file ((dir+"shotimag"+stra+fif+".dat").c_str(), ios::out|ios::binary);   //write into binary output file
@@ -123,15 +123,6 @@ if(iswrite){
 	for(kk=kmin;kk<=kmax;kk+=kstep)                                                //write full spectra into "poliresa" files
 		fprintf(pFile,"%d %.2f %.5f %.4f %.4f %.4f %.4f %.5f %.4f %.4f %.2f %.4e %.4f\n", fnum,sftab[kk][0],totin[kk],LPo[kk],EVPA[kk],CP[kk],err[kk],heat,rhonor,0.,TpTe,rate*year/Msun,th);
 	fclose(pFile);
-
-    // GEODESIC DIAGNOSTIC
-	// stringstream geodesic_sstr;
-	// geodesic_sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum;
-	// /*string */stra = geodesic_sstr.str();
-	// //FILE * pFile; 
-	// pFile=fopen ((dir+"geodesic_"+currth+"_"+stra+fif+".dat").c_str(),"a");
-	// fprintf(pFile,"%d %f\n", currth, y[4]); //RG:FIXME currth & y[4] unknown here
-	// fclose(pFile);
 
 };
 delete [] intab;                                                                   //delete dynamic variable

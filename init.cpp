@@ -6,7 +6,7 @@ int init(int sp, int fmin, int fmax, int sep) { //RG: sep is never used here... 
 		r_ext_boundary_idx,           //radial index at the boundary of convergence
 		nt,            //theta index
 		np;            //phi index
-bool fl=true,          //for catching 6M distance from BH in temperature calculation
+bool one_time_flag=true, //for catching 6M distance from BH in temperature calculation
 	 inited=false;     //whether initialization already performed
 filebuf *pbuf;         //buffer for reading file with offset
 
@@ -301,14 +301,19 @@ for(i=-fdiff;i<=fdiff;i++) {
 
 	fline.read(reinterpret_cast<char *>(uu[ioff]), tosize); //reading as binary
     if(fline.good()) {
-      if (fx==fmin) printf(YELLOW"[init.cpp]:"RESET" Reading in fieldline %d-%d ...",fx,fmax);
-      if (fx==fmax) printf("DONE!\n");
+      printf(YELLOW"[init.cpp]:"RESET" Reading in GRMHD files %d-%d (%d+/-%d)...",fx,fx+fdiff,fnum,fdiff);
+      // if (fx=fnum-fdiff) printf(YELLOW"[init.cpp]:"RESET" Reading in GRMHD files %d-%d (%d+/-%d)...",fx,fx+fdiff,fnum,fdiff);
+      // if (fx=fnum+fdiff) printf("DONE!\n");
     }
 	else { 
       printf(YELLOW"[init.cpp]:"RED" Something is wrong loading fluid simulation dump: fieldline %d\n...EXITING...\n"RESET,fx);
       exit(-1);
 	};
+    // if (fx=fnum+fdiff) printf(YELLOW"[init.cpp]:"RESET" Reading in GRMHD files %d-%d (%d+/-%d)...DONE!\n",fx-fdiff,fx+fdiff,fnum,fdiff);
+
 	fline.close();
+    printf("DONE!\n");
+
 	loaded[ioff]=fx;
 
  }; // for(i=-fdiff;i<=fdiff;i++) {
@@ -845,8 +850,10 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
   // if (stNt==12107) printf(YELLOW"[init.cpp]: "RED"YO1: rz=%g rmin=%g stNt=%d\n"RESET,rz,rmin,stNt);
 
 	stNt++; 
+
 	if(-step>0.008*rz)       
 		step=-0.005*rz;      //artificially limiting the step
+
 	int status = gsl_odeiv_evolve_apply (ez, cz, sz, &sysT, &rz, 1.001*rmin, &step, TeTp);
 	if(status!=0){
 		printf(YELLOW"[init.cpp]:"RED"Temperature solver error\n Exiting"RESET);
@@ -864,11 +871,11 @@ while (rz > 1.001*rmin) {    //while outside of minimum radius (inside of event 
 
     // printf(YELLOW"[init.cpp]: "RED"YO1: rz=%g rmin=%g status=%d stNt=%d\n"RESET,rz,rmin,status,stNt);
 
-	if((rz<6) && (fl)) { // Reporting electron temperature & Tp/Te ratio at 6M distance from the BH. Step size is so small that we don't iterate for 6M precisely // RG: the last sentence does not make sense to me logically ...
-		fl=false;
+	if((rz<6) && (one_time_flag)) { // Reporting electron temperature & Tp/Te ratio at 6M distance from the BH. Step size is so small that we don't iterate for 6M precisely // RG: the last sentence does not make sense to me logically ...
+		one_time_flag=false;
 		TpTe=tp[stNt]/te[stNt];
 		Te6=te[stNt];
-		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho*rhonor=%.3e\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rho*rhonor);
+		printf(YELLOW"[init.cpp]:"RESET" fn=%d stN=%d r=%.2fM Tp/Te=%.2f Te=%.3e rate=%.3e he=%.3f rho=%.3f\n", fnum, stNt,rz, TpTe, Te6, rate*year/Msun,heat,rho);
 	}
 
 } // while (rz > 1.001*rmin) {
@@ -886,13 +893,16 @@ gsl_odeiv_control_free (cz);
 gsl_odeiv_step_free (sz);
 
 
+ stringstream snapshot;
 
-if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN GRMHD SIMULATION
-
+if (false) {
+// if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN GRMHD SIMULATION
+  snapshot<<(int)fnum;
   ofstream temperature_harm_grid_file;
-  temperature_harm_grid_file.open((dir+astr[sp]+xstr+"T_grid_"+astr[sp]+".dat").c_str(), ios::out | ios::app | ios::binary);
+  temperature_harm_grid_file.open((dir+astr[sp]+xstr+"T_grid_"+astr[sp]+"-snapshot"+snapshot.str()+".dat").c_str(), ios::out | ios::app | ios::binary);
 
-  for(int r_idx=0;r_idx<rlen;r_idx++) // rlen ~> rcut ?
+//for(int r_idx=0;r_idx<rlen;r_idx++) // rlen ~> rcut ?
+  for(int r_idx=0;r_idx<ndd;r_idx++) // rlen ~> rcut ?
     for(int th_idx=0;th_idx<thlen;th_idx++)
       for(int ph_idx=0;ph_idx<phlen;ph_idx++) {
 
@@ -904,7 +914,7 @@ if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN G
         if (r_idx+th_idx+ph_idx==0) {
           temperature_harm_grid_file<<"# r_idx th_idx ph_idx T_e T_p T_sim rho u r costh"<<endl; // WRITE HEADER
 
-          printf(YELLOW"[init.cpp]: OUTPUTTING TEMPERATURE INFO..."RESET"\n");
+          printf(YELLOW"[init.cpp]: "RESET"OUTPUTTING TEMPERATURE INFO...\n");
           printf(YELLOW"[init.cpp]: "RED"...WIP..."RESET"\n");
         }
         // RG: error: ‘B’ was not declared in this scope
@@ -912,20 +922,44 @@ if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN G
         // RG: T_sim, tet undeclared in this scope
         doub T_e,T_p;
         // assume fdiff=0 ~> (uu[0])
-        doub rho=(*uu[0])[ph_idx][th_idx][r_idx][0]; // *rhonor;
-        doub u=(*uu[0])[ph_idx][th_idx][r_idx][1];
-        doub T_sim=u*mp*cc*cc/3/kb/rho; // internal energy density
-        if (TEMPERATURE_PRESCRIPTION=="sharma")
+        doub rho,u,T_sim;
+        if (r<=rcut) {
+          rho=(*uu[0])[ph_idx][th_idx][r_idx][0]*rhonor; // *rhonor; or not?
+          u=(*uu[0])[ph_idx][th_idx][r_idx][1]*mp*cc*cc/3/kb;
+          T_sim=u/rho*rhonor; // internal energy density
+        }
+        else  { // RG:FIX compare to solvetrans
+          rho=(*uu[0])[ph_idx][th_idx][r_ext_boundary_idx][0];//*pow(r/rcut,-rhopo);
+          // rho*=rhonor;//*pow(r/rcut,-rhopo); // Adding this makes temperature really small...
+          // rho=uext[ph_idx][th_idx][3];//*pow(r/rcut,-rhopo);
+          // u=uext[ph_idx][th_idx][4]*mp*cc*cc/3/kb; // should scale with pow(rr/rcut,-rhopo-1) to give T=u/rho~1/r
+
+          //RG:WIP consistent with [evalpointzero.cpp]?
+          // T_sim=(*uu[0])[ph_idx][th_idx][r_ext_boundary_idx][1]*mp*cc*cc/3/kb / ((*uu[0])[ph_idx][th_idx][r_ext_boundary_idx][0]) * pow(r/rcut,-1.0); // nr_idx=120 r=27.563 T_sim=4.07414e+11
+          //RG:WIP consistent with [evalpointzero.cpp]
+          T_sim=uext[ph_idx][th_idx][4]*pow(rr/rcut,-1.0);
+
+          // T_sim=(*uu[0])[ph_idx][th_idx][r_ext_boundary_idx][1]*mp*cc*cc/3/kb/rho * pow(r/rcut,-1.0); // nr_idx=121 r=28.7205 T_sim=3.90994e+11
+          // T_sim=uext[r_idx][th_idx][4]*pow(r/rcut,-1.0); // nr_idx=120 r=27.563 T_sim=2.28843e-08; nr_idx=121 r=28.7205 T_sim=-3.92769e-13
+          // T_sim=uext[ph_idx][th_idx][4]*pow(r/rcut,-1.0); // nr_idx=120 r=27.563 T_sim=0
+
+          if ((th_idx==thlen/2 and ph_idx==0) and (r_idx==120 or r_idx==121)) printf(YELLOW"[init.cpp]: "RED"nr_idx=%d r=%g T_sim=%g"RESET"\n",r_idx,r,T_sim);
+        }
+
+        // doub magn;
+        // magn=(B[1]*B[1]+B[2]*B[2]+B[3]*B[3])/4/PI/mp/rho/cc/cc; //magnetization
+        // rho = rho*exp(-magn/magn_cap_rho) + rho*include_jet*(1.-exp(-magn/magn_cap_rho));
+
+        if (TEMPERATURE_PRESCRIPTION=="sharma") 
           get_electron_temperature (T_sim, 0., T_e, T_p); // magn not needed for Sharma
         else
           if (r_idx+th_idx+ph_idx==0) cout<<YELLOW"[init.cpp]: "RED"Need magn to compute electron temperature when TEMPERATURE_PRESCRIPTION=="<<TEMPERATURE_PRESCRIPTION<<". "RESET<<endl;
-        temperature_harm_grid_file<<r_idx<<" "<<th_idx<<" "<<ph_idx<<" "<<T_e<<" "<<T_p<<" "<<T_sim<<" "<<rho<<" "<<u/*<<" "<<magn*/<<" "<<r<<" "<<costh<<endl; // can add tet_isoth etc later
-        
+        temperature_harm_grid_file<<r_idx<<" "<<th_idx<<" "<<ph_idx<<" "<<T_e<<" "<<T_p<<" "<<T_sim<<" "<<rho<<" "<<u/*<<" "<<magn*/<<" "<<r<<" "<<costh<<endl; // can add tet_isoth etc later        
       }
 
   temperature_harm_grid_file.close();
 
-}
+} // if (TEMPERATURE_DIAGNOSTIC) { // OUTPUTTING DIAGNOSTIC INFO ON TEMPERATURES IN GRMHD SIMULATION
 
 
 // RG: CODE EXITS WHEN UNCOMMENTING BELOW CODE BLOCK
@@ -1013,13 +1047,13 @@ for(nt=0;nt<thlen;nt++){ //for all POLAR angles at the convergence boundary *
         
         // } // if ( strcmp(avery_toy_jet,"yes") ) { 
 
-		rho=rest[0]*rhonor;              //density
-		rest[1]*=mp*cc*cc/3/kb/(rest[0]);//temperature //RG:CHECK UNITS WHEN USING AVERY'S MODEL
-		u[0]=rest[4];                    //4-velocity
+		rho=rest[0]*rhonor;               // density
+		rest[1]*=mp*cc*cc/3/kb/(rest[0]); // temperature //RG:CHECK UNITS WHEN USING AVERY'S MODEL
+		u[0]=rest[4];                     // 4-velocity
 		u[1]=u[0]*rest[5];
 		u[2]=u[0]*rest[6];
 		u[3]=u[0]*rest[7];
-		Bi[1]=Bnor*rest[8];              //3-vector of magnetic field
+		Bi[1]=Bnor*rest[8];               // 3-vector of magnetic field
 		Bi[2]=Bnor*rest[9];
 		Bi[3]=Bnor*rest[10];
         
