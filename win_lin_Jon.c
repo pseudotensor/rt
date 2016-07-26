@@ -5,7 +5,7 @@
 //POWERLAW
 //const string dir="/home/rgold/rt/powerlaw/", adir="/home/rgold/rt/powerlaw/", fieldstr="/dumps/", xstr="/";
 //const string MODEL="dipole"; // dipole,quadrupole,thickdisk7
-const int nthreads=24; // 24: bh01;// 8;//Orange
+const int nthreads=24; // 24; bh01;// 8;// Orange 1; // noOMP
 const string ASTRORAY_PATH = "/home/rgold/rt/";
 
 #define SgrA 0

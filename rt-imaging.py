@@ -213,7 +213,8 @@ I_img_avg=header[7];LP_img_avg=header[8];EVPA_img_avg=header[9];CP_img_avg=heade
 TpTe=header[12]
 mdot=header[13] # in [year/Msun]
 
-print "Image-averaged (zero-baseline) flux: ",I_img_avg
+print "Image-averaged (zero-baseline) flux: ",I_img_avg,"Jy"
+print "Image (pixel) resolution: ",pixeldim,"muas"
 
 try:
     if VARY=="r":
@@ -436,10 +437,14 @@ if string.lower(SCATTERING)=="on" or string.lower(SCATTERING)=="yes":
         # data[:,:,CHANNEL]=data[:,:,CHANNEL]/mean(I_xy)*I_img_avg # get I,Q,U,V units in Jy, such that mean(I_xy)=I_img_avg
 
 units_Jy=I_img_avg/mean(data[:,:,0])
-I_xy = data[:,:,0]*units_Jy
-Q_xy = data[:,:,1]*units_Jy
-U_xy = data[:,:,2]*units_Jy
-V_xy = data[:,:,3]*units_Jy
+
+for i in range(4):
+    data[:,:,i] *= units_Jy/pixeldim**2
+
+I_xy = data[:,:,0]
+Q_xy = data[:,:,1]
+U_xy = data[:,:,2]
+V_xy = data[:,:,3]
 
 # EVPA_xy = arctan2(Q_xy,U_xy)*90./pi
 EVPA_xy = 180./2. - 0.5*angle(Q_xy+1j*U_xy,deg=True)
@@ -568,7 +573,8 @@ limits_colors_4panel_xy = [
 # limits_colors_4panel_xy = [(0,amax(I_xy)*I_xy_scale),(0,amax(abs(Q_xy+1j*U_xy))*I_xy_scale),(0.,180.),(amin(V_xy)*I_xy_scale,amax(V_xy)*I_xy_scale)]
 #limits_colors_4panel_xy = [(0,6e-4),(0,8e-1),(-90.,90.),(0,1e-1)]
 # figure(1):       [I_uv    ,Q_uv        ,U_uv        ,V_uv        ]
-limits_colors_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
+# limits_colors_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
+limits_colors_uv = [(0,amax(abs(I_uv))),(0,amax(abs(Q_uv))),(0,amax(abs(U_uv))),(0,amax(abs(V_uv)))]
 #limits_colors_uv = [(0,3),(0,0.5),(0,0.4),(0,0.1)]
 # figure(2): [I_uv,mbreve_uv,EVPA_uv,|V_uv/I_uv|]
 limits_colors_miniversion_4panel_uv = [(0,amax(abs(I_uv))*I_uv_scale),(0,1.0),(-90,90),(0,1.)]
@@ -616,8 +622,13 @@ if "IQUV" in WANTED_PLOTS:
         
         ## image plane ##
         fig_xy.add_subplot(221+plot_loop)
-        pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
-        colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+        pcolormesh(X,Y,data[:,:,plot_loop]*[I_xy_scale,Q_xy_scale,U_xy_scale,V_xy_scale][plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
+        # pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
+        cb = colorbar(pad=0)
+        # cb = colorbar(format=ticker.FuncFormatter(fmt),pad=0)
+        # WIP: I->[0,) Q,U can be negative... mpl does not like (0.0,0,1)
+        # cb = colorbar(ticks=(round(limits_colors_xy[plot_loop][0],1),0,round(limits_colors_xy[plot_loop][1],1)),pad=0)
+        cb.ax.set_title(r"$Jy/\mu as^2$")
         # pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
         # colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
         # #clim(limits_colors_xy[plot_loop])

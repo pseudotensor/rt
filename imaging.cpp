@@ -1,11 +1,8 @@
 for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all geodesics (more efficient with OpenMP than cycling along each direction in a double for loop)
 
-  //RG: 
-  //printf("ix=%d",ix);
-
 	    int kk,
 		iiy=ix % (nxy+1),                                      //find geodesic coordinates along x and y directions
-		iix=(int)ix/(snxy+1);
+		iix=(int)ix/(nxy+1);
 	for(kk=kmin;kk<=kmax;kk+=kstep){                           //cycle over chosen frequencies
 		doub t,
              maxy=fact*sftab[kk][1],                           //get a size in picture plane for each frequency
@@ -15,21 +12,19 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 			 beta=atan2(yg,xg);                                //polar angle in picture plane
 
 
-
-        /*****************************************
-		 * new geodesic integration for each ray *
-         *****************************************/
+        /*************************************
+		 * GEODESIC INTEGRATION FOR EACH RAY *
+         *************************************/
 
 		#include "geoint.cpp"
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
 
 
-        // if (currth==1) printf(YELLOW"[imaging.cpp]: "RESET"affine parameter t=%f r=y[4]=%f stN=%d\n",t,y[4],stN);
-
-        //clock_t t_b4_solvetrans = clock();
         /*************************************************
 		 * new radiative transfer is solved for each ray *
          *************************************************/
+
+        //clock_t t_b4_solvetrans = clock();
         #include "solvetrans.cpp"
         //t_solvetrans += (clock() - t_b4_solvetrans) / (float)CLOCKS_PER_SEC;
 
@@ -49,7 +44,8 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 
 
 
-typedef double (*arra)[nxy+1][nxy+1][5];                       //array of intensities
+//RG:Why "double" and not "doub"?
+typedef double (*arra)[nxy+1][nxy+1][5];                       //array of intensities 
    arra intab = (arra) new double[nxy+1][nxy+1][5];
  typedef double (*para)[20];                                   //array of parameters
   para params = (para) new double[20];
@@ -79,15 +75,20 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 			in[kk][il]+=((*intab)[nxy-1][iy][il] + (*intab)[nxy-1][1 + iy][il] + (*intab)[nxy][iy][il] + (*intab)[nxy][1 + iy][il])*hei*hei/4.;
 
 	for(il=0;il<5;il++)
-		in[kk][il]*=maxy*maxy;                                //normalization over integration region size
-	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                              //normalization for angular size of Sgr A* region - recompute for your object!
-	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0];//compute total LP fraction
-	CP[kk]=100.*in[kk][3]/in[kk][0];                                     //compute CP fraction
-	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);        //compute EVPA
-	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                              //normalize 5-th intensity as total intensity
+      in[kk][il]*=maxy*maxy;                                              // normalization over integration region size
+	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                             // normalization for angular size see [global_variables.cpp]
+	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0]; // total LP fraction
+	CP[kk]=100.*in[kk][3]/in[kk][0];                                      // CP fraction
+	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);         // EVPA
+	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                               //normalize 5-th intensity as total intensity
 	printf("%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 
-	//setting parameters to be written in file
+
+    /*****************************
+     * WRITE DIAGNOSTICS TO FILE *
+     *****************************/
+
+	// setting parameters to be written to file header
 	(*params)[0]=a;
 	(*params)[1]=th;
 	(*params)[2]=double(nxy);
@@ -105,6 +106,10 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 
 	stringstream sstr;                                                             //prepare to write images into "shotimag" files
 	sstr<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"f"<<floor(sftab[kk][0])<<"fn"<<fnum<<"case"<<cas<<"_"<<nxy;
+    if (SCAN_THROUGH=="view") {
+      fif="view";
+      sstr<<"_"<<dphi;
+    }
 	string stra = sstr.str();
 
 	ofstream image_output_file ((dir+"shotimag"+stra+fif+".dat").c_str(), ios::out|ios::binary);   //write into binary output file
@@ -116,7 +121,7 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 if(iswrite){
     // RG: TODO write header using static int
 	stringstream sstr;                                                             //prepare to write full spectra into "poliresa" files
-	sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"hi";//"hi" is a for high resolution
+	sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"hi";            //"hi": high resolution
 	string stra = sstr.str();
 	FILE * pFile; 
 	pFile=fopen ((dir+"poliresa"+stra+fif+".dat").c_str(),"a");                    //open polires*
@@ -124,15 +129,7 @@ if(iswrite){
 		fprintf(pFile,"%d %.2f %.5f %.4f %.4f %.4f %.4f %.5f %.4f %.4f %.2f %.4e %.4f\n", fnum,sftab[kk][0],totin[kk],LPo[kk],EVPA[kk],CP[kk],err[kk],heat,rhonor,0.,TpTe,rate*year/Msun,th);
 	fclose(pFile);
 
-    // GEODESIC DIAGNOSTIC
-	// stringstream geodesic_sstr;
-	// geodesic_sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum;
-	// /*string */stra = geodesic_sstr.str();
-	// //FILE * pFile; 
-	// pFile=fopen ((dir+"geodesic_"+currth+"_"+stra+fif+".dat").c_str(),"a");
-	// fprintf(pFile,"%d %f\n", currth, y[4]); //RG:FIXME currth & y[4] unknown here
-	// fclose(pFile);
-
 };
-delete [] intab;                                                                   //delete dynamic variable
-delete [] params;                                                                  //delete parameters
+
+delete [] intab;
+delete [] params;

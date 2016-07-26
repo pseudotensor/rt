@@ -21,6 +21,8 @@ doub j_br(doub rho_cgs, doub t_e, doub nu){
   // COMPUTE BREMSSTRAHLUNG EMISSIVITY (IN CGS UNITS)
   // e:electron i:ion assume fully ionized plasma of electrons and protons
 
+  printf(YELLOW"[bremsstrahlung.cpp]: "RESET"rho_cgs=%f t_e=%f nu=%f\n",rho_cgs, t_e, nu);
+
   doub x = h_planck * nu/kb/t_e; // eq (32)
   doub Theta_e = kb*t_e/me/cc/cc; // eq (28) dim less electron temperature 
 

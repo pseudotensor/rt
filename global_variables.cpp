@@ -23,10 +23,12 @@ doub largest_radius_where_nan  = 0.;  // ~~~> [setup_avery_toyjet.cpp]
 
 // GEODESIC DIAGNOSTIC
 // #DEFINE GEODESIC_DIAGNOSTIC true ?
-bool GEODESIC_DIAGNOSTIC=false;
+bool GEODESIC_DIAGNOSTIC=true; //true; // false;
 
-int geodesic_output_every_x = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
-int geodesic_output_every_y = 5; // output geodesic information for every 20th geodesic along x-dir in image plane
+int geodesic_output_x=0; // choose pixel to focus on
+int geodesic_output_y=0; // choose pixel to focus on
+int geodesic_output_every_x = 5; // output geodesic information for every nth geodesic along x-dir in image plane
+int geodesic_output_every_y = 5; // output geodesic information for every nth geodesic along y-dir in image plane
 
 bool TEMPERATURE_DIAGNOSTIC=false; // output info on t_p,t_e,u,rho,r,th,ph
 string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma , sharma+isoth , constant_tetp_fraction
@@ -35,7 +37,9 @@ string TEMPERATURE_PRESCRIPTION="sharma+isoth"; // sharma , sharma+isoth , const
 const string INTERPOLATION_METHOD="ASTRORAYv1.0"; // "SUM"; // can be "SUM","ASTRORAYv1.0",...
 const string DRIVE_FIT_TO="ASTRORAYv1.0"; // can be "DEXTER","CK","ASTRORAYv1.0","ASTRORAYv1.0_unpolarized",...
 
-bool BREMSSTRAHLUNG=false; // INCLUDE ee & ei BREMSSTRAHLUNG EMISSIVITY ?
+bool BREMSSTRAHLUNG=false; // INCLUDE ee & ei BREMSSTRAHLUNG EMISSIVITY ? FIXME:VALUES SEEM WRONG NEED2DEBUG 
+
+const int nr_of_imagediags=5; // 4:IQUV + images of other quantities  see [intensity.cpp] and [solvetrans.cpp]
 
 const doub PI = 4.0*atan(1.0);
 
@@ -62,7 +66,7 @@ const char avery_toy_jet[64]="no"; // global flag  to turn on/off Avery's toyjet
 bool use_radial_extension=true; //RG: USE radial extension outside rcut
 const string RADIAL_EXT_FILE="dxdxp.dat"; // "usgdump2d";
 
-const char image_diagnostic[64]="melrose"; // "melrose":approx thermal, "column densities": as the name suggests
+const string image_diagnostic="lambda"; // "melrose","column density","lambda" see [transnew.cpp]
 
 const int sflen=14,          //number of frequencies of interest for flux calculations
   flen=4,            //number of frequencies of interest for images
@@ -84,16 +88,18 @@ const int sflen=14,          //number of frequencies of interest for flux calcul
   maxst=40000,       //maximum number of points for radial temperature profile
   nWlen=120,nWlen_nth=120,         // number of frequency bins for lookup tables of propagation coefficients // nWlen=60 
   Tlen=100,Tlen_nth=160/*160*/,          // number of temperature bins for lookup tables of propagation coefficients 
-  nxy=151 /*201*/,           //actual image resolution in picture plane for imaging (points along a side)
+  nxy=100, // 1, // 299, //           //actual image resolution in picture plane for imaging (points along a side)
   snxy=nxy;          //maximum resolution in picture plane for flux calculations
 
-
+// doub rrmax=3.4e5;
+// doub rrmax=95.477943855303153;
 
 const doub 
            // DEFAULT
            rrmax=3.4e+5,      //radius in rgrav, where outer temperature and density are defined
            // WIP
 // rrmax=7.11445236e+03,      //radius in rgrav, where outer temperature and density are defined
+// rrmax=668.39419037309119,      //radius in rgrav, where outer temperature and density are defined
 	       rhoout=130.,       //outer density for Sgr A*
 		   Tout=1.5e+7,       //outer temperature for Sgr A*
 		   mp=1.67e-24,       //proton mass [g]
@@ -106,10 +112,10 @@ const doub
 		   year=86400.*365.25,//year in seconds
            Msun=2.00e+33,     //solar mass [g]
 
-r0=20000.;         //maximum radius of each light ray: DEFAULT ASTRORAY v1.0
+// r0=20000.;         //maximum radius of each light ray: DEFAULT ASTRORAY v1.0
 // r0=500.;         //maximum radius of each light ray // RG: coordinate distance (in rgrav units) of image plane to BH (Horizon)?
 // r0=1000.;         //maximum radius of each light ray 
-
+r0 = 668.39419037309119; // for grtrans comparison
 
 // Temperature sampling & range for propagation effects for THERMAL
 const doub nWmin=12000.*pow(1.1, -nWlen/2.), nWmax=12000.*pow(1.1, nWlen/2),//minimum and maximum ratios of cyclotron and propagation frequencies, for which propagation effects are non-zero
@@ -131,7 +137,8 @@ const doub nWmin_nth=12000.*pow(logspacing_Wmin_nth, -nWlen_nth/2.), nWmax_nth=1
 // RG: {{frequency1, half-screen-size@frequency1?}, {frequency2, half-screen-size@frequency2?}, ...}
 
 //DEFAULT (SGR A*)
-const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
+// const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 12.2}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
+const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 15.0}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 // DEXTER 40Mx40M @ 230GHz
 // const doub sftab[sflen][2]={{8.45, 120.}, {14.90, 73.}, {22.50, 63.}, {43.00, 46.}, {87.73, 25.9}, {102., 22.3}, {145., 16.4}, {230.86, 10.0}, {349., 10.3}, {674., 8.8}, {857., 8.6}, {1500., 8.6}, {3000., 8.6}, {5000., 8.6}};
 //M87 WIP: STARTED MODIFYING 230Ghz entry... but bizarre code behavior...
@@ -220,7 +227,8 @@ doub Bpo,              //third command line argument, often magnetic field stren
 	 rate,             //accretion rate, typically in g/s
 	 minT, maxT,       //minimum and maximum "temperature"=energy density/density
 	 ss,               // ss=dr/rg above the BH horizon, where we stop integration of a geodesic
-	 fljVc=1., flrQc=1., flrVc=1.,//multiplier to test the behavior of the code for boosted/zeroed V emissivity, Faraday conversion, and Faraday rotation, respectively
+	 flrQc=1., flrVc=1.,//multiplier to test the behavior of the code for boosted/zeroed Faraday conversion, and Faraday rotation, respectively
+	 fljIc=1., fljQc=1., fljVc=1.,//multiplier to test the behavior of the code for boosted/zeroed I,Q,V emissivities
 	 dphi=0.,          //phi offset to test different phi viewing angles
   Te_jet, TpTe_jet, TpTe, Te6,        //proton to electron temperature ratio and electron temperature at 6M
 	 ts[maxst], te[maxst], tp[maxst], //for computing radial proton and electron temperature profiles
