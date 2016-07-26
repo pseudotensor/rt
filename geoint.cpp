@@ -32,6 +32,11 @@ gsl_odeiv_system geodesic_solver_gsl = {solvegeodesic, NULL, 12, NULL};//prepare
 //beta - angle in a picture plane counterclockwise from the direction to the north pole  
 //BH rotates clockwise as viewed from above the north pole
 
+// GIVEN spin a and impact parameter b compute deflection angle 
+// WEAK FIELD (3rd order in 1/b)
+doub deflection_angle_weakfield_Sereno = 4./b + (15./4./PI-4.*a)/b/b + (4*a*a-10.*PI*a+128./3.)/b/b/b + (15./64.*PI*(76*a*a+231)-4.*a*(a*a+48.))/b/b/b/b + (4.*(a*a+128)*a*a-9./2.*PI*(6.*a*a+77.)*a+3584./5.)/b/b/b/b/b; // http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits 
+
+
 rg=1+sqrt(1.-asq);             //BH horizon //RG: rg is a terrible variable name rg->rh ?
 doub bsq=b*b,                  //auxiliary geometric variables based on a, r0, th, b //RG: b=sqrt(xg*xg+yg*yg), //impact parameter
 	 sinbeta=sin(beta),
@@ -227,18 +232,16 @@ if (GEODESIC_DIAGNOSTIC) { // GEODESIC DIAGNOSTIC
   stringstream geodesic_sstr;
   FILE * pFile; 
   
-  // RG:2DO WRITE HEADER
-
   geodesic_sstr<<"geodesics"<<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"geodesic";
   string append_label;
   append_label=geodesic_sstr.str();
 
   // if ((geodesic_output_x+geodesic_output_y>0) && (iix==geodesic_output_x) && (iiy==geodesic_output_y)) { // FOCUS ON ONE PIXEL
-  if ((iix==geodesic_output_x) && (iiy==geodesic_output_y)) { // FOCUS ON ONE PIXEL
+    //if ((iix==geodesic_output_x) && (iiy==geodesic_output_y)) { // FOCUS ON ONE PIXEL
 
   // if (iix%geodesic_output_every_x==0 && iiy%geodesic_output_every_y==0) { // sample full 2d picture plane
   // if (iix%geodesic_output_every_x==0 && iiy==nxy/2) { // sample y=const slice of picture plane
-  // if (iiy%geodesic_output_every_x==0 && iix==nxy/2) { // sample x=const slice of picture plane
+  if (iiy%geodesic_output_every_y==0 && iix==nxy/2) { // sample x=const slice of picture plane
     
     int geodesic_label=ix;
     stringstream geodesic_sstr_append;
@@ -249,11 +252,15 @@ if (GEODESIC_DIAGNOSTIC) { // GEODESIC DIAGNOSTIC
     
     //for (int geo_idx=0; geo_idx<=maxco; geo_idx++) { // maxco
     for (int geo_idx=0; geo_idx<=stN; geo_idx++) { // maxco
+
+      if (geo_idx==0) // WRITE HEADER
+        fprintf(pFile,"# ppy[].cooxx[0-7] lamx geodesic_label geo_idx xg yg b defl_angle\n");
+
       for (int p=0; p<=7; p++) { // r:p-> costh: ph:
         fprintf(pFile,"%f ",ppy[currth].cooxx[p][geo_idx]);
       }
       // lamx[] vs lam[]?
-      fprintf(pFile,"%f %d %d\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx);
+      fprintf(pFile,"%f %d %d %f %f %f %f\n",ppy[currth].lamx[geo_idx],geodesic_label,geo_idx,xg,yg,b,deflection_angle_weakfield_Sereno);
     }
     
     fclose(pFile);

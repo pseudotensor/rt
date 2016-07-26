@@ -1,6 +1,5 @@
 time_t t_b4_solvetrans = clock();
 
-const int nr_of_imagediags=5;
 doub II[nr_of_imagediags],                                 //array of intensities
 	 hh,                                    //step of radiative transfer solver
 	 llog;                                  //log-parameter on a geodesic
@@ -21,7 +20,7 @@ gsl_alloc = gsl_odeiv_evolve_alloc(nr_of_imagediags);
 gsl_accuracy = gsl_odeiv_control_standard_new(accurr, accurr, 1.0, 0.0);//relative AND absolute accuracy accurr
 gsl_aux_ode_vars = gsl_odeiv_step_alloc (gsl_time_evol, nr_of_imagediags);
 
-for(k=0;k<nr_of_imagediags;k++)                           //initialize intensities at small values (can't initialize with zeros)
+for(k=0;k<nr_of_imagediags;k++)                           //initialize intensities at small values (can't initialize with zeros RG:WHY NOT?)
 	II[k]=Iint;
 II[2]=Iang;                                //since variables 2 and 3 represent angles in "polarized coordinates", they are given values order 1
 II[3]=II[2];

@@ -50,7 +50,8 @@ for(ix=0;ix<(snxy+1)*(snxy+1);ix++){                           //cycle over all 
 		(*ausin)[iix][iiy][kk][1]=II[1]*cos(II[2])*sin(II[3]); //linearly polarized intensity Q
 		(*ausin)[iix][iiy][kk][2]=II[1]*sin(II[2])*sin(II[3]); //linearly polarized intensity U
 		(*ausin)[iix][iiy][kk][3]=II[1]*cos(II[3]);            //circularly polarized intensity V
-		(*ausin)[iix][iiy][kk][4]=II[4];                       //any other quantity integrated over a geodesic, i.e., approximate total intensity
+        for (int idx=4; idx<nr_of_imagediags;idx++)
+          (*ausin)[iix][iiy][kk][idx]=II[idx];                       //any other quantity integrated over a geodesic, i.e., approximate total intensity
 	};
 };
 

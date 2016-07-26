@@ -949,9 +949,21 @@ doub The=kb*tet/me/cc/cc,                                          //rest mass t
 	 nus=2./9.*nuc*The*The,                                        //peak emissivity frequency
 	 Xe=nu/nus;                                                    //ratio of observed frequency to peak emissivity frequency
 
-jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*Xe*exp(-pow(Xe,(doub)0.3333));       //simple approximation for total emissivity
-doub tem=(sqrt(Xe)+pow(2.,11./12.)*pow(Xe,(doub)0.166666));                                //auxiliary
-jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*tem*tem*exp(-pow(Xe,(doub)0.3333));  //more accurate approximation for total emissivity from Leung et al. (2011)
+// string APPROXIMATE_EMISSIVITY="Leung"; // Can be "Leung" or "Melrose"
+string APPROXIMATE_EMISSIVITY="Leung"; // Can be "Leung" or "Melrose"
+if (APPROXIMATE_EMISSIVITY== "Melrose") jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*Xe*exp(-pow(Xe,(doub)0.3333));       //simple approximation for total emissivity
+else if (APPROXIMATE_EMISSIVITY== "Leung") {
+  doub tem=(sqrt(Xe)+pow(2.,11./12.)*pow(Xe,(doub)0.166666));                                //auxiliary
+   // RG: STRANGE: jIc_approx ~ nus The^-2 tem e^(Xe^1/3) ~ Xe^1/2 e^(Xe^1/3) ~ tet^-1 e^(tet^-2/3)
+   jIc_approx=rho*rgrav/2.*sqrt(2.)*PI*ee*ee*nus/6./The/The/cc*tem*tem*exp(-pow(Xe,(doub)0.3333));  //more accurate approximation for total emissivity from Leung et al. (2011)
+}
+else {
+  printf(YELLOW"[evalpointzero.cpp]: "RED"CHOOSE APPROXIMATE EMISSIVITY..."RESET"\n");
+   exit(1);
+}
+
+// if (jIc_approx<1e-14) printf(YELLOW"[evalpointzero.cpp]: "RED"WARNING! ... Approximate Emissivity is very low jIc_approx=%g jIc=%g..."RESET"\n",jIc_approx, jIc);
+
 aIc_approx=jIc_approx/Bnu;                                                                             //correspondent absorptivity (this is used/stored in ff[4])
 
 
@@ -982,3 +994,16 @@ if( isnan(jIc) || isnan(jQc) || isnan(jVc) ){ //check for NANs
   //t_solvetrans += (clock() - t_b4_solvetrans) / (doub)CLOCKS_PER_SEC;
   exit(-1);
 };
+
+
+
+// DIAGNOSTIC
+if (nxy==1) {
+  string FILENAME_DIAG="geodesic_info.DEBUG";
+  FILE *fp;
+  fp=fopen(FILENAME_DIAG.c_str(),"a");
+  //          0  1  2  3  4  5  6  7  8  9  10 11     0  1   2      3   4   5   6    7      8    9    10          11          12
+  fprintf(fp,"%f %d %f %d %f %d %f %f %f %g %g %d %f\n", rr,rn, costh, tn, ph, ak, rho, T_sim, tet, jIc, jIc_approx, geod_pt_idx, lz);
+  fclose(fp);
+    
+ }

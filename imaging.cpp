@@ -20,12 +20,11 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 		ppy[currth].nu=1e9*sftab[kk][0];                       //frequency
 
 
-        // if (currth==1) printf(YELLOW"[imaging.cpp]: "RESET"affine parameter t=%f r=y[4]=%f stN=%d\n",t,y[4],stN);
-
-        //clock_t t_b4_solvetrans = clock();
         /*************************************************
 		 * new radiative transfer is solved for each ray *
          *************************************************/
+
+        //clock_t t_b4_solvetrans = clock();
         #include "solvetrans.cpp"
         //t_solvetrans += (clock() - t_b4_solvetrans) / (float)CLOCKS_PER_SEC;
 
@@ -45,7 +44,8 @@ for(ix=0;ix<(nxy+1)*(nxy+1);ix++){                             //cycle over all 
 
 
 
-typedef double (*arra)[nxy+1][nxy+1][5];                       //array of intensities
+//RG:Why "double" and not "doub"?
+typedef double (*arra)[nxy+1][nxy+1][5];                       //array of intensities 
    arra intab = (arra) new double[nxy+1][nxy+1][5];
  typedef double (*para)[20];                                   //array of parameters
   para params = (para) new double[20];
@@ -75,15 +75,20 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 			in[kk][il]+=((*intab)[nxy-1][iy][il] + (*intab)[nxy-1][1 + iy][il] + (*intab)[nxy][iy][il] + (*intab)[nxy][1 + iy][il])*hei*hei/4.;
 
 	for(il=0;il<5;il++)
-		in[kk][il]*=maxy*maxy;                                //normalization over integration region size
-	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                              //normalization for angular size of Sgr A* region - recompute for your object!
-	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0];//compute total LP fraction
-	CP[kk]=100.*in[kk][3]/in[kk][0];                                     //compute CP fraction
-	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);        //compute EVPA
-	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                              //normalize 5-th intensity as total intensity
+      in[kk][il]*=maxy*maxy;                                              // normalization over integration region size
+	totin[kk]=Jy2cgs*ang_size_norm*in[kk][0];                             // normalization for angular size see [global_variables.cpp]
+	LPo[kk]=100.*sqrt(in[kk][1]*in[kk][1]+in[kk][2]*in[kk][2])/in[kk][0]; // total LP fraction
+	CP[kk]=100.*in[kk][3]/in[kk][0];                                      // CP fraction
+	EVPA[kk]=fmod(180/PI*atan2(in[kk][2],in[kk][1])/2.+180.,180);         // EVPA
+	err[kk]=Jy2cgs*ang_size_norm*in[kk][4];                               //normalize 5-th intensity as total intensity
 	printf("%d; f=%.1f; I=%.3fJy LP=%.2f%% EVPA=%.1fdeg CP=%.3f%% non-pol I=%.2fJy \n",fnum,sftab[kk][0], totin[kk],LPo[kk],EVPA[kk], CP[kk],err[kk]);
 
-	//setting parameters to be written in file
+
+    /*****************************
+     * WRITE DIAGNOSTICS TO FILE *
+     *****************************/
+
+	// setting parameters to be written to file header
 	(*params)[0]=a;
 	(*params)[1]=th;
 	(*params)[2]=double(nxy);
@@ -116,7 +121,7 @@ for(kk=kmin;kk<=kmax;kk+=kstep){
 if(iswrite){
     // RG: TODO write header using static int
 	stringstream sstr;                                                             //prepare to write full spectra into "poliresa" files
-	sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"hi";//"hi" is a for high resolution
+	sstr <<(int)100*a<<"th"<<(int)floor(100*th+1e-6)<<"fn"<<fnum<<"hi";            //"hi": high resolution
 	string stra = sstr.str();
 	FILE * pFile; 
 	pFile=fopen ((dir+"poliresa"+stra+fif+".dat").c_str(),"a");                    //open polires*
@@ -125,5 +130,6 @@ if(iswrite){
 	fclose(pFile);
 
 };
-delete [] intab;                                                                   //delete dynamic variable
-delete [] params;                                                                  //delete parameters
+
+delete [] intab;
+delete [] params;
