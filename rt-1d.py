@@ -681,7 +681,7 @@ if string.lower(PLOT_SED)=="yes":
 
         # plot(SED[:,0],SED[:,1],plot_style,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
         SED=loadtxt(FILE,usecols=col_SED)
-        plot(SED[:,col_SED[0]],SED[:,col_SED[1]],'co-',linewidth=1)
+        plot(SED[:,col_SED[0]],SED[:,col_SED[1]],'co-',linewidth=1,markersize=10)
         #    plot(SED[:,0],SED[:,1],'c.-',alpha=0.5,label=FILE)# r"$\rm T_{e,jet}=35m_ec^2,SCS$")
 
         if FILES_1D==FILE:
@@ -719,9 +719,11 @@ if string.lower(PLOT_SED)=="yes":
       # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~vv [issue with "0"]
       plot_style = str(MARKERS[(FILES_1D.index(FILE)+1)%size_markers])+str(Line2D.lineStyles.keys()[(FILES_1D.index(FILE)+3)%size_lineStyles])
 
+      print FILE,"plot_style:",plot_style
+
       for panel in range(1,5):
         subplot(220+panel)
-        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=1,label="model")
+        plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=1,label="model",markersize=8)
         # plot(SED[:,col_SED[0]],SED[:,col_SED[0]+panel],plot_style,linewidth=2,markersize=12,label="model")
         if panel==1:
             plot(nu,SgrA_SED_FIT(nu),'k--',alpha=0.25,lw=3,label="FIT") 
@@ -741,7 +743,7 @@ if string.lower(PLOT_SED)=="yes":
         if panel==3 or panel==4:
             gca().set(xlabel=r"$\nu[GHz]$")
         gca().set(ylabel=bestfit_labels[panel-1],xticks=arange(0,1250,250),yticks=yticks_obs[panel-1])
-        xlim(80,900)
+        xlim(0,900)
         # tight_layout(pad=0.2,w_pad=0.1,h_pad=0)
         tight_layout()
         savefig("F_LP_CP_EVPA.png")
