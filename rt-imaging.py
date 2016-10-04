@@ -30,11 +30,12 @@ from scipy.constants import *
 from scipy import fftpack
 import matplotlib.ticker as ticker
 
-rc('font',size=15)
+rc('font',size=18)
 
 ################
 ## USER SPECS ##
 # TIME_AVERAGE=True # generalized code, obsolete now
+OUTPUT_EXT="png" # "pdf" # A WORD OF CAUTION: "pdf" option is very slow...
 miniversion = True # False True
 WANTED_PLOTS=["IQUV","IP"] # "IP","IQUV"
 # WANTED_PLOTS=["IP"]
@@ -43,7 +44,8 @@ filename = sys.argv[1] # should point to shotimage*.dat file
 
 HOME=commands.getoutput("echo $HOME")
 # RT_DIR="/rt/"
-RT_DIR="/codes/rt-git/"
+# RT_DIR="/codes/rt-git/"
+RT_DIR="/codes/astroray/"
 
 I_xy_scale=1
 Jy2cgs=1e23
@@ -193,7 +195,7 @@ uvspacing = image_size_rad/nxy
 
 data = empty((nxy+1,nxy+1,5))
 IMAGE_FILES = [entry for entry in sys.argv[1:] if "shotimag" in entry]
-filename=filename.replace(iter,iter+"-"+IMAGE_FILES[-1].split("fn")[1].split("case")[0])
+filename=filename.replace("fn"+iter,"fn"+iter+"-"+IMAGE_FILES[-1].split("fn")[1].split("case")[0])
 print filename
 for filename_snapshot in IMAGE_FILES:
     fp = open(filename_snapshot,"rb")
@@ -201,7 +203,8 @@ for filename_snapshot in IMAGE_FILES:
     nxy=int(header[2])
     data += fromfile(fp,dtype=float64).reshape(nxy+1,nxy+1,5)/size(IMAGE_FILES)
     fp.close()
-filename_out = filename.replace(".dat",".png")
+filename_out = filename.replace(".dat","."+OUTPUT_EXT)
+# filename_out = filename.replace(".dat",".png")
 
 ## HEADER INFO (see [imaging.cpp]) ##
 a=header[0];th=header[1];nxy=int(header[2]);
@@ -384,9 +387,16 @@ def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.01,I_threshold=0.05):
 
     # silver color
     # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
-    quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="black",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+    # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="black",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+    quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="y",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
+    # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="orange",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
 
     # quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+
+    # quiverkey(quiver_inst2, 0.85, 0.97, amax(LP_xy), r'$LP='+str(round(amax(LP_xy)*LP_xy_scale,2))+'Jy/\mu as$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15},labelcolor='grey')
+    # above axes (upper left)
+    # quiverkey(quiver_inst2, 0.25, 1.05, amax(LP_xy), r'$LP:'+str(round(amax(LP_xy)*LP_xy_scale,2))+r'Jy/\mu as^2}$', coordinates='axes', labelpos='W',fontproperties={'weight': 'bold', 'size': 12},labelcolor='y')
+    quiverkey(quiver_inst2, -42, 36, amax(LP_xy), r'$LP:'+str(round(amax(LP_xy)*LP_xy_scale,2))+r'Jy/\mu as^2}$', coordinates='data', labelpos='E',fontproperties={'weight': 'bold', 'size': 15},labelcolor='y')
 
     # quiverkey(quiver_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
 
@@ -440,6 +450,7 @@ units_Jy=I_img_avg/mean(data[:,:,0])
 
 for i in range(4):
     data[:,:,i] *= units_Jy/pixeldim**2
+    data[:,:,i] /= nxy*nxy
 
 I_xy = data[:,:,0]
 Q_xy = data[:,:,1]
@@ -621,14 +632,14 @@ if "IQUV" in WANTED_PLOTS:
     for plot_loop in range(len(titles)):
         
         ## image plane ##
-        fig_xy.add_subplot(221+plot_loop)
+        subplot_inst = fig_xy.add_subplot(221+plot_loop)
         pcolormesh(X,Y,data[:,:,plot_loop]*[I_xy_scale,Q_xy_scale,U_xy_scale,V_xy_scale][plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
         # pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1])
         cb = colorbar(pad=0)
         # cb = colorbar(format=ticker.FuncFormatter(fmt),pad=0)
         # WIP: I->[0,) Q,U can be negative... mpl does not like (0.0,0,1)
         # cb = colorbar(ticks=(round(limits_colors_xy[plot_loop][0],1),0,round(limits_colors_xy[plot_loop][1],1)),pad=0)
-        cb.ax.set_title(r"$Jy/\mu as^2$")
+        cb.ax.set_title(r"$Jy/\mu as^2$",fontsize=12)
         # pcolormesh(X,Y,data[:,:,plot_loop],cmap=colormaps[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop>=1],vmin=limits_colors_xy[plot_loop][0],vmax=limits_colors_xy[plot_loop][1])
         # colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_xy[plot_loop][0],limits_colors_xy[plot_loop][1],5))
         # #clim(limits_colors_xy[plot_loop])
@@ -689,7 +700,7 @@ if "IP" in WANTED_PLOTS:
     for plot_loop in range(len(titles)): #
         
         ## image plane ##
-        fig_xy_4panel.add_subplot(221+plot_loop)
+        subplot_inst = fig_xy_4panel.add_subplot(221+plot_loop) # use subplot_inst with quiverkey
     
         # pcolormesh(X,Y,[I_xy,abs(Q_xy+1j*U_xy),EVPA_xy,V_xy][plot_loop])
         pcolormesh(X,Y,[I_xy*I_xy_scale,abs(Q_xy+1j*U_xy)*LP_xy_scale,EVPA_xy,V_xy*V_xy_scale][plot_loop],cmap=colormaps_4panel[plot_loop],norm=[None,MidpointNormalize(midpoint=0)][plot_loop==3],rasterized=True)
@@ -701,6 +712,7 @@ if "IP" in WANTED_PLOTS:
         else:
             cbar_4panel_xy=colorbar(ticks=arange(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],0.2),pad=0)
             cbar_4panel_xy.locator=matplotlib.ticker.MaxNLocator(5)
+            cbar_4panel_xy.ax.set_title(r"$Jy/\mu as^2$",fontsize=12)
 
         # else:
         #     colorbar(format=ticker.FuncFormatter(fmt),pad=0,ticks=linspace(limits_colors_4panel_xy[plot_loop][0],limits_colors_4panel_xy[plot_loop][1],5))
@@ -708,7 +720,8 @@ if "IP" in WANTED_PLOTS:
 
         if plot_loop==0:
             # plot_polticks()
-            plot_polticks(scale_quiver=3e1*I_img_avg*(observing_frequency/230.)**2.)
+            # plot_polticks(scale_quiver=3e1*I_img_avg*(observing_frequency/230.)**2.)
+            plot_polticks(scale_quiver=3e1*mean(I_xy)*(observing_frequency/230.)**2.) # use subplot_inst somehow
             # plot_polticks(scale_quiver=3e-3) # 4e1*I_img_avg*)
             # plot_polticks(width_quiver=0.01,scale_quiver=20,I_threshold=0.1)
         plot_shadows("xy")
@@ -807,7 +820,10 @@ figure(9)
 every=6
 I_threshold=0.05 
 # scale_quiver=1e-4 # 0.2 * amax(I_xy)  # 0.2  good for LP/I
-scale_quiver=1e-4/I_img_avg # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+
+# scale_quiver=1e-4/I_img_avg # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+scale_quiver=3e1/mean(I_xy)*(observing_frequency/230.)**2. # 0.2 * amax(I_xy)  # 0.2  good for LP/I
+
 width_quiver=0.01 # 0.01 good for LP/I
 ## WORKS WELL FOR 102Ghz (SGR A*)
 # every=6
@@ -816,7 +832,7 @@ width_quiver=0.01 # 0.01 good for LP/I
 # width_quiver=0.01 # 0.01 good for LP/I
 
 # M87 & AVERY's MODEL
-scale_quiver=1e-5
+# scale_quiver=1e-5
 
 Q_masked=(Q_xy/I_xy)
 Q_masked[I_xy < I_threshold*amax(I_xy)] = 0. # None # 0.
@@ -929,14 +945,15 @@ CMAP_SHADOW=cm.cubehelix
 
 pcolormesh(X,Y,I_xy*I_xy_scale,cmap=CMAP_SHADOW,vmax=limits_colors_xy[0][1])
 # pcolormesh(X,Y,I_xy,cmap=cm.cubehelix,vmax=3e-3)
-colorbar(pad=0)
+cb_fig9 = colorbar(pad=0)
+cb_fig9.ax.set_title(r"$Jy/\mu as^2$",fontsize=12)
 
 # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.5,pivot="mid",width=0.005,angles="xy")
 
 plot_shadows("xy")
 # plot_polticks(width_quiver=0.01,scale_quiver=3e-3)
 # plot_polticks(width_quiver=0.01,scale_quiver=3e-3*(observing_frequency/230.)**2.)
-plot_polticks(width_quiver=0.01,scale_quiver=3e1*I_img_avg*(observing_frequency/230.)**2.)
+plot_polticks(width_quiver=0.01,scale_quiver=1e2*mean(LP_xy)*(observing_frequency/230.)**2.)
 
 # strange "fan":
 #quiverkey(quiver_inst, 0.7, 0.95, 0.5, r'$50\%$', coordinates='figure', labelpos='W') # ,fontsize=18)# ,fontproperties={'weight': 'bold'})
@@ -952,7 +969,9 @@ plot_polticks(width_quiver=0.01,scale_quiver=3e1*I_img_avg*(observing_frequency/
 gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string)
 axis('equal')
 axis(limits_xy) # +array([+10,-10,+10,-10]))
-tight_layout(pad=0.1, w_pad=0., h_pad=0)
+# tight_layout(pad=0.1, w_pad=0., h_pad=0)
+# tight_layout(pad=0, w_pad=0, h_pad=0.95)
+tight_layout(rect=(0,0,1,1.02))
 savefig(filename_out.replace(".png","_polarization-ticks.png"))
 
 
