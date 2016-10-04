@@ -43,7 +43,8 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
     '''Given EHT configuration file for given observing frequency
     output uv tracks for specified baseline between baseline1 and baseline2 
     rotated by the angle specified by orientation.'''
-    VLBI_ARRAY="VLBA" # "EHT","VLBA"
+    # VLBI_ARRAY="VLBA" # "EHT","VLBA"
+    VLBI_ARRAY="EHT" # "EHT","VLBA"
     EHT_config_file=HOME+RT_DIR+VLBI_ARRAY+"-obs-"+filename.split('fn')[0].split('f')[1]+"Ghz-2017.txt"
     if string.lower(baseline1)=="all" or string.lower(baseline1)=="":
         EHT_config_file="obs.txt"
@@ -66,6 +67,9 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 
 
 ## USER SPECS ##
+UV_TRACKING=[]
+UV_TRACKING+=["BASELINE_FIXED"] # Fix uv point to first point on uv track
+# UV_TRACKING+=["EHT"]
 # UV_TRACKING=["PICKaPOINT","EHT","LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "LMT-SMT","SMT-SMA"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=[  "PICKaPOINT",      "SMT-SMA","LMT-SMT"] # "PICKaPOINT" or "EHT"
@@ -73,8 +77,9 @@ def get_EHT_uv_tracks(baseline1="",baseline2="",filename=sys.argv[1],orientation
 # UV_TRACKING=[  "BASELINE_FIXED",      "ALMA-GBT"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=["ALMA-LMT"] # "PICKaPOINT" or "EHT"
 # UV_TRACKING=["LMT-GBT"] # "PICKaPOINT" or "EHT"
-UV_TRACKING=["ALMA-GBT"] # "PICKaPOINT" or "EHT"
-# UV_TRACKING=["SMT-SMA"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING=["ALMA-GBT"] # "PICKaPOINT" or "EHT"
+UV_TRACKING+=["SMT-SMA"] # "PICKaPOINT" or "EHT"
+# UV_TRACKING+=["PICKaPOINT"]
 
 FILE_EXT=["png","pdf"] # pdf is super slow... why pcolormesh plot?
 mbreve="yes"
@@ -390,10 +395,12 @@ for snapshot in FILES_2D:
 
     mbreve_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe,v_probe)[0]]
     mbreve_conjugate_vs_t += [interp2d(u_incr,v_incr,mbreve_uv)(-u_probe,-v_probe)[0]]
-    dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
-    dmbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,mbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
-    dEVPA_vs_t_baseline += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,EVPA_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
-
+    try:
+        dEVPA_vs_t   += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe,v_probe)[0]-interp2d(u_incr,v_incr,EVPA_uv)(-u_probe,-v_probe)[0]]
+        dmbreve_vs_t_baseline += [interp2d(u_incr,v_incr,mbreve_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,mbreve_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
+        dEVPA_vs_t_baseline += [interp2d(u_incr,v_incr,EVPA_uv)(u_probe_baseline,v_probe_baseline)[0]-interp2d(u_incr,v_incr,EVPA_uv)(u_probe_conjugate_baseline,v_probe_conjugate_baseline)[0]] # WIP only one time for each baseline pair
+    except TypeError:
+        pass
 
 # for jump_removal_iteration in range(5):
 #     try:
@@ -412,6 +419,7 @@ mbreve_vs_t=array(mbreve_vs_t)
 
 if string.lower(PSD)=="yes":
     figure(3)
+    print "[HARDWIRED]: d=40"
     f = fftfreq(size(mbreve_vs_t),d=40.) * (c**3/G/M)
     semilogy(f,abs(fft(mbreve_vs_t/mean(mbreve_vs_t)))**2)
     xlabel("f[Hz]")
@@ -462,22 +470,23 @@ if size(FILES_2D)>0:
                 r"$uv="+str(round(u[u_probe_index],1))+"G\lambda$",
                 r"$uv="+str(round(u[u_probe_conjugate_index],1))+"G\lambda$"
                 ]
-            if string.lower(PLOT_mbreve_vs_t)=="yes":
-                plot(TIME,mbreve_vs_t,"y-",label=labelstring_mbreve[0])
-                plot(TIME,mbreve_conjugate_vs_t,"y--",label=labelstring_mbreve[1])
         elif UV_TRACKING[0]=="BASELINE_FIXED":
             labelstring_mbreve=["fixed","fixed-conj."]            
         else:
             labelstring_mbreve=[BASELINE,BASELINE+"-conj."]
             # labelstring_mbreve=["EHT2017","EHT2017-conj."]
 
+        if string.lower(PLOT_mbreve_vs_t)=="yes" and ("PICKaPOINT" in UV_TRACKING or "BASELINE_FIXED" in UV_TRACKING):
+            plot(TIME,mbreve_vs_t,"y-",label=labelstring_mbreve[0])
+            plot(TIME,mbreve_conjugate_vs_t,"y--",label=labelstring_mbreve[1])
+
         if PLOT_Itilde_vs_t=="yes":
-            plot(TIME,Itilde_vs_t_baseline,"c-",label=label_baseline[0]+r"$:\tilde{I}$")
+            plot(TIME,Itilde_vs_t_baseline,"c-",label=label_baseline[0]+r"$:|\tilde{I}|$")
         if PLOT_mbreve_vs_t=="yes":
-            plot(TIME,mbreve_vs_t_baseline,"r-",label=label_baseline[0]+r"$:\breve{m}$")
-            plot(TIME,mbreve_vs_t_conjugate_baseline,"r--",label=label_baseline[1]+r"$:\breve{m}$")
+            plot(TIME,mbreve_vs_t_baseline,"r-",label=label_baseline[0]+r"$:|\breve{m}|$")
+            plot(TIME,mbreve_vs_t_conjugate_baseline,"r--",label=label_baseline[1]+r"$:|\breve{m}|$")
         if PLOT_vbreve_vs_t=="yes":
-            plot(TIME,vbreve_vs_t_baseline,"m-",label=label_baseline[0]+r"$:\breve{v}$")
+            plot(TIME,vbreve_vs_t_baseline,"m-",label=label_baseline[0]+r"$:|\breve{v}|$")
 
         legend(loc="upper right",labelspacing=0.1) # ,fontsize=15)
         titlestring = os.getcwd().split('/')[-1]
@@ -487,12 +496,12 @@ if size(FILES_2D)>0:
             titlestring=r"${\tt SANE\_quadrupole-disk}$"
         if titlestring=="case70816924":
             titlestring=r"${\tt MAD\_thick-disk}$"
-            # titlestring=r"orientation $"+str(round(float(ORIENTATION)-90,1))+"^\circ$"
+            titlestring=r"orientation $"+str(round(float(ORIENTATION)-90,1))+"^\circ$"
         if titlestring=="thickdisk7-jet":
             titlestring=r"${\tt MAD\_thick-jet}$"
         title(titlestring)
         xlabel(r"$t[hours]$")
-        ylabel(r"$"+[r"\tilde{I}"][not PLOT_Itilde_vs_t=="yes"]+","+[r"\breve{m}"][not PLOT_mbreve_vs_t=="yes"]+","+[r"\breve{v}"][not PLOT_vbreve_vs_t=="yes"]+"$")
+        ylabel(r"$"+[r"|\tilde{I}|"][not PLOT_Itilde_vs_t=="yes"]+","+[r"|\breve{m}|"][not PLOT_mbreve_vs_t=="yes"]+","+[r"|\breve{v}|"][not PLOT_vbreve_vs_t=="yes"]+"$")
         axis((amin(TIME),amax(TIME),0,mbreve_cap))
         tight_layout()
         for EXT in FILE_EXT:
@@ -802,15 +811,15 @@ if PLOT_CORRELATED_FLUX=="yes":
     mbreve_uv_1d_max = amax(abs(mbreve_uv_rphi),axis=1)
     vbreve_uv_1d = mean(abs(vbreve_uv_rphi),axis=1)
 
-    plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$\tilde{I}:\phi-avg$")
+    plot(r_uv,I_uv_1d/I_uv_1d[0],'cs-',label=r"$|\tilde{I}/\tilde{I}_0|:\phi-avg$")
     fill_between(r_uv,I_uv_1d_min/I_uv_1d[0],I_uv_1d_max/I_uv_1d[0],color='cyan',alpha=0.5)
 
-    plot(r_uv,mbreve_uv_1d_mean,'rx-',label=r"$\breve{m}:\phi-mean$")
-    plot(r_uv,mbreve_uv_1d_median,'rd--',label=r"$\breve{m}:\phi-median$")
+    plot(r_uv,mbreve_uv_1d_mean,'rx-',label=r"$|\breve{m}|:\phi-mean$")
+    plot(r_uv,mbreve_uv_1d_median,'rd--',label=r"|$\breve{m}|:\phi-median$")
     # plot(r_uv,mbreve_uv_1d_mode,'ro-',label=r"$\breve{m}:\phi-mode$")
     fill_between(r_uv,mbreve_uv_1d_min,mbreve_uv_1d_max,color='red',alpha=0.2)
 
-    plot(r_uv,vbreve_uv_1d,'o-',color='gray',label=r"$\breve{v}:\phi-avg$")
+    plot(r_uv,vbreve_uv_1d,'o-',color='gray',label=r"$|\breve{v}|:\phi-avg$")
     # plot(v,abs(I_uv[uv_idx,:])/I_uv_max,'kx-',label=r"$I(u=0)$")
     # plot(u,abs(I_uv[:,uv_idx])/I_uv_max,'m+-',label=r"$I(v=0)$")
 
@@ -835,10 +844,10 @@ if PLOT_CORRELATED_FLUX=="yes":
         # FIXME I_1d_uv_obs = array([[0.6,1],[2.8,None],[3,None],[3.5,0.35]])
         # I_uv_err = array([0.2,0.03,0.05,0.05]) #RG: ...WIP... BY EYE FROM SCIENCE PLOT
         I_uv_err = EHT_2013_I #RG: ...WIP... BY EYE FROM SCIENCE PLOT
-        errorbar(EHT_2013_I[:,0]/1e9,EHT_2013_I[:,1],yerr=EHT_2013_I[:,2],fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
+        errorbar(EHT_2013_I[:,0]/1e9,EHT_2013_I[:,1],yerr=EHT_2013_I[:,2],fmt='ks',label=r"$|\tilde{I}/\tilde{I}_0|$"+": EHT (day 80)")#"observed (day 80)")
         # errorbar(I_1d_uv_obs[:,0],I_1d_uv_obs[:,1],yerr=I_uv_err,fmt='ks',label=r"$|\tilde{I}|$"+": EHT (day 80)")#"observed (day 80)")
         # ylabel(r"$\|\tilde{I}/\tilde{I}_{\rm max}\|$");
-        axis((0,10,0,1.1));xlabel(r"baseline length");legend=legend(labelspacing=0.1);tight_layout()
+        axis((0,10,0,1.1));xlabel(r"baseline length");legend=legend(labelspacing=0.1,loc="upper right");tight_layout()
         legend.get_frame().set_alpha(0.5)
         plt.setp(gca().get_legend().get_texts(), fontsize='18') 
 
