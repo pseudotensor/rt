@@ -1,6 +1,7 @@
 import grtrans_batch as gr
 import pickle
 import pylab
+# import matplotlib
 from pylab import *
 import numpy as np
 import copy
@@ -10,6 +11,11 @@ from scipy import ndimage,constants
 pc = scipy.constants.parsec # SI
 G = scipy.constants.G # SI
 c = scipy.constants.c # SI
+
+try:
+    __IPYTHON__
+except:
+    ioff()
 
 #t_rg =  # time in secs assuming Sgr A*                                      
 Msun = 2e30 # SI
@@ -62,7 +68,7 @@ class MidpointNormalize(Normalize):
 xlist=[]
 xlist.append(gr.grtrans())
 npixel_ASTRORAY=152 # 303 # 152
-npixel=100 # 152 # 303 # 152
+npixel=100 # problem with 10?# 150  # 152 # 303 # 152
 nr_of_snapshots=1 # 1 # 5 # 100
 I_avg=zeros((npixel,npixel))
 
@@ -77,7 +83,7 @@ mdot_max=mdot_min # 2e17# mdot_min
 mdot_nr=1 # 1 # 4
 f=857 # 349 # 231
 jonfix=1 # 0:off 1:on
-extra=1 # 1:on
+extra=0 # 1:on
 debug=1 # 1:on
 
 # DEBUGGING: 
@@ -93,8 +99,8 @@ debug=1 # 1:on
 # extra=0,debug=0,npixel=51 : NO OUTPUT, NO ERROR MESSAGE
 # extra=0,debug=0,npixel=52 : WORKS
 
-i1=npixel**2/2+int(sys.argv[-1])
-i2=i1 # i1+10
+i1=int(sys.argv[-1])
+i2=i1 # npixel*npixel # i1+10
 
 
 I_avg_array = []
@@ -135,7 +141,8 @@ for mdot in linspace(mdot_min,mdot_max,mdot_nr):
   # for viewing_angle in linspace(0,2.*pi,nr_of_snapshots): # [83:84]:
     # for viewing_angle in arange(0,2.*pi,2.*pi/nr_of_snapshots):
   # for viewing_angle in [4.*pi/3.-pi/2.]: 
-  for viewing_angle in [4.*pi/3.]: # not 0.,0.5,0.75
+  for viewing_angle in [0.]: # EQUATORIAL GEODESIC TEST
+  # for viewing_angle in [4.*pi/3.]: # not 0.,0.5,0.75
   # for viewing_angle in [-4.*pi/3.]: # not 0.,0.5,0.75
     snapshot+=1
 
@@ -165,12 +172,18 @@ for mdot in linspace(mdot_min,mdot_max,mdot_nr):
     # xlist[-1].write_grtrans_inputs('inputs.in',fname='THICKDISK',nfreq=1,nmu=1,fmin=f*1e9,fmax=f*1e9,ename='lambda',nvals=nvals,spin=0.9375,standard=1,nn=[npixel,npixel,400],uout=1e-3,mbh=4.3e6, mdotmin=mdot,mdotmax=mdot,nmdot=1,mumin=cos(th),mumax=cos(th),gridvals=[-8.6,8.6,-8.6,8.6],tgfile='dump0000.bin',tdfile='fieldline',tindf=5550,tnt=1,muval=1/11.,toff=0,phi0=viewing_angle,tjonfix=jonfix,debug=debug,extra=extra)
     # xlist[-1].write_grtrans_inputs('inputs.in',fname='THICKDISK',nfreq=1,nmu=1,fmin=f*1e9,fmax=f*1e9,ename='lambda',nvals=nvals,spin=0.9375,standard=1,nn=[npixel,npixel,400],uout=1e-3,mbh=4.3e6, mdotmin=mdot,mdotmax=mdot,nmdot=1,mumin=cos(th),mumax=cos(th),gridvals=[-25,25,-25,25],tgfile='dump0000.bin',tdfile='fieldline',tindf=5550,tnt=1,muval=1/11.,toff=0,phi0=viewing_angle,tjonfix=jonfix,debug=debug,extra=extra)
 
-    xlist[-1].write_grtrans_inputs('inputs.in',fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn=[150,150,400],uout=0.04,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=.6428,mumax=.6428,gridvals=[-13,13,-13,13],hhfile='dump040',hdfile='dump',hindf=40,hnt=1,muval=1./4.)
+    # xlist[-1].write_grtrans_inputs('inputs.in',fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn=[150,150,400],uout=0.04,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=.6428,mumax=.6428,gridvals=[-13,13,-13,13],hhfile='dump040',hdfile='dump',hindf=40,hnt=1,muval=1./4.)
+    xlist[-1].write_grtrans_inputs('inputs.in',fname='HARM',nfreq=1,nmu=1,fmin=2.3e11,fmax=2.3e11,ename='POLSYNCHTH',nvals=1,spin=0.9375,standard=1,nn=[npixel,npixel,400],uout=0.02,mbh=4e6, mdotmin=1.57e15,mdotmax=1.57e15,nmdot=1,mumin=0.0,mumax=0.0,gridvals=[-13,13,-13,13],hhfile='dump040',hdfile='dump',hindf=40,hnt=1,muval=1./4.,debug=debug,extra=extra,i1=i1,i2=i2);
+    # uout=0.04 <-> d~25
+    # uout=0.02 <-> d~50
+    # uout=0.01 <-> yells
+    # Program received signal SIGSEGV: Segmentation fault - invalid memory reference.
 
     grtrans_file_out = "grtrans_thickdisk7_i"+str(int(th*100))+"rad_view"+str(viewing_angle)+"_mdot"+str(mdot)+"_f"+str(f)+".dat"
     print "grtrans_file_out:",grtrans_file_out
 
     try:
+        raise # FORCE_LAUNCH_GRTRANS
         IQUV_grtrans=loadtxt(grtrans_file_out).reshape([nvals,13+nvals][extra],npixel,npixel)
     except:
         print "LAUNCHING GRTRANS RUN..."
@@ -413,51 +426,65 @@ savefig("grtrans-vs-astroray_thickdisk7_view_avg"+"mdot"+str(mdot)+".png")
 # title("Sobel filtered (edge detection)")
 # axis('off')
 
-if extra==1: # debug==1:
+def xyz2deflection(x,y,z,every=10):
+    '''IN: x,y,z coordinates along a geodesic                                                        
+       OUT: deflection angle'''
+    tangent_in  = array((diff(x[::every])[ 0],diff(y[::every])[ 0],diff(z[::every])[ 0]))
+    tangent_out = array((diff(x[::every])[-1],diff(y[::every])[-1],diff(z[::every])[-1]))
+    # A.B=|A||B|cos(angle)                                                                           
+    cos_angle = dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
+    return arccos(cos_angle)
+
+
+# if extra==1: # debug==1:
+if debug==1:
 
   try:
     import read_geodebug_file as d
   except ImportError:
     pass
 
-  figure(0)
+  # figure(0)
   # d.r d.th d.phi
   x = d.r * sin(d.th) * cos(d.phi)
   y = d.r * sin(d.th) * sin(d.phi)
   z = d.r * cos(d.th)
-  tangent_in  = array((diff(x)[ 0],diff(y)[ 0],diff(z)[ 0]))
-  tangent_out = array((diff(x)[-1],diff(y)[-1],diff(z)[-1]))
-  # A.B=|A||B|cos(angle)
-  cos_angle=dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
-  print "Deflection angle ",arccos(cos_angle),"rad =",arccos(cos_angle)/2./pi*360.,"deg"
-  from mpl_toolkits.mplot3d import Axes3D
+  savetxt("grtrans_geodesic_"+str(i1)+"_alpha"+str(d.alpha)+"_beta"+str(d.beta)+".txt",(x,y,z))
 
 
-  # http://arxiv.org/pdf/gr-qc/9907034v1.pdf eqs.(20),(24)
-  r_per=amin(d.r) # units [M]
-  b=sqrt(d.alpha**2+d.beta**2) # units [M]
-  a=d.a
+  # cos_angle = cos(xyz2deflection(x,y,z))
+  # print "Deflection angle ",arccos(cos_angle),"rad =",arccos(cos_angle)/2./pi*360.,"deg"
 
-  deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
-  # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
-  deflection_angle_weakfield_Sereno = 4./b + (15./4./pi-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5
-  deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.)))
-  # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eqs.(8),(14->23),(17->25)
+  # # http://arxiv.org/pdf/gr-qc/9907034v1.pdf eqs.(20),(24)
+  # r_per=amin(d.r) # units [M]
+  # b=sqrt(d.alpha**2+d.beta**2) # units [M]
+  # a=d.a
 
-  alpha_vs_b_file = file("grtrans_alpha_vs_b.dat","a")
-  savetxt(alpha_vs_b_file,array([i1,i2,d.alpha,d.beta,b,arccos(cos_angle),deflection_angle_weakfield_Sereno]).T,newline=" ")
-  # savetxt(alpha_vs_b_file,["\n"])
-  alpha_vs_b_file.write("\n")
-  alpha_vs_b_file.close()
+  # deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
+  # # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
+  # deflection_angle_weakfield_Sereno = 4./b + (15./4./pi-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5
+  # deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.)))
+  # # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eqs.(8),(14->23),(17->25)
 
-  # http://arxiv.org/pdf/1405.2919.pdf see Figs. 2.2,3.5
-  # ASTRORAY_geodesic.dat
-  print "pericenter=",r_per
-  print "impact parameter b=",b
-  print "...assuming Schwarzschild..."
-  print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
-  print "deflection_angle_weakfield_Sereno=",deflection_angle_weakfield_Sereno,"rad =",deflection_angle_weakfield_Sereno/2./pi*360.,"deg"
-  print "deflection_angle_strongfield=",deflection_angle_strongfield,"rad =",deflection_angle_strongfield/2./pi*360.,"deg"
+  # alpha_vs_b_file = file("grtrans_alpha_vs_b.dat","a")
+  # alpha_vs_b_file.write("# i1 i2 x y z alpha beta b deflection_angle weakfield_angle \n") # HEADER
+  # # savetxt(alpha_vs_b_file,array([i1,i2,d.alpha,d.beta,b,arccos(cos_angle),deflection_angle_weakfield_Sereno]).T,newline=" ")
+  # savetxt(alpha_vs_b_file,array([int(i1),int(i2),x[0],y[0],z[0],d.alpha,d.beta,b,arccos(cos_angle),deflection_angle_weakfield_Sereno]).T,newline=" ")
+  # # savetxt(alpha_vs_b_file,["\n"])
+  # alpha_vs_b_file.write("\n")
+  # alpha_vs_b_file.close()
+
+  # # http://arxiv.org/pdf/1405.2919.pdf see Figs. 2.2,3.5
+  # # ASTRORAY_geodesic.dat
+  # print "pericenter=",r_per
+  # print "impact parameter b=",b
+  # print "...assuming Schwarzschild..."
+  # print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
+  # print "deflection_angle_weakfield_Sereno=",deflection_angle_weakfield_Sereno,"rad =",deflection_angle_weakfield_Sereno/2./pi*360.,"deg"
+  # print "deflection_angle_strongfield=",deflection_angle_strongfield,"rad =",deflection_angle_strongfield/2./pi*360.,"deg"
+
+######################################################################################################################################################
+
 
   figure(-1,figsize=(8,14))
   subplot(511)
@@ -486,7 +513,10 @@ if extra==1: # debug==1:
 
   subplot(515)
   ticklabel_format(style="sci",scilimits=(14,1),useOffset=True)
-  plot(d.r,d.rho,'.-') # radius vs rest-mass density ?
+  try:
+      plot(d.r,d.rho,'.-') # radius vs rest-mass density ?
+  except:
+      pass
   xlabel(r"$r/M$") 
   ylabel(r"$\rho$")
 

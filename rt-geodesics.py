@@ -2,16 +2,21 @@
 
 # USAGE:
 # python -i rt-geodesics.py [USER-FILENAME] 0 0
+# [USER-FILENAME]: geodesics93.75th157fn5550geodesic*.dat
 # Last two numbers select range (min,max) in viewing angles
 
-import string,matplotlib
+# matplotlib.use('GTKAgg')
+# matplotlib.use('Agg')
+import string,matplotlib,glob,sys
 
 try:
     __IPYTHON__ ## ARE WE RUNNING FROM IPYTHON?
 except:
     matplotlib.use("Agg") # produces png without X
+    # ioff() UNKNOWN WITHOUT IPYTHON
 
-import pylab
+# from matplotlib.pyplot import *
+# from numpy import * # loadtxt,savetxt,amin
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -19,10 +24,16 @@ angle_min=int(sys.argv[-2])
 angle_max=int(sys.argv[-1])
 sys.argv = sys.argv[:-2] # discard two last int arg for viewing angle
 
-anim=False
-figure1=True
-figure4=True
-figure3=True
+anim=False # figure(2)
+figure1=False
+figure4=False
+figure3=False
+figure5=True # deflection angle vs impact parameter
+
+
+def b_sc(a,s):
+    return -a+s*6.*cos(1./3.*arccos(-s*a))
+
 
 # FORMAT: ppy[geodesic_label].cooxx[p][geo_idx]
 #          r=y[4]
@@ -57,24 +68,70 @@ fig3d = figure(2)
 ax3d = fig3d.gca(projection='3d')
 
 veto = 0 # counter for vetos on bad geodesics
+bmax = 0 # max impact parameter of all geodesics
+alpha_vs_b = []
 
-for FILE in sys.argv[1:]:
+## GET DATA ##
+
+b_vs_deflection_angle_vrt2 = []
+
+# GET GRTRANS DATA (SEE LATER: grtrans_geodesics_*.txt )
+
+# d_grtrans = loadtxt("grtrans_alpha_vs_b.dat",comments='#')
+# d_grtrans = d_grtrans[d_grtrans[:,4]<b_sc(a,-1)] # filter out captured orbits
+# sign_of_b_grtrans = d_grtrans[:,2] d_grtrans[:,3] 
+# d_eq_grtrans = d_grtrans[abs(d_grtrans[:,5])==amin(abs(d_grtrans[:,5])),:] # FOCUS ON SMALLEST Z COORDINATE: EQUATOR?
+# d_eq_grtrans = d_grtrans[-20:,:]
+
+# GET VRT2 DATA
+d_vrt2=[]
+
+
+def xyz2deflection(x,y,z,every=10):
+    '''IN: x,y,z coordinates along a geodesic
+       OUT: deflection angle'''
+    tangent_in  = array((diff(x[::every])[ 0],diff(y[::every])[ 0],diff(z[::every])[ 0]))
+    tangent_out = array((diff(x[::every])[-1],diff(y[::every])[-1],diff(z[::every])[-1]))
+    # A.B=|A||B|cos(angle)
+    cos_angle = dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
+    return arccos(cos_angle)
+
+# WIP: COMPUTE DEFLECTION ANGLE FROM x,y,z and compare to grtrans_alpha_vs_b.dat 9th col
+# print "d_grtrans[-1,8]=",d_grtrans[-1,8]," deflection_angle=",xyz2deflection(d_grtrans[-1,2],d_grtrans[-1,3],d_grtrans[-1,4])
+
+
+# GET vrt data (Avery's code) lambda t x y z
+for FILE_vrt2 in glob.glob("./avery_ray_tracing_test_data/eta_*_n.d"):
+    d_vrt2.append(loadtxt(FILE_vrt2,skiprows=1,usecols=(2,3,4))) # get x,y,z coordinates of ray trajectory
+    a=0.9375 ## HARDWIRED
+    x_vrt2,y_vrt2,z_vrt2 = d_vrt2[-1][:,0],d_vrt2[-1][:,1],d_vrt2[-1][:,2]
+    # if sqrt(x_vrt2[-1]**2+y_vrt2[-1]**2)<b_sc(a,1):
+    if amin(sqrt(x_vrt2**2+y_vrt2**2))<b_sc(a,1):
+        # y_vrt2[0]<b_sc(a,1):
+        continue # pass
+    b_vrt2 = y_vrt2[0] # impact parameter
+
+    deflection_angle_vrt2 = xyz2deflection(x_vrt2,y_vrt2,z_vrt2)
+    print "Deflection angle (vrt2):",deflection_angle_vrt2,"rad =",deflection_angle_vrt2/2./pi*360.,"deg b=",b_vrt2
+    
+    # b_vs_cos_angle_vrt2 = hstack((b_vs_cos_angle_vrt2,(cos_angle_vrt2,b_vrt2)))
+    b_vs_deflection_angle_vrt2.append((b_vrt2,deflection_angle_vrt2))
+    
+b_vs_deflection_angle_vrt2 = array(b_vs_deflection_angle_vrt2)
+
+
+
+every_nth_geodesic=1
+every_nth_point_on_each_geodesic=1 # FIXME: UNEXPECTED BEHAVIOR FOR VALUES != 1
+for FILE in sys.argv[1:][::every_nth_geodesic]:
     filename=FILE # e.g. ~> 93.75th43fn2150geodesic.dat
 
-    d=loadtxt(filename)
+    d=loadtxt(filename)[::every_nth_point_on_each_geodesic,:]
 
-    a=float(filename.split("geodesics")[1].split("th")[0])/100. # spin from filename
+    a=float(filename.split("/")[-1].split("geodesics")[1].split("th")[0])/100. # spin from filename
     rh=1.+sqrt(1.-a*a);
 
-
     lambda_affine=d[:,8]
-
-    #WIP REPLACE
-    # theta = np.linspace(-4 * np.pi, 4 * np.pi, 100)
-    # z = np.linspace(-2, 2, 100)
-    # r = z**2 + 1
-    # x = r * np.sin(theta)
-    # y = r * np.cos(theta)
 
     # ASTRORAY [geoint.cpp]: y= t, phi, rp ,mup, r, mu ,tpr,phpr
     # outputting ppy[currth].cooxx[p][geo_idx] to file
@@ -130,12 +187,9 @@ for FILE in sys.argv[1:]:
     y = r*sintheta*sin(phi)
     z = r*costheta
 
-    tangent_in  = array((diff(x)[ 0],diff(y)[ 0],diff(z)[ 0]))
-    tangent_out = array((diff(x)[-1],diff(y)[-1],diff(z)[-1]))
-
     # A.B=|A||B|cos(angle)
-    cos_angle=dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
-    print "Deflection angle ",arccos(cos_angle),"rad =",arccos(cos_angle)/2./pi*360.,"deg"
+    deflection_angle_astroray = xyz2deflection(x,y,z)
+    print "Deflection angle ",deflection_angle_astroray,"rad =",deflection_angle_astroray/2./pi*360.,"deg"
 
     # http://arxiv.org/pdf/gr-qc/9907034v1.pdf eqs.(20),(24)
     # http://arxiv.org/pdf/1405.2919.pdf see Figs. 2.2,3.5
@@ -145,8 +199,17 @@ for FILE in sys.argv[1:]:
     # !!! ===>   https://arxiv.org/pdf/gr-qc/0611086v2.pdf eqs.(8),(14->23),(17->25)    <=== !!! #
     ##############################################################################################
     r_per=amin(r) # For Schwarzschild b=r_per/sqrt(1.-r_s/r_per) http://arxiv.org/abs/gr-qc/9907034
-    b=r_per # FIXME: wrong (not too bad for weak field though...)
-    b_crit = 3.*sqrt(3.) # "photon sphere":3 https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq 
+    r_0=r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
+    b=d[-1,12]
+    if b>bmax:
+        bmax=b
+    # b_crit = 3.*sqrt(3.) # "photon sphere":3 https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq 
+
+    s = sign(b) # direct orbits: s=+1 retrograd orbits: s=-1
+    # b_sc=-a+s*6.*cos(1./3.*arccos(-s*a))
+    b_crit = b_sc(a,s)
+    # b_prime = 1.-s*b_sc/b 
+    # b_prime = 1.-s*b_sc/b 
     b_prime = 1.-b_crit/b # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq before eq (20) III.D page 12 ?
 
     # elliptic integrals: http://arxiv.org/pdf/math/9409227v1.pdf
@@ -158,9 +221,10 @@ for FILE in sys.argv[1:]:
     except ImportError:
         EXACT_BENDING_ANGLE=False
         continue
+    # EXACT_BENDING_ANGLE=False # ...WIP... NOT WORKING AS EXPECTED YET
 
     # https://arxiv.org/pdf/0907.5352v1.pdf
-    b_s = sign(a)*b # BH spin 
+    b_s = s*b # BH spin 
     # What about b_s=0 ?  :-s
     P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
     Q = (P-2.)*(P+6.) # eq (19) in https://arxiv.org/pdf/0907.5352v1.pdf
@@ -171,33 +235,46 @@ for FILE in sys.argv[1:]:
     omega_0 = a*a # eq (36)
     r_0_over_Q = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
     k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
+    k=sqrt(k_squared)
     psi = sqrt( ( 1.- 2.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) /  ( 1.- 6.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) )) # eq (42)
     Omega_plus  =  +((1.+sqrt(1.-omega_0))*(1.-omega_s)-omega_0/2.)/sqrt(1.-omega_0)/(1.+sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
     Omega_minus  =  -((1.-sqrt(1.-omega_0))*(1.-omega_s)+omega_0/2.)/sqrt(1.-omega_0)/(1.-sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
     n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (43)
     n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (43)
 
-    if EXACT_BENDING_ANGLE==True:
+    if EXACT_BENDING_ANGLE==True and k==k:
         deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k)-Pi(n_plus,psi,k))+Omega_minus*(Pi(n_minus,k)-Pi(n_minus,psi,k)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
+        if deflection_angle_09075352v1.imag!=0.:
+            print "WARNING EXACT DEFLECTION ANGLE COMPLEX"
+            deflection_angle_09075352v1 = float(deflection_angle_09075352v1.real)
+        else:
+            deflection_angle_09075352v1 = float(deflection_angle_09075352v1)
 
     deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
-    deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.)))
-    print "pericenter=",r_per
-    print "impact parameter b=",b
-    print "...assuming Schwarzschild..."
+    deflection_angle_weakfield_Sereno = 4./b + (15./4./pi-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5 # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
+
+    deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.))) # http://arxiv.org/pdf/gr-qc/9907034v1.pdf SCHWARZSCHILD
+    deflection_angle_0611086v2 = -pi + log( 216.*(7.-4.*sqrt(3.))/b_prime) + (-17.+4.*sqrt(3.)+5.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime/18. + (-879.+236.*sqrt(3.)+205.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**2/1296. + (-321590.+90588*sqrt(3.)+68145.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**3/629856. # SCHWARZSCHILD
+    deflection_angle_darwin = -pi + 2.*log( 36.*(2.-sqrt(3.))/(r_per-3.)) # Darwin 1959
+    print "pericenter=",r_per,"impact parameter b=",b
+    print "...assuming Schwarzschild for weakfield..."
     print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
-    print "deflection_angle_strongfield=",deflection_angle_strongfield,"rad =",deflection_angle_strongfield/2./pi*360.,"deg"
+    # print "deflection_angle_weakfield_Sereno=",deflection_angle_weakfield_Sereno,"rad =",deflection_angle_weakfield_Sereno/2./pi*360.,"deg"
+    # print "deflection_angle_strongfield=",deflection_angle_strongfield,"rad =",deflection_angle_strongfield/2./pi*360.,"deg"
+    # print "deflection_angle_darwin=",deflection_angle_darwin,"rad =",deflection_angle_darwin/2./pi*360.,"deg"
+
+    if diff(r)[-1]>0: # HYPERBOLIC ORBIT
+        alpha_vs_b += [[b,deflection_angle_astroray,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
 
     veto += size(find(r==None))
     if False: # (amax(r)>500 and size(lambda_affine[r==amax(r)])>1):
         veto += 1
     else:
-        ax3d.plot(x, y, z,"b-",alpha=0.25,linewidth=1)
+        ax3d.plot(x,y,z,"r-",alpha=0.2,linewidth=1)
+
+    ax3d.plot(x_vrt2,y_vrt2,z_vrt2,"b-",alpha=0.9,linewidth=1)
 
 
-    #############
-    # figure(1) #
-    #############
     if figure1:
         ax1.plot(lambda_affine,r)
         # ax1.plot(d[:,-1],d[:,4],'r+',label="5th col, geodesic "+str(int(d[0,-2])))
@@ -216,6 +293,49 @@ for FILE in sys.argv[1:]:
         print "completeness =",int(completeness*100),"%"
 
 print "THERE HAVE BEEN",veto,"VETOS."
+
+fig6=figure(6)
+ax_grtrans_2d=fig6.add_subplot(111)
+grtrans_deflection_angle = []
+grtrans_b=[]
+
+GEODESICS=glob.glob("grtrans_geodesic_*_alpha*_beta*.txt")
+list.sort(GEODESICS,key=lambda x : x.split('beta')[1].split('.txt')[0]) # sort according to BETAS
+GEODESICS=GEODESICS[-100:][::4]
+
+for FILE in GEODESICS:
+# for FILE in glob.glob("grtrans_geodesic_*_alpha1.3_beta*.txt"):
+# for FILE in glob.glob("grtrans_geodesic_*_alpha*_beta1.3.txt"): # nearly equatorial
+# for FILE in glob.glob("grtrans_geodesic_*_alpha1.3_beta1.3.txt"):
+
+    alpha=float(FILE.split('alpha')[1].split('_')[0])
+    beta=float(FILE.split('beta')[1].split('.txt')[0])
+    x_grtrans,y_grtrans,z_grtrans = loadtxt(FILE)
+    r_eq_grtrans = sqrt(alpha**2+beta**2)
+    print FILE,x_grtrans[0],y_grtrans[0],z_grtrans[0]
+
+    # if amin(r_eq_grtrans)>b_sc(a,1): # filter out captured orbit
+
+    if amin(r_eq_grtrans)>abs(b_sc(a,-sign(alpha))): # filter out captured orbit
+    # if True:
+        grtrans_b.append(alpha)
+        grtrans_deflection_angle.append(xyz2deflection(x_grtrans,y_grtrans,z_grtrans))
+
+    ax3d.plot(x_grtrans,y_grtrans,z_grtrans,"g-",alpha=0.5,linewidth=1)
+    ax_grtrans_2d.plot(x_grtrans,y_grtrans,"g-",alpha=0.5,linewidth=1)
+    ax_grtrans_2d.set_xlabel('X');ax_grtrans_2d.set_ylabel('Y')
+    ax_grtrans_2d.axis('equal')
+
+ax3d.plot(x,y,z,"r-",alpha=0.2,linewidth=1,label="ASTRORAY")
+ax3d.plot(x_grtrans,y_grtrans,z_grtrans,"g-",alpha=0.5,linewidth=1,label="GRTRANS")
+# ax3d.plot(d_grtrans[:,3],d_grtrans[:,4],d_grtrans[:,5],"g-",alpha=0.5,linewidth=1,label="GRTRANS")
+ax3d.plot(x_vrt2,y_vrt2,z_vrt2,"b-",alpha=0.5,linewidth=1,label="VRT2")
+ax3d.legend()
+# LIM=100
+# ax3d.set_xlim3d(-LIM,LIM)
+# ax3d.set_ylim3d(-LIM,LIM)
+# ax3d.set_zlim3d(-LIM,LIM)
+
 
 def drawSphere(xCenter, yCenter, zCenter, r):
     #draw sphere
@@ -242,20 +362,14 @@ def drawSphere(xCenter, yCenter, zCenter, r):
 #     return (x,y,z)
 
 (xs,ys,zs) = drawSphere(0.,0.,0.,rh)
-#ax3d.plot_surface(xs,ys,zs,color='k',alpha=1)
 ax3d.plot_surface(xs,ys,zs,color='k')
 ax3d.set_aspect("equal")
+ax3d.set_xlabel("X")
+ax3d.set_ylabel("Y")
+ax3d.set_zlabel("Z")
 
 #################
 ## ANNOTATIONS ##
-
-LIM=3
-ax3d.set_xlim3d(-LIM,LIM)
-ax3d.set_ylim3d(-LIM,LIM)
-ax3d.set_zlim3d(-LIM,LIM)
-
-#ax3d.dist = 5 # distance to camera DEF:10 
-#ax3d.legend()
 
 if figure1==True:
     figure(1)
@@ -269,16 +383,54 @@ if figure3==True:
         ax3.set_ylabel(r"$\lambda$")
         ax3.set_title("Do I look monotonic and smooth?")
 
+# d_grtrans = d_grtrans[d_grtrans[:,5]>b_sc(a,1)] # filter out captured orbits
+# d_grtrans = d_grtrans[d_grtrans[:,2]>b_sc(a,1)] # filter out captured orbits
+
+if figure5==True:
+    figure(5)
+
+    grid(True,alpha=0.5) # want shadow to cover grid, but zorder has no effect...
+    alpha_vs_b = array(alpha_vs_b)
+    # IGNORE GRTRANS DATA UNTIL SETUP IS CORRECT (-> EQUATORIAL GEODESICS)
+    # plot(d_grtrans[:,4],d_grtrans[:,5]/pi,'gd',label="GRTRANS")
+    # plot(d_grtrans[:,6],d_grtrans[:,8]/pi,'gd',label="GRTRANS",alpha=0.2)
+    plot(-array(grtrans_b),array(grtrans_deflection_angle)/pi,'gd',label="GRTRANS",alpha=0.5)
+    # plot(d_eq_grtrans[:,5],d_eq_grtrans[:,8]/pi,'gd',label="GRTRANS")
+    plot(alpha_vs_b[:,0],alpha_vs_b[:,1]/pi,'r+',label="ASTRORAY")
+    plot(-b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1]/pi,'mx',label="VRT2",alpha=0.5) # minus sign due to convention difference in setup
+    image_center_idx = find(alpha_vs_b[:,0]>0.)[0]
+    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'--',color='gray',label="weak field limit")
+    plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,2])/pi,'--',color='gray')
+    # plot(alpha_vs_b[:image_center_idx,0],alpha_vs_b[:image_center_idx,3]/pi,'k-',label="strong field limit")
+    # plot(alpha_vs_b[image_center_idx:,0],alpha_vs_b[image_center_idx:,3]/pi,'k-')
+
+    # sorted_b = alpha_vs_b[searchsorted(sort(alpha_vs_b[:,0]),alpha_vs_b[:,0]),0]
+    # sorted_angles = alpha_vs_b[searchsorted(sort(alpha_vs_b[:,0]),alpha_vs_b[:,0]),2]
+    # sorted_data = alpha_vs_b[searchsorted(sort(alpha_vs_b[:,0]),alpha_vs_b[:,0]),2]
+    # plot(sort(alpha_vs_b[:,0]),sorted_data,'k--',label="weak field limit")
+    # axvspan(-b_crit,b_crit,fc="k",alpha=0.5)
+    axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
+    text(-2,0.5,"shadow",color="k",rotation="vertical",fontsize=20)
+    # axis((-bmax,bmax,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
+    axis((-20,20,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
+    xlabel(u"impact parameter "+r"$/M$")
+    ylabel(u"deflection angle "+r"$/\pi$")
+    legend()
+    savefig("deflection_angle_vs_impact_parameter.png")
 
 if anim:
   figure(2)
-  for angle in range(angle_min, angle_max, 1):
+  dangle=1
+  for angle in range(angle_min, angle_max, dangle):
     ax3d.view_init(30, angle)
     magnify=cosh((angle-180.)/180.)/cosh(1)
     # magnify=magnify**10. # for camera-BH distance ~500rs this power gives good zoom range
     magnify=magnify**12. # for camera-BH distance ~500rs this power gives good zoom range
-    LIM=500*magnify
-    # LIM=3
+    # LIM=500*magnify
+    # LIM=20 # 3
+    # LIM=max(bmax,amax(r)*magnify) # RG:WIP Wanna take maximum b among all geodesics, not b from the last geodesic file in the list...
+    LIM=max(10.,amax(r)*magnify) # RG:WIP Wanna take maximum b among all geodesics, not b from the last geodesic file in the list...
+
     ax3d.set_xlim3d(-LIM,LIM)
     ax3d.set_ylim3d(-LIM,LIM)
     ax3d.set_zlim3d(-LIM,LIM)
