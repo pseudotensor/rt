@@ -366,14 +366,6 @@ def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.01,I_threshold=0.05):
 
     # scale_quiver=1e-5   # M87 & AVERY's MODEL
 
-    # quiver_fake_inst= quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="uv",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
-    # NIRVANA=1000
-
-    # DEFAULT
-    # quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",width=width_quiver/scale_quiver,scale_units="xy",angles="xy",scale=scale_quiver) # ,angles=EVPA_xy[::every,::every])
-
-    # quiver_fake_inst= quiver(X[::every]+NIRVANA,Y[::every]+NIRVANA,(Q_xy/I_xy)[::every,::every],(U_xy/I_xy)[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="silver",alpha=0.9,pivot="mid",scale_units="xy",angles="xy") # ,angles=EVPA_xy[::every,::every])
-
     EVPA_xy = pi/2. - 0.5*angle(Q_xy+1j*U_xy)
     x_michael = abs(Q_xy+1j*U_xy)*cos( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
     y_michael = abs(Q_xy+1j*U_xy)*sin( pi/2 - 0.5*angle(Q_xy+1j*U_xy) )
@@ -391,12 +383,15 @@ def plot_polticks(every=6,scale_quiver=1e-5,width_quiver=0.01,I_threshold=0.05):
     quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="y",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
     # quiver_inst2 = quiver(X[::every],Y[::every],Q_masked[::every,::every],U_masked[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="orange",alpha=0.5,pivot="mid",width=width_quiver,scale=scale_quiver,angles="xy")
 
-    quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
+    # quiverkey(quiver_inst2, 0.7, 0.92, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
 
     # quiverkey(quiver_inst2, 0.85, 0.97, amax(LP_xy), r'$LP='+str(round(amax(LP_xy)*LP_xy_scale,2))+'Jy/\mu as$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15},labelcolor='grey')
     # above axes (upper left)
     # quiverkey(quiver_inst2, 0.25, 1.05, amax(LP_xy), r'$LP:'+str(round(amax(LP_xy)*LP_xy_scale,2))+r'Jy/\mu as^2}$', coordinates='axes', labelpos='W',fontproperties={'weight': 'bold', 'size': 12},labelcolor='y')
-    quiverkey(quiver_inst2, -42, 36, amax(LP_xy), r'$LP:'+str(round(amax(LP_xy)*LP_xy_scale,2))+r'Jy/\mu as^2}$', coordinates='data', labelpos='E',fontproperties={'weight': 'bold', 'size': 15},labelcolor='y')
+    quiverkey_pos=(-42,36)
+    if "case78114" in sys.argv[-1]:
+        quiverkey_pos=(-35,30)
+    quiverkey(quiver_inst2, quiverkey_pos[0],quiverkey_pos[1], percentile(LP_xy,90), r'$LP:'+str(round(percentile(LP_xy,90)*LP_xy_scale,2))+r'Jy/\mu as^2}$', coordinates='data', labelpos='E',fontproperties={'weight': 'bold', 'size': 15},labelcolor='y')
 
     # quiverkey(quiver_inst, 0.8, 0.98, 0.5, r'$50\%$', coordinates='figure', labelpos='W',fontproperties={'weight': 'bold', 'size': 15})
 
@@ -966,15 +961,27 @@ plot_polticks(width_quiver=0.01,scale_quiver=1e2*mean(LP_xy)*(observing_frequenc
 
 #quiver(X[::every],Y[::every],mbreve_xy[::every,::every],mbreve_xy[::every,::every],headlength=0.,headaxislength=0.,headwidth=0.,color="white",alpha=0.9,scale_units='xy', angles=EVPA_xy[::every,::every],width=0.005,pivot="mid")
 
-# gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string) # DEFAULT
+gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string) # DEFAULT
 if "case4442140" in sys.argv[-1]:
     gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+ "\t(fiducial)") # TMP
 if "case4442141" in sys.argv[-1]:
     gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+"\t"+r"($\sigma_{T_e}=40$)") # TMP
 if "case4442142" in sys.argv[-1]:
     gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+"\t"+r"($T_{e,jet}=100$)") # TMP
+if "case78107" in sys.argv[-1]:
+    gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+ "\t(fiducial)") # TMP
+if "case78108" in sys.argv[-1]:                                                    gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+"\t"+r"($\sigma_{\rho}=35$)") # TMP
+if "case78109" in sys.argv[-1]:                                                    gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+"\t"+r"($\sigma_{\rho}=100$)") # TMP
+if "case78114" in sys.argv[-1]:
+    gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+ "\t (f="+str(int(observing_frequency))+"GHz, fiducial)") # TMP                                                                                                                                              
+if "case781144" in sys.argv[-1]:
+    gca().set(xlabel=r"$X[\mu as]$",ylabel=r"$Y[\mu as]$",title=titles_4panel_xy[0]+title_vary_string+"\t"+r"(f="+str(int(observing_frequency))+"GHz)")
+
 gca().axis('equal')
-axis(limits_xy) # +array([+10,-10,+10,-10]))
+axis(limits_xy)
+if "case78114" in sys.argv[-1]:
+    axis((-35,35,-35,35))
+
 # tight_layout(pad=0.1, w_pad=0., h_pad=0)
 # tight_layout(pad=0, w_pad=0, h_pad=0.95)
 tight_layout(rect=(0,0,1,1.02))
