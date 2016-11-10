@@ -90,9 +90,9 @@ solvegeodesic(t, y, der, NULL); //invoke geodesic equations once without a solve
 tpast=t;
 lam[0]=0.;                      //initial affine parameter
 coox[0][stN]=y[0];              //coox array elements = primitive variables
-coox[3][stN]=y[1];
-coox[1][stN]=y[4];
-coox[2][stN]=y[5];
+coox[3][stN]=y[1]; // phi
+coox[1][stN]=y[4]; // r
+coox[2][stN]=y[5]; // mu=costh
 coox[4][stN]=y[6];
 coox[7][stN]=y[7];
 coox[5][stN]=y[2];
