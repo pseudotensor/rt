@@ -20,10 +20,15 @@ except:
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
 
+matplotlib.rc('font', size=15)
+
 angle_min=int(sys.argv[-2])
 angle_max=int(sys.argv[-1])
 sys.argv = sys.argv[:-2] # discard two last int arg for viewing angle
 
+
+## USER SPECS ##
+HOME="/home/rgold/"
 anim=False # figure(2)
 figure1=False
 figure4=False
@@ -33,6 +38,30 @@ figure5=True # deflection angle vs impact parameter
 
 def b_sc(a,s):
     return -a+s*6.*cos(1./3.*arccos(-s*a))
+
+
+def xyz2deflection(x,y,z,every=5): # CAREFUL! RESULTS DEPEND SOMEWHAT ON VALUE every ...
+    '''IN: x,y,z coordinates along a geodesic
+       OUT: deflection angle'''
+    tangent_in  = array((diff(x[::every])[ 0],diff(y[::every])[ 0],diff(z[::every])[ 0]))
+    tangent_out = array((diff(x[::every])[-1],diff(y[::every])[-1],diff(z[::every])[-1]))
+    # A.B=|A||B|cos(angle)
+    cos_angle = dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
+    return arccos(cos_angle)
+
+
+def drawSphere(xCenter, yCenter, zCenter, r):
+    #draw sphere
+    u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
+    #u, v = np.mgrid[0:2*np.pi:100j, 0:np.pi:50j] #TAKES VERY LONG
+    x=outer(np.cos(u),np.sin(v))
+    y=outer(np.sin(u),np.sin(v))
+    z=outer(ones(size(u)),np.cos(v))
+    # shift and scale sphere
+    x = r*x + xCenter
+    y = r*y + yCenter
+    z = r*z + zCenter
+    return (x,y,z)
 
 
 # FORMAT: ppy[geodesic_label].cooxx[p][geo_idx]
@@ -71,6 +100,7 @@ veto = 0 # counter for vetos on bad geodesics
 bmax = 0 # max impact parameter of all geodesics
 alpha_vs_b = []
 
+
 ## GET DATA ##
 
 b_vs_deflection_angle_vrt2 = []
@@ -85,23 +115,27 @@ b_vs_deflection_angle_vrt2 = []
 
 # GET VRT2 DATA
 d_vrt2=[]
+# GET ODYSSEY DATA (Developer Hung-Yi Pu)
+d_odyssey=[]
+deflection_angle_odyssey=[]
 
+# d_odyssey = loadtxt(HOME+"codes/odyssey/geodesic_output_alpha_x_y_z.txt")
+for ODYSSEY_FILE in glob.glob(HOME+"codes/odyssey/files/data_*.txt"):
+    d_odyssey.append(loadtxt(ODYSSEY_FILE))
 
-def xyz2deflection(x,y,z,every=10):
-    '''IN: x,y,z coordinates along a geodesic
-       OUT: deflection angle'''
-    tangent_in  = array((diff(x[::every])[ 0],diff(y[::every])[ 0],diff(z[::every])[ 0]))
-    tangent_out = array((diff(x[::every])[-1],diff(y[::every])[-1],diff(z[::every])[-1]))
-    # A.B=|A||B|cos(angle)
-    cos_angle = dot(tangent_in,tangent_out)/norm(tangent_in)/norm(tangent_out)
-    return arccos(cos_angle)
+    # d_odyssey = array(d_odyssey)
+    if abs(d_odyssey[-1][0,0])>abs(b_sc(0.9375,-sign(d_odyssey[-1][0,0]))):
+        # print "ODYSSEY CAPTURE ORBIT CHECK: ",d_odyssey[-1][0,0],b_sc(0.9375,sign(d_odyssey[-1][0,0]))
+        deflection_angle_odyssey.append((d_odyssey[-1][0,0],xyz2deflection(d_odyssey[-1][:,1],d_odyssey[-1][:,2],d_odyssey[-1][:,3])))
+
+deflection_angle_odyssey=array(deflection_angle_odyssey)
 
 # WIP: COMPUTE DEFLECTION ANGLE FROM x,y,z and compare to grtrans_alpha_vs_b.dat 9th col
 # print "d_grtrans[-1,8]=",d_grtrans[-1,8]," deflection_angle=",xyz2deflection(d_grtrans[-1,2],d_grtrans[-1,3],d_grtrans[-1,4])
 
 
 # GET vrt data (Avery's code) lambda t x y z
-for FILE_vrt2 in glob.glob("./avery_ray_tracing_test_data/eta_*_n.d"):
+for FILE_vrt2 in glob.glob(HOME+"codes/grtrans/avery_ray_tracing_test_data/eta_*_n.d"):
     d_vrt2.append(loadtxt(FILE_vrt2,skiprows=1,usecols=(2,3,4))) # get x,y,z coordinates of ray trajectory
     a=0.9375 ## HARDWIRED
     x_vrt2,y_vrt2,z_vrt2 = d_vrt2[-1][:,0],d_vrt2[-1][:,1],d_vrt2[-1][:,2]
@@ -112,7 +146,7 @@ for FILE_vrt2 in glob.glob("./avery_ray_tracing_test_data/eta_*_n.d"):
     b_vrt2 = y_vrt2[0] # impact parameter
 
     deflection_angle_vrt2 = xyz2deflection(x_vrt2,y_vrt2,z_vrt2)
-    print "Deflection angle (vrt2):",deflection_angle_vrt2,"rad =",deflection_angle_vrt2/2./pi*360.,"deg b=",b_vrt2
+    # print "Deflection angle (vrt2):",deflection_angle_vrt2,"rad =",deflection_angle_vrt2/2./pi*360.,"deg b=",b_vrt2
     
     # b_vs_cos_angle_vrt2 = hstack((b_vs_cos_angle_vrt2,(cos_angle_vrt2,b_vrt2)))
     b_vs_deflection_angle_vrt2.append((b_vrt2,deflection_angle_vrt2))
@@ -135,11 +169,6 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
 
     # ASTRORAY [geoint.cpp]: y= t, phi, rp ,mup, r, mu ,tpr,phpr
     # outputting ppy[currth].cooxx[p][geo_idx] to file
-    # BUT! evalpointzro only uses cooxx!=coox
-    # coox[1][stN]=y[4]; # r
-    # coox[2][stN]=y[5]; # mu=costh
-    # coox[3][stN]=y[1]; # phi
-    # ppy[currth].cooxx[p][stN]=coox[p][stN];
     
     # CORRECT: see evalpointzero: cooxx <-> ly
     r = d[:,1]
@@ -189,7 +218,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
 
     # A.B=|A||B|cos(angle)
     deflection_angle_astroray = xyz2deflection(x,y,z)
-    print "Deflection angle ",deflection_angle_astroray,"rad =",deflection_angle_astroray/2./pi*360.,"deg"
+    # print "Deflection angle ",deflection_angle_astroray,"rad =",deflection_angle_astroray/2./pi*360.,"deg"
 
     # http://arxiv.org/pdf/gr-qc/9907034v1.pdf eqs.(20),(24)
     # http://arxiv.org/pdf/1405.2919.pdf see Figs. 2.2,3.5
@@ -256,9 +285,9 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.))) # http://arxiv.org/pdf/gr-qc/9907034v1.pdf SCHWARZSCHILD
     deflection_angle_0611086v2 = -pi + log( 216.*(7.-4.*sqrt(3.))/b_prime) + (-17.+4.*sqrt(3.)+5.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime/18. + (-879.+236.*sqrt(3.)+205.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**2/1296. + (-321590.+90588*sqrt(3.)+68145.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**3/629856. # SCHWARZSCHILD
     deflection_angle_darwin = -pi + 2.*log( 36.*(2.-sqrt(3.))/(r_per-3.)) # Darwin 1959
-    print "pericenter=",r_per,"impact parameter b=",b
-    print "...assuming Schwarzschild for weakfield..."
-    print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
+    # print "pericenter=",r_per,"impact parameter b=",b
+    # print "...assuming Schwarzschild for weakfield..."
+    # print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
     # print "deflection_angle_weakfield_Sereno=",deflection_angle_weakfield_Sereno,"rad =",deflection_angle_weakfield_Sereno/2./pi*360.,"deg"
     # print "deflection_angle_strongfield=",deflection_angle_strongfield,"rad =",deflection_angle_strongfield/2./pi*360.,"deg"
     # print "deflection_angle_darwin=",deflection_angle_darwin,"rad =",deflection_angle_darwin/2./pi*360.,"deg"
@@ -294,6 +323,8 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
 
 print "THERE HAVE BEEN",veto,"VETOS."
 
+
+
 fig6=figure(6)
 ax_grtrans_2d=fig6.add_subplot(111)
 grtrans_deflection_angle = []
@@ -301,7 +332,8 @@ grtrans_b=[]
 
 GEODESICS=glob.glob("grtrans_geodesic_*_alpha*_beta*.txt")
 list.sort(GEODESICS,key=lambda x : x.split('beta')[1].split('.txt')[0]) # sort according to BETAS
-GEODESICS=GEODESICS[-100:][::4]
+# GEODESICS=GEODESICS[-100:][::4] # WORKS GIVES AGREEMENT PLOT: GRTRANS,VRT2,ASTRORAY,ODYSSEY
+GEODESICS=GEODESICS[-100:][::1]
 
 for FILE in GEODESICS:
 # for FILE in glob.glob("grtrans_geodesic_*_alpha1.3_beta*.txt"):
@@ -312,7 +344,7 @@ for FILE in GEODESICS:
     beta=float(FILE.split('beta')[1].split('.txt')[0])
     x_grtrans,y_grtrans,z_grtrans = loadtxt(FILE)
     r_eq_grtrans = sqrt(alpha**2+beta**2)
-    print FILE,x_grtrans[0],y_grtrans[0],z_grtrans[0]
+    # print FILE,x_grtrans[0],y_grtrans[0],z_grtrans[0]
 
     # if amin(r_eq_grtrans)>b_sc(a,1): # filter out captured orbit
 
@@ -337,36 +369,13 @@ ax3d.legend()
 # ax3d.set_zlim3d(-LIM,LIM)
 
 
-def drawSphere(xCenter, yCenter, zCenter, r):
-    #draw sphere
-    u, v = np.mgrid[0:2*np.pi:50j, 0:np.pi:25j]
-    #u, v = np.mgrid[0:2*np.pi:100j, 0:np.pi:50j] #TAKES VERY LONG
-    x=outer(np.cos(u),np.sin(v))
-    y=outer(np.sin(u),np.sin(v))
-    z=outer(ones(size(u)),np.cos(v))
-    # shift and scale sphere
-    x = r*x + xCenter
-    y = r*y + yCenter
-    z = r*z + zCenter
-    return (x,y,z)
-# def drawSphere(xCenter, yCenter, zCenter, r):
-#     #draw sphere
-#     u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-#     x=np.cos(u)*np.sin(v)
-#     y=np.sin(u)*np.sin(v)
-#     z=np.cos(v)
-#     # shift and scale sphere
-#     x = r*x + xCenter
-#     y = r*y + yCenter
-#     z = r*z + zCenter
-#     return (x,y,z)
-
 (xs,ys,zs) = drawSphere(0.,0.,0.,rh)
 ax3d.plot_surface(xs,ys,zs,color='k')
 ax3d.set_aspect("equal")
 ax3d.set_xlabel("X")
 ax3d.set_ylabel("Y")
 ax3d.set_zlabel("Z")
+
 
 #################
 ## ANNOTATIONS ##
@@ -386,8 +395,24 @@ if figure3==True:
 # d_grtrans = d_grtrans[d_grtrans[:,5]>b_sc(a,1)] # filter out captured orbits
 # d_grtrans = d_grtrans[d_grtrans[:,2]>b_sc(a,1)] # filter out captured orbits
 
+from scipy import interpolate
+
+# UNSORTED
+grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+vrt2_deflection_angle_int_fct = interpolate.interp1d(b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1],kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+
+# BEFORE SPLING WE NEED TO SORT b,alpha BUT FOR interp1d unsorted seems ok
+# grtrans_sort_idx = argsort(grtrans_b)
+# grtrans_b_sorted = array(grtrans_b)[grtrans_sort_idx]
+# grtrans_deflection_angle_sorted = array(grtrans_deflection_angle)[grtrans_sort_idx]
+
+# grtrans_deflection_angle_int_sorted_fct = interpolate.interp1d(grtrans_b_sorted,grtrans_deflection_angle_sorted,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+
+
 if figure5==True:
-    figure(5)
+
+    figure(5,figsize=(8,12))
+    subplot(311)
 
     grid(True,alpha=0.5) # want shadow to cover grid, but zorder has no effect...
     alpha_vs_b = array(alpha_vs_b)
@@ -396,11 +421,16 @@ if figure5==True:
     # plot(d_grtrans[:,6],d_grtrans[:,8]/pi,'gd',label="GRTRANS",alpha=0.2)
     plot(-array(grtrans_b),array(grtrans_deflection_angle)/pi,'gd',label="GRTRANS",alpha=0.5)
     # plot(d_eq_grtrans[:,5],d_eq_grtrans[:,8]/pi,'gd',label="GRTRANS")
-    plot(alpha_vs_b[:,0],alpha_vs_b[:,1]/pi,'r+',label="ASTRORAY")
+    plot(alpha_vs_b[:,0],alpha_vs_b[:,1]/pi,'b+',label="ASTRORAY")
     plot(-b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1]/pi,'mx',label="VRT2",alpha=0.5) # minus sign due to convention difference in setup
+    # plot(-d_odyssey[:,0],deflection_angle_odyssey/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign
+    plot(-deflection_angle_odyssey[:,0],deflection_angle_odyssey[:,1]/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign due to convention difference in setup
     image_center_idx = find(alpha_vs_b[:,0]>0.)[0]
     plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'--',color='gray',label="weak field limit")
     plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,2])/pi,'--',color='gray')
+
+    # plot(-b_vs_deflection_angle_vrt2[:,0],grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])/pi,'.',color='k',label="SPLINE TO GRTRANS") # JUST TO CHECK
+
     # plot(alpha_vs_b[:image_center_idx,0],alpha_vs_b[:image_center_idx,3]/pi,'k-',label="strong field limit")
     # plot(alpha_vs_b[image_center_idx:,0],alpha_vs_b[image_center_idx:,3]/pi,'k-')
 
@@ -410,13 +440,85 @@ if figure5==True:
     # plot(sort(alpha_vs_b[:,0]),sorted_data,'k--',label="weak field limit")
     # axvspan(-b_crit,b_crit,fc="k",alpha=0.5)
     axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
-    text(-2,0.5,"shadow",color="k",rotation="vertical",fontsize=20)
+    # text(-2,0.5,"shadow",color="k",rotation="vertical",fontsize=20)
+    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
     # axis((-bmax,bmax,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
     axis((-20,20,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
-    xlabel(u"impact parameter "+r"$/M$")
+    xticks(visible=False)
+    # xlabel(u"impact parameter "+r"$/M$")
     ylabel(u"deflection angle "+r"$/\pi$")
-    legend()
+    legend(labelspacing=0.1); setp(gca().get_legend().get_texts(), fontsize='12')
+
+
+    ## FIT SPLINES TO DEFLECTION ANGLES SO WE CAN COMPUTE DIFFERENCES
+    ## WORKS, BUT MIGHT WANT TO USE interp() instead so we only have to interpolate one data set
+
+    # # import scipy.signal
+    # from scipy import interpolate
+    # # impact_parameter_grid = linspace(5,10,6) # 4debugging
+    # # NOT VERY CONVENIENT, DON'T WANT TO INTERPOLATE ACROSS SHADOW
+    # # impact_parameter_grid = concatenate((linspace(-10,b_sc(a,-1),10),linspace(b_sc(a,1),10,10)))
+    # GET ORIENTATION CONVENTION RIGHT:
+    # impact_parameter_grid_retrograd = linspace(-10,b_sc(a,-1),10)
+    # impact_parameter_grid_prograd = linspace(b_sc(a,1),10,10)
+    impact_parameter_grid_prograd = linspace(-10,-b_sc(a,1),10)
+    impact_parameter_grid_retrograd = linspace(-b_sc(a,-1),10,10)
+
+    # BEFORE SPLING WE NEED TO SORT b,alpha
+    grtrans_sort_idx = argsort(grtrans_b)
+    grtrans_b_sorted = array(grtrans_b)[grtrans_sort_idx]
+    grtrans_deflection_angle_sorted = array(grtrans_deflection_angle)[grtrans_sort_idx]
+
+    grtrans_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
+    grtrans_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
+
+    # grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+    # grtrans_deflection_angle_prograd_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3) #returns interpolating function
+    # grtrans_deflection_angle_retrograd_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3) #returns interpolating function
+
+    # figure(50)
+
+
+    subplot(312)
+
+    semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1])/b_vs_deflection_angle_vrt2[:,1],'g^',label="GRTRANS vs VRT2")
+    semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1])/deflection_angle_odyssey[:,1],'r.',label="ODYSSEY vs VRT2")
+    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1])/alpha_vs_b[:,1],'b+',label="ASTRORAY vs VRT2")
+    # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
+    # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
+    axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
+    # text(0,0.1,"shadow",color="k",rotation="vertical",fontsize=20)
+    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
+    grid(True)
+    legend(labelspacing=0.1); setp(gca().get_legend().get_texts(), fontsize='12')
+    axis((-20,20,None,None))
+    # xlabel(u"impact parameter "+r"$/M$")
+    xticks(visible=False)
+    ylabel(r"$\Delta$"u" deflection angle (relative error)")
+
+
+    subplot(313)
+    semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
+    semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
+    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")
+    # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
+    # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
+    axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
+    # text(0,0.1,"shadow",color="k",rotation="vertical",fontsize=20)
+    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
+    grid(True)
+    legend(labelspacing=0.1); setp(gca().get_legend().get_texts(), fontsize='12')
+    axis((-20,20,None,None))
+    xlabel(u"impact parameter "+r"$/M$")
+    ylabel(r"$\Delta$"u" deflection angle / rad")
+
+
+    # axis((None,None,0,1))
+
+    tight_layout(h_pad=0.1,w_pad=0)
+
     savefig("deflection_angle_vs_impact_parameter.png")
+
 
 if anim:
   figure(2)
