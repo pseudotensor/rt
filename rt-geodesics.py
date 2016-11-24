@@ -152,8 +152,8 @@ for FILE_vrt2 in glob.glob(HOME+"codes/grtrans/avery_ray_tracing_test_data/eta_*
     b_vs_deflection_angle_vrt2.append((b_vrt2,deflection_angle_vrt2))
     
 b_vs_deflection_angle_vrt2 = array(b_vs_deflection_angle_vrt2)
-
-
+alpha_vs_b_darwin = []
+alpha_vs_b_09075352 = []
 
 every_nth_geodesic=1
 every_nth_point_on_each_geodesic=1 # FIXME: UNEXPECTED BEHAVIOR FOR VALUES != 1
@@ -163,6 +163,8 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     d=loadtxt(filename)[::every_nth_point_on_each_geodesic,:]
 
     a=float(filename.split("/")[-1].split("geodesics")[1].split("th")[0])/100. # spin from filename
+    # a=0.001 # deflection angles offset by ~3.36rad independent of b
+    # print "[HARDWIRED]: a=",a
     rh=1.+sqrt(1.-a*a);
 
     lambda_affine=d[:,8]
@@ -228,18 +230,18 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     # !!! ===>   https://arxiv.org/pdf/gr-qc/0611086v2.pdf eqs.(8),(14->23),(17->25)    <=== !!! #
     ##############################################################################################
     r_per=amin(r) # For Schwarzschild b=r_per/sqrt(1.-r_s/r_per) http://arxiv.org/abs/gr-qc/9907034
-    r_0=r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
     b=d[-1,12]
     if b>bmax:
         bmax=b
     # b_crit = 3.*sqrt(3.) # "photon sphere":3 https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq 
 
     s = sign(b) # direct orbits: s=+1 retrograd orbits: s=-1
+    
     # b_sc=-a+s*6.*cos(1./3.*arccos(-s*a))
     b_crit = b_sc(a,s)
     # b_prime = 1.-s*b_sc/b 
     # b_prime = 1.-s*b_sc/b 
-    b_prime = 1.-b_crit/b # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq before eq (20) III.D page 12 ?
+    b_prime = 1.-b_crit/abs(b) # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq before eq (20) III.D page 12 ? # abs(b)?
 
     # elliptic integrals: http://arxiv.org/pdf/math/9409227v1.pdf
     deflection_angle_0611086v2  = 0. # Schwarzschild need elliptic integral of the 1st kind
@@ -253,14 +255,19 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     # EXACT_BENDING_ANGLE=False # ...WIP... NOT WORKING AS EXPECTED YET
 
     # https://arxiv.org/pdf/0907.5352v1.pdf
-    b_s = s*b # BH spin 
+    b_s = s*abs(b) # BH spin 
+    # b=abs(b); print "[WARNING]: ENFORCE b>=0"
+
+    # r_0 = r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
+    r_0 = 2.*abs(b)/sqrt(3.)*sqrt(1.-a**2/abs(b)**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-a**2/abs(b)**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
+
     # What about b_s=0 ?  :-s
     P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
     Q = (P-2.)*(P+6.) # eq (19) in https://arxiv.org/pdf/0907.5352v1.pdf
 
     omega_s = a/b_s # eq (36)
     h = 1./r_0 # eq (36)
-    h_sc = (1.+omega_s)/(1.-omega_s) # eq (37)
+    h_sc = (1.+omega_s)/(1.-omega_s) # eq (37) (~> 1 for a=0)
     omega_0 = a*a # eq (36)
     r_0_over_Q = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
     k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
@@ -271,8 +278,14 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (43)
     n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (43)
 
+    from scipy.special import ellipk,ellipkinc
+    deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1
+    alpha_vs_b_09075352.append([b,deflection_angle_09075352v1_schwarzschild])
+
     if EXACT_BENDING_ANGLE==True and k==k:
-        deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k)-Pi(n_plus,psi,k))+Omega_minus*(Pi(n_minus,k)-Pi(n_minus,psi,k)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
+        # k^2
+        deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k_squared)-Pi(n_plus,psi,k_squared))+Omega_minus*(Pi(n_minus,k_squared)-Pi(n_minus,psi,k_squared)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
+        # deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k)-Pi(n_plus,psi,k))+Omega_minus*(Pi(n_minus,k)-Pi(n_minus,psi,k)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
         if deflection_angle_09075352v1.imag!=0.:
             print "WARNING EXACT DEFLECTION ANGLE COMPLEX"
             deflection_angle_09075352v1 = float(deflection_angle_09075352v1.real)
@@ -280,11 +293,27 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
             deflection_angle_09075352v1 = float(deflection_angle_09075352v1)
 
     deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
-    deflection_angle_weakfield_Sereno = 4./b + (15./4./pi-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5 # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
+    deflection_angle_weakfield_Sereno = 4./b + (15.*pi/4.-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5 # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
 
     deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.))) # http://arxiv.org/pdf/gr-qc/9907034v1.pdf SCHWARZSCHILD
     deflection_angle_0611086v2 = -pi + log( 216.*(7.-4.*sqrt(3.))/b_prime) + (-17.+4.*sqrt(3.)+5.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime/18. + (-879.+236.*sqrt(3.)+205.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**2/1296. + (-321590.+90588*sqrt(3.)+68145.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**3/629856. # SCHWARZSCHILD
-    deflection_angle_darwin = -pi + 2.*log( 36.*(2.-sqrt(3.))/(r_per-3.)) # Darwin 1959
+    #    try:
+    if True:
+        # x_0 = b # P in Darwin is perihelion distance...
+        x_0 = r_per # P in Darwin is perihelion distance...
+        darwin_lambda = (3.- x_0 - sqrt(x_0**2+2*x_0-3.))/(3.- x_0 + sqrt(x_0**2+2*x_0-3.))
+        darwin_phi_0 = sqrt( (-3.+x_0-sqrt(x_0**2+2*x_0-3.) ) / (2.*(2.*x_0-3.)) )
+        darwin_G = sqrt( ( 8.*x_0*(-3.+x_0+sqrt(x_0**2+2.*x_0-3.)) ) / (2.*x_0-3.) )
+        # 2DO: F<->python fct incomplete elliptic integral of the first kind
+        from scipy.special import ellipkinc
+        F_darwin=ellipkinc(darwin_phi_0,darwin_lambda) # darwin_lambda <-> k wiki <-> m in scipy
+        deflection_angle_darwin_exact = -pi + F_darwin*darwin_G # Darwin 1959
+        # print "darwin_lambda,darwin_phi_0,darwin_G,x_0,F_darwin,deflection_angle_darwin_exact:",darwin_lambda,darwin_phi_0,darwin_G,x_0,F_darwin,deflection_angle_darwin_exact
+        deflection_angle_darwin = -pi + 2.*log( 36.*(2.-sqrt(3.))/(r_per-3.)) # Darwin 1959
+        alpha_vs_b_darwin.append([b,deflection_angle_darwin_exact])
+
+#    except:
+#        pass
     # print "pericenter=",r_per,"impact parameter b=",b
     # print "...assuming Schwarzschild for weakfield..."
     # print "deflection_angle_weakfield=",deflection_angle_weakfield,"rad =",deflection_angle_weakfield/2./pi*360.,"deg"
@@ -293,7 +322,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     # print "deflection_angle_darwin=",deflection_angle_darwin,"rad =",deflection_angle_darwin/2./pi*360.,"deg"
 
     if diff(r)[-1]>0: # HYPERBOLIC ORBIT
-        alpha_vs_b += [[b,deflection_angle_astroray,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
+        alpha_vs_b += [[b,deflection_angle_astroray,deflection_angle_weakfield,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
 
     veto += size(find(r==None))
     if False: # (amax(r)>500 and size(lambda_affine[r==amax(r)])>1):
@@ -420,14 +449,33 @@ if figure5==True:
     # plot(d_grtrans[:,4],d_grtrans[:,5]/pi,'gd',label="GRTRANS")
     # plot(d_grtrans[:,6],d_grtrans[:,8]/pi,'gd',label="GRTRANS",alpha=0.2)
     plot(-array(grtrans_b),array(grtrans_deflection_angle)/pi,'gd',label="GRTRANS",alpha=0.5)
+
     # plot(d_eq_grtrans[:,5],d_eq_grtrans[:,8]/pi,'gd',label="GRTRANS")
     plot(alpha_vs_b[:,0],alpha_vs_b[:,1]/pi,'b+',label="ASTRORAY")
     plot(-b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1]/pi,'mx',label="VRT2",alpha=0.5) # minus sign due to convention difference in setup
+
     # plot(-d_odyssey[:,0],deflection_angle_odyssey/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign
     plot(-deflection_angle_odyssey[:,0],deflection_angle_odyssey[:,1]/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign due to convention difference in setup
+
     image_center_idx = find(alpha_vs_b[:,0]>0.)[0]
-    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'--',color='gray',label="weak field limit")
-    plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,2])/pi,'--',color='gray')
+    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'.',color='gray',label="weak field limit")
+    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,3])/pi,'--',color='gray',label="weak field w spin")
+
+    # plot(alpha_vs_b[:,0],abs(alpha_vs_b[:,2])/pi,'.',color='gray',label="weak field limit")
+    # plot(alpha_vs_b[:,0],abs(alpha_vs_b[:,3])/pi,'--',color='gray',label="weak field w spin")
+
+    # DARWIN (SCHWARZSCHILD) EXACT
+    alpha_vs_b_darwin = array(alpha_vs_b_darwin)
+    darwin_tab = array([[3.2,5.23,273.],[3.4,5.30,205.],[3.6,5.40,162.],[3.8,5.53,143.],[4,5.66,125.],[5,6.46,79.],[6,7.35,58.],[7,8.28,46.],[8,9.24,38.],[9,10.22,32.],[10,11.20,28.],[11,12.17,25.],[12,13.15,23.]]) # TABLE 3 in http://www.jstor.org/stable/pdf/100508.pdf # P:Perihelion, l:impact parameter mu:deflection angle
+    darwin_tab[:,-1] *= pi/180.
+
+    plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2,label="DARWIN (exact, tab)")
+    plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2) # Schwarzschild: symmetric under l->-l
+    # plot(alpha_vs_b_darwin[:,0],alpha_vs_b_darwin[:,1]/pi,'kv',lw=2,label="DARWIN (exact)")
+    alpha_vs_b_09075352=array(alpha_vs_b_09075352)
+    plot(alpha_vs_b_09075352[:,0],alpha_vs_b_09075352[:,1]/pi,'k-.',lw=2,label="09075352 (a=0)")
+    plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,2])/pi,'.',color='gray')
+    plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,3])/pi,'--',color='gray')
 
     # plot(-b_vs_deflection_angle_vrt2[:,0],grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])/pi,'.',color='k',label="SPLINE TO GRTRANS") # JUST TO CHECK
 
@@ -439,10 +487,11 @@ if figure5==True:
     # sorted_data = alpha_vs_b[searchsorted(sort(alpha_vs_b[:,0]),alpha_vs_b[:,0]),2]
     # plot(sort(alpha_vs_b[:,0]),sorted_data,'k--',label="weak field limit")
     # axvspan(-b_crit,b_crit,fc="k",alpha=0.5)
+    axvspan(0-0.1,0+0.1,fc="k",alpha=0.5)
     axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
     # text(-2,0.5,"shadow",color="k",rotation="vertical",fontsize=20)
-    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
-    # axis((-bmax,bmax,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
+    text(0.51,0.51,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
+    # # axis((-bmax,bmax,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
     axis((-20,20,-0.05,amax(alpha_vs_b[:,1])/pi+0.05))
     xticks(visible=False)
     # xlabel(u"impact parameter "+r"$/M$")
@@ -464,13 +513,19 @@ if figure5==True:
     impact_parameter_grid_prograd = linspace(-10,-b_sc(a,1),10)
     impact_parameter_grid_retrograd = linspace(-b_sc(a,-1),10,10)
 
-    # BEFORE SPLING WE NEED TO SORT b,alpha
+    # BEFORE SPLINE WE NEED TO SORT b,alpha
     grtrans_sort_idx = argsort(grtrans_b)
     grtrans_b_sorted = array(grtrans_b)[grtrans_sort_idx]
     grtrans_deflection_angle_sorted = array(grtrans_deflection_angle)[grtrans_sort_idx]
+    vrt2_sort_idx = argsort(-b_vs_deflection_angle_vrt2[:,0])
+    vrt2_b_sorted = array(-b_vs_deflection_angle_vrt2[:,0])[vrt2_sort_idx]
+    vrt2_deflection_angle_sorted = array(-b_vs_deflection_angle_vrt2[:,1])[vrt2_sort_idx]
 
     grtrans_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
     grtrans_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
+
+    vrt2_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(vrt2_b_sorted,vrt2_deflection_angle_sorted,k=5))
+    vrt2_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(vrt2_b_sorted,vrt2_deflection_angle_sorted,k=5))
 
     # grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
     # grtrans_deflection_angle_prograd_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3) #returns interpolating function
@@ -481,14 +536,16 @@ if figure5==True:
 
     subplot(312)
 
+    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3])/alpha_vs_b[:,3],'cD',label="VRT2 vs WEAKFIELD")
     semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1])/b_vs_deflection_angle_vrt2[:,1],'g^',label="GRTRANS vs VRT2")
     semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1])/deflection_angle_odyssey[:,1],'r.',label="ODYSSEY vs VRT2")
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1])/alpha_vs_b[:,1],'b+',label="ASTRORAY vs VRT2")
     # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
     # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
+    axvspan(0-0.1,0+0.1,fc="k",alpha=0.5)
     axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
     # text(0,0.1,"shadow",color="k",rotation="vertical",fontsize=20)
-    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
+    text(0.51,0.51,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
     grid(True)
     legend(labelspacing=0.1); setp(gca().get_legend().get_texts(), fontsize='12')
     axis((-20,20,None,None))
@@ -498,14 +555,16 @@ if figure5==True:
 
 
     subplot(313)
+    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs WEAKFIELD")
     semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
     semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")
     # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
     # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
+    axvspan(0-0.1,0+0.1,fc="k",alpha=0.5)
     axvspan(b_sc(a,-1),b_sc(a,1),fc="k",alpha=0.5)
     # text(0,0.1,"shadow",color="k",rotation="vertical",fontsize=20)
-    text(0.5,0.5,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
+    text(0.51,0.51,"shadow",color="k",rotation="vertical",fontsize=20,transform=gca().transAxes,verticalalignment='center')
     grid(True)
     legend(labelspacing=0.1); setp(gca().get_legend().get_texts(), fontsize='12')
     axis((-20,20,None,None))
