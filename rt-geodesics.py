@@ -163,8 +163,8 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     d=loadtxt(filename)[::every_nth_point_on_each_geodesic,:]
 
     a=float(filename.split("/")[-1].split("geodesics")[1].split("th")[0])/100. # spin from filename
-    # a=0.001 # deflection angles offset by ~3.36rad independent of b
-    # print "[HARDWIRED]: a=",a
+    # a=0.001; print "[HARDWIRED]: a=",a # deflection angles offset by ~3.36rad independent of b
+    
     rh=1.+sqrt(1.-a*a);
 
     lambda_affine=d[:,8]
@@ -279,8 +279,31 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (43)
 
     from scipy.special import ellipk,ellipkinc
-    deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1
+    # FIXME: SOMETHING IS NOT RIGHT HERE, THIS SHOULD AGREE WITH darwin_tab[:,-1] ...
+    deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1 
     alpha_vs_b_09075352.append([b,deflection_angle_09075352v1_schwarzschild])
+
+    if EXACT_BENDING_ANGLE==True:
+        # try:
+            from KerrDeflection import SchwarzDeflection,FindRoots,EquatorialDeflection
+            b_exact_grid = arange(5,21)
+            # b_exact_grid = arange(-20,-10) # DOES NOT WORK, HAVE TO PLAY WITH INCLINATION INSTEAD
+            # b_exact_grid = array([10])
+            bignumber=1e20
+            deflection_angle_schwarzschild_exact = SchwarzDeflection(bignumber,b_exact_grid)-pi
+
+            deflection_angle_kerr_eq_exact = []
+            for b_tmp in b_exact_grid: 
+                roots=FindRoots(a,pi,bignumber,array([b_tmp]),0) # spin,i,E,b,?
+                deflection_angle_kerr_eq_exact.append(EquatorialDeflection(a, bignumber, b_tmp, roots.reshape(4,-1))[0]-pi)
+            # roots=FindRoots(0,pi,bignumber,b_exact_grid,0) # spin,i,E,b,?
+            # deflection_angle_kerr_eq_exact = EquatorialDeflection(0, bignumber, b_exact_grid, roots.reshape(4,-1))
+
+            # UNDERSTANDING CONVENTIONS AND FCT ARGS: THE FOLLOWING PRODUCES CONSISTENT RESULTS
+            # KerrDeflection(0,pi,bignumber,arange(21),0.)[1],SchwarzDeflection(bignumber,arange(21))-pi
+
+        # except:
+        #     pass
 
     if EXACT_BENDING_ANGLE==True and k==k:
         # k^2
@@ -430,7 +453,7 @@ from scipy import interpolate
 grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
 vrt2_deflection_angle_int_fct = interpolate.interp1d(b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1],kind=3, bounds_error=False, fill_value=None) #returns interpolating function
 
-# BEFORE SPLING WE NEED TO SORT b,alpha BUT FOR interp1d unsorted seems ok
+# BEFORE SPLINE WE NEED TO SORT b,alpha BUT FOR interp1d unsorted seems ok
 # grtrans_sort_idx = argsort(grtrans_b)
 # grtrans_b_sorted = array(grtrans_b)[grtrans_sort_idx]
 # grtrans_deflection_angle_sorted = array(grtrans_deflection_angle)[grtrans_sort_idx]
@@ -457,7 +480,9 @@ if figure5==True:
     # plot(-d_odyssey[:,0],deflection_angle_odyssey/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign
     plot(-deflection_angle_odyssey[:,0],deflection_angle_odyssey[:,1]/pi,'ro',label="ODYSSEY",alpha=0.5) # minus sign due to convention difference in setup
 
-    image_center_idx = find(alpha_vs_b[:,0]>0.)[0]
+    ## CHECK python code in appendix of A.1.1 and cpp code in A.1.2. of https://arxiv.org/pdf/1405.2919.pdf
+
+    image_center_idx = find(alpha_vs_b[:,0]>0.)[0] # AVOID PLOTTING ARTEFACTS ACROSS SHADOW
     plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'.',color='gray',label="weak field limit")
     plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,3])/pi,'--',color='gray',label="weak field w spin")
 
@@ -469,11 +494,17 @@ if figure5==True:
     darwin_tab = array([[3.2,5.23,273.],[3.4,5.30,205.],[3.6,5.40,162.],[3.8,5.53,143.],[4,5.66,125.],[5,6.46,79.],[6,7.35,58.],[7,8.28,46.],[8,9.24,38.],[9,10.22,32.],[10,11.20,28.],[11,12.17,25.],[12,13.15,23.]]) # TABLE 3 in http://www.jstor.org/stable/pdf/100508.pdf # P:Perihelion, l:impact parameter mu:deflection angle
     darwin_tab[:,-1] *= pi/180.
 
-    plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2,label="DARWIN (exact, tab)")
-    plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2) # Schwarzschild: symmetric under l->-l
+    # plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2,label="DARWIN (exact, tab)")
+    # plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2) # Schwarzschild: symmetric under l->-l
+    try:
+        # plot(b_exact_grid, deflection_angle_schwarzschild_exact/pi,'k^-',lw=2,label="Schwarzschild (exact)")
+        plot(b_exact_grid, array(deflection_angle_kerr_eq_exact)/pi,'kv-',lw=2,label="Kerr (exact)")
+    except:
+        pass
     # plot(alpha_vs_b_darwin[:,0],alpha_vs_b_darwin[:,1]/pi,'kv',lw=2,label="DARWIN (exact)")
     alpha_vs_b_09075352=array(alpha_vs_b_09075352)
-    plot(alpha_vs_b_09075352[:,0],alpha_vs_b_09075352[:,1]/pi,'k-.',lw=2,label="09075352 (a=0)")
+    # SEEMS WRONG
+    # plot(alpha_vs_b_09075352[:,0],alpha_vs_b_09075352[:,1]/pi,'k-.',lw=2,label="09075352 (a=0)")
     plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,2])/pi,'.',color='gray')
     plot(alpha_vs_b[image_center_idx:,0],abs(alpha_vs_b[image_center_idx:,3])/pi,'--',color='gray')
 
