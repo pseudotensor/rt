@@ -231,11 +231,12 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     ##############################################################################################
     r_per=amin(r) # For Schwarzschild b=r_per/sqrt(1.-r_s/r_per) http://arxiv.org/abs/gr-qc/9907034
     b=d[-1,12]
-    if b>bmax:
-        bmax=b
+
     # b_crit = 3.*sqrt(3.) # "photon sphere":3 https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq 
 
-    s = sign(b) # direct orbits: s=+1 retrograd orbits: s=-1
+    s = sign(b*a) # direct orbits: s=+1 retrograd orbits: s=-1
+    b_s = s*abs(b) # b_s: positive magnitude of impact parameter
+    b=abs(b); # print "[WARNING]: ENFORCE b>=0" # should really use b_s ...
     
     # b_sc=-a+s*6.*cos(1./3.*arccos(-s*a))
     b_crit = b_sc(a,s)
@@ -254,12 +255,13 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
         continue
     # EXACT_BENDING_ANGLE=False # ...WIP... NOT WORKING AS EXPECTED YET
 
+    sys.path.append("/home/rgold/codes/astroray/")
+    from IyerHansen_09075352 import deflection_angle_Iyer2009
+
     # https://arxiv.org/pdf/0907.5352v1.pdf
-    b_s = s*abs(b) # BH spin 
-    # b=abs(b); print "[WARNING]: ENFORCE b>=0"
 
     # r_0 = r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
-    r_0 = 2.*abs(b)/sqrt(3.)*sqrt(1.-a**2/abs(b)**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-a**2/abs(b)**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
+    r_0 = 2.*abs(b)/sqrt(3.)*sqrt(1.-a**2/abs(b)**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-(a/abs(b))**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
 
     # What about b_s=0 ?  :-s
     P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
@@ -269,8 +271,14 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     h = 1./r_0 # eq (36)
     h_sc = (1.+omega_s)/(1.-omega_s) # eq (37) (~> 1 for a=0)
     omega_0 = a*a # eq (36)
-    r_0_over_Q = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
+
+    # r_0_over_Q = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
+    r_0_over_Q = r_0/Q 
+
     k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
+    k_squared_v2 = (Q-P+6.)/2./Q # see between eq(34) and eq(35) DOES NOT AGREE with eq(41) k_squared above!
+    # print "k_squared,k_squared_v2:",k_squared,k_squared_v2
+    k_squared=k_squared_v2
     k=sqrt(k_squared)
     psi = sqrt( ( 1.- 2.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) /  ( 1.- 6.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) )) # eq (42)
     Omega_plus  =  +((1.+sqrt(1.-omega_0))*(1.-omega_s)-omega_0/2.)/sqrt(1.-omega_0)/(1.+sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
@@ -279,18 +287,19 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (43)
 
     from scipy.special import ellipk,ellipkinc
-    # FIXME: SOMETHING IS NOT RIGHT HERE, THIS SHOULD AGREE WITH darwin_tab[:,-1] ...
+    # FIXME: SOMETHING IS NOT RIGHT HERE, THIS SHOULD AT LEAST AGREE WITH darwin_tab[:,-1] ...
     deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1 
-    alpha_vs_b_09075352.append([b,deflection_angle_09075352v1_schwarzschild])
+    alpha_vs_b_09075352.append([s*abs(b),deflection_angle_09075352v1_schwarzschild])
 
     if EXACT_BENDING_ANGLE==True:
         # try:
-            from KerrDeflection import SchwarzDeflection,FindRoots,EquatorialDeflection
+            from KerrDeflection import SchwarzDeflection,FindRoots,EquatorialDeflection # ,SchwTiltCoords
             b_exact_grid = arange(5,21)
             # b_exact_grid = arange(-20,-10) # DOES NOT WORK, HAVE TO PLAY WITH INCLINATION INSTEAD
             # b_exact_grid = array([10])
             bignumber=1e20
             deflection_angle_schwarzschild_exact = SchwarzDeflection(bignumber,b_exact_grid)-pi
+            # deflection_angle_schwarzschild_exact = SchwTiltCoords(deflection_angle_schwarzschild_exact+pi,pi,b_exact_grid,0)[1]
 
             deflection_angle_kerr_eq_exact = []
             for b_tmp in b_exact_grid: 
@@ -333,7 +342,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
         deflection_angle_darwin_exact = -pi + F_darwin*darwin_G # Darwin 1959
         # print "darwin_lambda,darwin_phi_0,darwin_G,x_0,F_darwin,deflection_angle_darwin_exact:",darwin_lambda,darwin_phi_0,darwin_G,x_0,F_darwin,deflection_angle_darwin_exact
         deflection_angle_darwin = -pi + 2.*log( 36.*(2.-sqrt(3.))/(r_per-3.)) # Darwin 1959
-        alpha_vs_b_darwin.append([b,deflection_angle_darwin_exact])
+        alpha_vs_b_darwin.append([s*abs(b),deflection_angle_darwin_exact])
 
 #    except:
 #        pass
@@ -345,7 +354,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     # print "deflection_angle_darwin=",deflection_angle_darwin,"rad =",deflection_angle_darwin/2./pi*360.,"deg"
 
     if diff(r)[-1]>0: # HYPERBOLIC ORBIT
-        alpha_vs_b += [[b,deflection_angle_astroray,deflection_angle_weakfield,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
+        alpha_vs_b += [[s*abs(b),deflection_angle_astroray,deflection_angle_weakfield,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
 
     veto += size(find(r==None))
     if False: # (amax(r)>500 and size(lambda_affine[r==amax(r)])>1):
@@ -463,7 +472,7 @@ vrt2_deflection_angle_int_fct = interpolate.interp1d(b_vs_deflection_angle_vrt2[
 
 if figure5==True:
 
-    figure(5,figsize=(8,12))
+    figure(5,figsize=(10,12))
     subplot(311)
 
     grid(True,alpha=0.5) # want shadow to cover grid, but zorder has no effect...
@@ -586,7 +595,7 @@ if figure5==True:
 
 
     subplot(313)
-    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs WEAKFIELD")
+    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs Sereno+ (2014)") # weakfield with spin
     semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
     semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")
