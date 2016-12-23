@@ -733,7 +733,7 @@ if "IP" in WANTED_PLOTS:
         title(titles_4panel_xy[plot_loop]+title_vary_string)
 
     tight_layout(pad=0, w_pad=0, h_pad=0)
-    savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy.pdf"))
+    savefig(filename_out.replace(".png","_I-LP-EVPA-CP_xy."+OUTPUT_EXT))
 
 
 ########################################################################
@@ -789,7 +789,7 @@ if "IP" in WANTED_PLOTS and miniversion:
     title(titles_miniversion_4panel_uv[plot_loop]+title_vary_string)
 
 tight_layout(pad=0, w_pad=0, h_pad=0)
-savefig(filename_out.replace(".png","_miniversion_4panel_uv.pdf"))
+savefig(filename_out.replace(".png","_miniversion_4panel_uv."+OUTPUT_EXT))
 
 
 
