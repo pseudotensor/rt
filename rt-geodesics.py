@@ -516,8 +516,8 @@ if figure5==True:
     # angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid[3:]])
     b_exact_grid = concatenate((arange(-20,-6.9),arange(6,20.1)))
     b_exact_grid_idx = find(b_exact_grid>0)
-    angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid])
-    plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="$a=0$ (exact),Iyer+2009")
+    angle_Iyer2009 = array([deflection_angle_Iyer2009(a,b_tmp) for b_tmp in b_exact_grid])
+    plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="exact,Iyer+2009")
     plot(b_exact_grid[:b_exact_grid_idx[0]-1], angle_Iyer2009[:b_exact_grid_idx[0]-1]/pi,'k-')
 
     # plot(alpha_vs_b_darwin[:,0],alpha_vs_b_darwin[:,1]/pi,'kv',lw=2,label="DARWIN (exact)")

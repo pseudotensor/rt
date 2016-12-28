@@ -23,6 +23,7 @@ def deflection_angle_Iyer2009(a,b):
     s = sign(b*a) # direct orbits: s=+1 retrograd orbits: s=-1
     if a==0:
         s=1 # sign(b)
+    # s=1
     b_s = s*abs(b) # b_s: positive magnitude of impact parameter
     b=b_s # this gives k^2=k^2_v2
 
@@ -61,6 +62,7 @@ def deflection_angle_Iyer2009(a,b):
         print "psi=",psi,"psi_v2",psi_v2," should equal each other" # see page 11 before eq (35)
     # psi=psi_v2; print "USING psi_v2 which differs from psi"
 
+    # Omega_minus seems wrong in the spinning case...
     Omega_plus  =  +((1.+sqrt(1.-omega_0))*(1.-omega_s)-omega_0/2.)/sqrt(1.-omega_0)/(1.+sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
 
     # C'mon THE DENOMINATOR IS ZERO FOR SCHWARZSCHILD!!!
@@ -73,6 +75,10 @@ def deflection_angle_Iyer2009(a,b):
         Omega_minus =  -((1.-sqrt(1.-omega_0))*(1.-omega_s)+omega_0/2.)/sqrt(1.-omega_0)/(1.-sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
         n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (44)
         n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (44)
+        print "ATTENTION! Omega_minus,n_plus,n_minus do not reduce to 0 in Schwarzschild case"
+        Omega_minus = 0.; print "SETTING Omega_minus=0"
+        # n_plus = 0.; print "SETTING n_minus=0"
+        # n_minus = 0.; print "SETTING n_minus=0"
 
     # print "Omega_minus,Omega_plus:",Omega_minus,Omega_plus
 
