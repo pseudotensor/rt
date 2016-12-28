@@ -36,7 +36,8 @@ figure3=False
 figure5=True # deflection angle vs impact parameter
 
 
-def b_sc(a,s):
+def b_sc(a,s): 
+    '''Given black hole spin a and sign for pro/retrograde orbit s return b_sc as given in eq (28) from https://arxiv.org/pdf/0907.5352v1.pdf'''
     return -a+s*6.*cos(1./3.*arccos(-s*a))
 
 
@@ -265,7 +266,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
 
     # What about b_s=0 ?  :-s
     P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
-    Q = (P-2.)*(P+6.) # eq (19) in https://arxiv.org/pdf/0907.5352v1.pdf
+    Q = sqrt((P-2.)*(P+6.)) # eq (19) in https://arxiv.org/pdf/0907.5352v1.pdf
 
     omega_s = a/b_s # eq (36)
     h = 1./r_0 # eq (36)
@@ -472,6 +473,7 @@ vrt2_deflection_angle_int_fct = interpolate.interp1d(b_vs_deflection_angle_vrt2[
 
 if figure5==True:
 
+    # figure(5)
     figure(5,figsize=(10,12))
     subplot(311)
 
@@ -503,13 +505,21 @@ if figure5==True:
     darwin_tab = array([[3.2,5.23,273.],[3.4,5.30,205.],[3.6,5.40,162.],[3.8,5.53,143.],[4,5.66,125.],[5,6.46,79.],[6,7.35,58.],[7,8.28,46.],[8,9.24,38.],[9,10.22,32.],[10,11.20,28.],[11,12.17,25.],[12,13.15,23.]]) # TABLE 3 in http://www.jstor.org/stable/pdf/100508.pdf # P:Perihelion, l:impact parameter mu:deflection angle
     darwin_tab[:,-1] *= pi/180.
 
-    # plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2,label="DARWIN (exact, tab)")
-    # plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kv',lw=2) # Schwarzschild: symmetric under l->-l
-    try:
-        # plot(b_exact_grid, deflection_angle_schwarzschild_exact/pi,'k^-',lw=2,label="Schwarzschild (exact)")
-        plot(b_exact_grid, array(deflection_angle_kerr_eq_exact)/pi,'kv-',lw=2,label="Kerr (exact)")
-    except:
-        pass
+    plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kd',lw=2,label="DARWIN (exact, tab)")
+    plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kd',lw=2) # Schwarzschild: symmetric under l->-l
+    # try:
+    #     # plot(b_exact_grid, deflection_angle_schwarzschild_exact/pi,'k^-',lw=2,label="Schwarzschild (exact)")
+    #     # plot(b_exact_grid, array(deflection_angle_kerr_eq_exact)/pi,'kv-',lw=2,label="Kerr (exact)")
+    # except:
+    #     pass
+
+    # angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid[3:]])
+    b_exact_grid = concatenate((arange(-20,-6.9),arange(6,20.1)))
+    b_exact_grid_idx = find(b_exact_grid>0)
+    angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid])
+    plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="$a=0$ (exact),Iyer+2009")
+    plot(b_exact_grid[:b_exact_grid_idx[0]-1], angle_Iyer2009[:b_exact_grid_idx[0]-1]/pi,'k-')
+
     # plot(alpha_vs_b_darwin[:,0],alpha_vs_b_darwin[:,1]/pi,'kv',lw=2,label="DARWIN (exact)")
     alpha_vs_b_09075352=array(alpha_vs_b_09075352)
     # SEEMS WRONG
@@ -573,7 +583,13 @@ if figure5==True:
 
     # figure(50)
 
+    # tight_layout(h_pad=0.1,w_pad=0)
 
+    # savefig("deflection_angle_vs_impact_parameter.png")
+
+    # exit()
+
+    # figure(51)
     subplot(312)
 
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3])/alpha_vs_b[:,3],'cD',label="VRT2 vs WEAKFIELD")
