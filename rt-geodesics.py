@@ -435,6 +435,8 @@ from scipy import interpolate
 # UNSORTED
 grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
 vrt2_deflection_angle_int_fct = interpolate.interp1d(b_vs_deflection_angle_vrt2[:,0],b_vs_deflection_angle_vrt2[:,1],kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+odyssey_deflection_angle_int_fct = interpolate.interp1d(deflection_angle_odyssey[:,0],deflection_angle_odyssey[:,1],kind=3, bounds_error=False, fill_value=None) #returns interpolating function
+astroray_deflection_angle_int_fct = interpolate.interp1d(array(alpha_vs_b)[:,0],array(alpha_vs_b)[:,1],kind=3, bounds_error=False, fill_value=None) #returns interpolating function
 
 # BEFORE SPLINE WE NEED TO SORT b,alpha BUT FOR interp1d unsorted seems ok
 # grtrans_sort_idx = argsort(grtrans_b)
@@ -536,8 +538,10 @@ if figure5==True:
     # impact_parameter_grid_prograd = linspace(b_sc(a,1),10,10)
     impact_parameter_grid_prograd = linspace(-20,-b_sc(a,1),20)
     impact_parameter_grid_retrograd = linspace(-b_sc(a,-1),20,20)
+    impact_parameter_grid = concatenate((impact_parameter_grid_prograd,impact_parameter_grid_retrograd))
 
-    ref_solution = array([deflection_angle_Iyer2009(a,-b_tmp) for b_tmp in impact_parameter_grid_prograd])
+    ref_solution = array([deflection_angle_Iyer2009(a,-b_tmp) for b_tmp in impact_parameter_grid])
+    # ref_solution = array([deflection_angle_Iyer2009(a,-b_tmp) for b_tmp in impact_parameter_grid_prograd])
 
     # BEFORE SPLINE WE NEED TO SORT b,alpha
     grtrans_sort_idx = argsort(grtrans_b)
@@ -546,12 +550,18 @@ if figure5==True:
     vrt2_sort_idx = argsort(-b_vs_deflection_angle_vrt2[:,0])
     vrt2_b_sorted = array(-b_vs_deflection_angle_vrt2[:,0])[vrt2_sort_idx]
     vrt2_deflection_angle_sorted = array(-b_vs_deflection_angle_vrt2[:,1])[vrt2_sort_idx]
+    odyssey_sort_idx = argsort(-deflection_angle_odyssey[:,0])
+    odyssey_b_sorted = array(-deflection_angle_odyssey[:,0])[odyssey_sort_idx]
+    odyssey_deflection_angle_sorted = array(-deflection_angle_odyssey[:,1])[odyssey_sort_idx]
 
     grtrans_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
     grtrans_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(grtrans_b_sorted,grtrans_deflection_angle_sorted,k=5))
 
     vrt2_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(vrt2_b_sorted,vrt2_deflection_angle_sorted,k=5))
     vrt2_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(vrt2_b_sorted,vrt2_deflection_angle_sorted,k=5))
+
+    odyssey_deflection_angle_retrograd_int = interpolate.splev(impact_parameter_grid_retrograd,interpolate.splrep(vrt2_b_sorted,vrt2_deflection_angle_sorted,k=5))
+    odyssey_deflection_angle_prograd_int = interpolate.splev(impact_parameter_grid_prograd,interpolate.splrep(odyssey_b_sorted,odyssey_deflection_angle_sorted,k=5))
 
     # grtrans_deflection_angle_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3, bounds_error=False, fill_value=None) #returns interpolating function
     # grtrans_deflection_angle_prograd_int_fct = interpolate.interp1d(grtrans_b,grtrans_deflection_angle,kind=3) #returns interpolating function
@@ -568,11 +578,18 @@ if figure5==True:
     # figure(51)
     subplot(312)
 
-    semilogy(-impact_parameter_grid_prograd,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid_prograd)-ref_solution)/ref_solution,'cD',label="VRT2 vs Exact")
+    semilogy(-impact_parameter_grid,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid)-ref_solution)/ref_solution,'cD',label="VRT2 vs EXACT")
+    # semilogy(-impact_parameter_grid_prograd,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid_prograd)-ref_solution)/ref_solution,'cD',label="VRT2 vs EXACT")
+
     # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3])/alpha_vs_b[:,3],'cD',label="VRT2 vs WEAKFIELD")
-    semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1])/b_vs_deflection_angle_vrt2[:,1],'g^',label="GRTRANS vs VRT2")
-    semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1])/deflection_angle_odyssey[:,1],'r.',label="ODYSSEY vs VRT2")
-    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1])/alpha_vs_b[:,1],'b+',label="ASTRORAY vs VRT2")
+
+    # semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1])/b_vs_deflection_angle_vrt2[:,1],'g^',label="GRTRANS vs VRT2")
+    semilogy(-impact_parameter_grid,abs(grtrans_deflection_angle_int_fct(impact_parameter_grid)-ref_solution)/ref_solution,'g^',label="GRTRANS vs EXACT")
+    # semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1])/deflection_angle_odyssey[:,1],'r.',label="ODYSSEY vs VRT2")
+    semilogy(-impact_parameter_grid,abs(odyssey_deflection_angle_int_fct(impact_parameter_grid)-ref_solution)/ref_solution,'r.',label="ODYSSEY vs EXACT")
+    # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1])/alpha_vs_b[:,1],'b+',label="ASTRORAY vs VRT2")
+    semilogy(-impact_parameter_grid,abs(astroray_deflection_angle_int_fct(-impact_parameter_grid)-ref_solution)/ref_solution,'b+',label="ASTRORAY vs EXACT")
+
     # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
     # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
     axvspan(0-0.1,0+0.1,fc="k",alpha=0.5)
@@ -588,11 +605,17 @@ if figure5==True:
 
 
     subplot(313)
-    semilogy(-impact_parameter_grid_prograd,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid_prograd)-ref_solution),'cD',label="VRT2 vs Exact")
+    semilogy(-impact_parameter_grid,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid)-ref_solution),'cD',label="VRT2 vs EXACT")
     # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs Sereno+ (2014)") # weakfield with spin
-    semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
-    semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
-    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")
+    semilogy(-impact_parameter_grid,abs(grtrans_deflection_angle_int_fct(impact_parameter_grid)-ref_solution),'g^',label="GRTRANS vs EXACT")
+
+    # semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
+    # semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
+    semilogy(-impact_parameter_grid,abs(odyssey_deflection_angle_int_fct(impact_parameter_grid)-ref_solution),'r.',label="ODYSSEY vs EXACT")
+
+    semilogy(-impact_parameter_grid,abs(astroray_deflection_angle_int_fct(-impact_parameter_grid)-ref_solution),'b+',label="ASTRORAY vs EXACT")
+    # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")
+
     # plot(impact_parameter_grid_retrograd,grtrans_deflection_angle_retrograd_int/pi,'k-',label="SPLINE")
     # plot(impact_parameter_grid_prograd,grtrans_deflection_angle_prograd_int/pi,'k-')
     axvspan(0-0.1,0+0.1,fc="k",alpha=0.5)
