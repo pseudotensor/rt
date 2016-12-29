@@ -28,17 +28,16 @@ def deflection_angle_Iyer2009(a,b,VERBOSE=False):
     s = sign(b*a) # direct orbits: s=+1 retrograd orbits: s=-1
     if a==0:
         s=1 # sign(b)
-    # s=1
-    # if sign(b)<0:
-    #     a=-a
     b_s = s*abs(b) # b_s: positive magnitude of impact parameter
     b=b_s # this gives k^2=k^2_v2
     b_sc = -a + s*6*cos(arccos(-s*a)/3.)
 
+    if (b<b_sc and b>0) or (b>b_sc and b<0):
+        return nan # captured orbit
+
     if VERBOSE:
         print "Computing deflection angle for (b,b',a)=(",b,1.-s*b_sc/b,a,")"
 
-    # r_0 = r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
     r_0 = 2.*b/sqrt(3.)*sqrt(1.-a**2/b**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-(a/b)**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
 
     P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
@@ -52,17 +51,12 @@ def deflection_angle_Iyer2009(a,b,VERBOSE=False):
     r_0_over_Q_v2 = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
     r_0_over_Q = r_0/Q # NOT THE SAME AS r_0_over_Q = 1./h_sc # eq(40)
 
-    # SANITY CHECK
-    
+    # SANITY CHECK    
     if SANITY and not isclose(r_0_over_Q,r_0_over_Q_v2):
         print "r0/Q=",r_0_over_Q,"r0/Q_v2",r_0_over_Q_v2," should equal each other" # see e.g. page 7 after eq (20)
     r_0_over_Q=r_0_over_Q_v2
     if VERBOSE:
         print "Using r_0__over_Q_v2"
-    # if SANITY and r_0_over_Q!=r_0_over_Q_v2:
-    #     print "r0/Q=",r_0_over_Q,"r0/Q_v2",r_0_over_Q_v2," should equal each other" # see e.g. page 7 after eq (20)
-    #     r_0_over_Q=r_0_over_Q_v2; print "Using r_0__over_Q_v2"
-    #     # raw_input("OK?")
 
     k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
     k_squared_v2 = (Q-P+6.)/2./Q # see between eq(34) and eq(35) 
@@ -75,7 +69,6 @@ def deflection_angle_Iyer2009(a,b,VERBOSE=False):
     k=sqrt(k_squared)
 
     psi = arcsin(sqrt( ( 1.- 2.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) /  ( 1.- 6.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) ) # eq (42)
-
     psi_v2 = arcsin( sqrt( (Q+2.-P)/(Q+6.-P) ) ) # p11 before eq (35)
 
     # SANITY CHECK
@@ -145,9 +138,8 @@ def deflection_angle_Iyer2009(a,b,VERBOSE=False):
 
     deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1 
 
-
     deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k_squared)-Pi(n_plus,psi,k_squared))+Omega_minus*(Pi(n_minus,k_squared)-Pi(n_minus,psi,k_squared)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
-    # deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k)-Pi(n_plus,psi,k))+Omega_minus*(Pi(n_minus,k)-Pi(n_minus,psi,k)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
+
     if deflection_angle_09075352v1.imag!=0.:
         print "WARNING EXACT DEFLECTION ANGLE COMPLEX"
         deflection_angle_09075352v1 = float(deflection_angle_09075352v1.real)
