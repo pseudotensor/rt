@@ -243,7 +243,10 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     b_crit = b_sc(a,s)
     # b_prime = 1.-s*b_sc/b 
     # b_prime = 1.-s*b_sc/b 
-    b_prime = 1.-b_crit/abs(b) # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq before eq (20) III.D page 12 ? # abs(b)?
+    if b==0.:
+        b_prime=0.
+    else:
+        b_prime = 1.-b_crit/abs(b) # https://arxiv.org/pdf/gr-qc/0611086v2.pdf eq before eq (20) III.D page 12 ? # abs(b)?
 
     # elliptic integrals: http://arxiv.org/pdf/math/9409227v1.pdf
     deflection_angle_0611086v2  = 0. # Schwarzschild need elliptic integral of the 1st kind
@@ -258,41 +261,10 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
 
     sys.path.append("/home/rgold/codes/astroray/")
     from IyerHansen_09075352 import deflection_angle_Iyer2009
-
     # https://arxiv.org/pdf/0907.5352v1.pdf
 
-    # r_0 = r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
-    r_0 = 2.*abs(b)/sqrt(3.)*sqrt(1.-a**2/abs(b)**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-(a/abs(b))**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
 
-    # What about b_s=0 ?  :-s
-    P = r_0*(1.+a/b_s)/(1.-a/b_s) # eq (16) in https://arxiv.org/pdf/0907.5352v1.pdf 
-    Q = sqrt((P-2.)*(P+6.)) # eq (19) in https://arxiv.org/pdf/0907.5352v1.pdf
-
-    omega_s = a/b_s # eq (36)
-    h = 1./r_0 # eq (36)
-    h_sc = (1.+omega_s)/(1.-omega_s) # eq (37) (~> 1 for a=0)
-    omega_0 = a*a # eq (36)
-
-    # r_0_over_Q = 1. / h_sc / sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (40)  
-    r_0_over_Q = r_0/Q 
-
-    k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
-    k_squared_v2 = (Q-P+6.)/2./Q # see between eq(34) and eq(35) DOES NOT AGREE with eq(41) k_squared above!
-    # print "k_squared,k_squared_v2:",k_squared,k_squared_v2
-    k_squared=k_squared_v2
-    k=sqrt(k_squared)
-    psi = sqrt( ( 1.- 2.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) /  ( 1.- 6.*h/h_sc - sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) )) # eq (42)
-    Omega_plus  =  +((1.+sqrt(1.-omega_0))*(1.-omega_s)-omega_0/2.)/sqrt(1.-omega_0)/(1.+sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
-    Omega_minus  =  -((1.-sqrt(1.-omega_0))*(1.-omega_s)+omega_0/2.)/sqrt(1.-omega_0)/(1.-sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
-    n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (43)
-    n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (43)
-
-    from scipy.special import ellipk,ellipkinc
-    # FIXME: SOMETHING IS NOT RIGHT HERE, THIS SHOULD AT LEAST AGREE WITH darwin_tab[:,-1] ...
-    deflection_angle_09075352v1_schwarzschild = -pi+4.*sqrt(r_0_over_Q) * ( ellipk(k_squared) - ellipkinc(psi,k_squared) ) # eq(35) in arXiv:0907.5352v1 
-    alpha_vs_b_09075352.append([s*abs(b),deflection_angle_09075352v1_schwarzschild])
-
-    if EXACT_BENDING_ANGLE==True:
+    if False: # EXACT_BENDING_ANGLE==True:
         # try:
             from KerrDeflection import SchwarzDeflection,FindRoots,EquatorialDeflection # ,SchwTiltCoords
             b_exact_grid = arange(5,21)
@@ -315,7 +287,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
         # except:
         #     pass
 
-    if EXACT_BENDING_ANGLE==True and k==k:
+    if False: # EXACT_BENDING_ANGLE==True and k==k:
         # k^2
         deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k_squared)-Pi(n_plus,psi,k_squared))+Omega_minus*(Pi(n_minus,k_squared)-Pi(n_minus,psi,k_squared)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
         # deflection_angle_09075352v1 = -pi+4./(1.-omega_s)*sqrt(r_0_over_Q)*(Omega_plus*(Pi(n_plus,k)-Pi(n_plus,psi,k))+Omega_minus*(Pi(n_minus,k)-Pi(n_minus,psi,k)))   # eq (34) in https://arxiv.org/pdf/0907.5352v1.pdf
@@ -325,13 +297,14 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
         else:
             deflection_angle_09075352v1 = float(deflection_angle_09075352v1)
 
-    deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
-    deflection_angle_weakfield_Sereno = 4./b + (15.*pi/4.-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5 # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
+    if b!=0:
+        deflection_angle_weakfield   = 4./b * ( 1. + 15./16.*pi/b )
+        deflection_angle_weakfield_Sereno = 4./b + (15.*pi/4.-4.*a)/b**2 + (4*a**2-10.*pi*a+128./3.)/b**3 + (15./64.*pi*(76*a**2+231)-4.*a*(a**2+48.))/b**4 + (4.*(a**2+128)*a**2-9./2.*pi*(6.*a**2+77.)*a+3584./5.)/b**5 # http://arxiv.org/pdf/1405.2919.pdf eq (3.40) (equatorial), see: Sereno,de Luca for general orbits
 
-    deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.))) # http://arxiv.org/pdf/gr-qc/9907034v1.pdf SCHWARZSCHILD
-    deflection_angle_0611086v2 = -pi + log( 216.*(7.-4.*sqrt(3.))/b_prime) + (-17.+4.*sqrt(3.)+5.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime/18. + (-879.+236.*sqrt(3.)+205.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**2/1296. + (-321590.+90588*sqrt(3.)+68145.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**3/629856. # SCHWARZSCHILD
+    # deflection_angle_strongfield = log( 3.482/(b-3.*sqrt(3.))) # http://arxiv.org/pdf/gr-qc/9907034v1.pdf SCHWARZSCHILD
+    # deflection_angle_0611086v2 = -pi + log( 216.*(7.-4.*sqrt(3.))/b_prime) + (-17.+4.*sqrt(3.)+5.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime/18. + (-879.+236.*sqrt(3.)+205.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**2/1296. + (-321590.+90588*sqrt(3.)+68145.*log(216.*(7.-4.*sqrt(3.))/b_prime))*b_prime**3/629856. # SCHWARZSCHILD
     #    try:
-    if True:
+    if False:
         # x_0 = b # P in Darwin is perihelion distance...
         x_0 = r_per # P in Darwin is perihelion distance...
         darwin_lambda = (3.- x_0 - sqrt(x_0**2+2*x_0-3.))/(3.- x_0 + sqrt(x_0**2+2*x_0-3.))
@@ -355,7 +328,7 @@ for FILE in sys.argv[1:][::every_nth_geodesic]:
     # print "deflection_angle_darwin=",deflection_angle_darwin,"rad =",deflection_angle_darwin/2./pi*360.,"deg"
 
     if diff(r)[-1]>0: # HYPERBOLIC ORBIT
-        alpha_vs_b += [[s*abs(b),deflection_angle_astroray,deflection_angle_weakfield,deflection_angle_weakfield_Sereno,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
+        alpha_vs_b += [[s*abs(b),deflection_angle_astroray,deflection_angle_weakfield,deflection_angle_weakfield_Sereno]] # ,deflection_angle_09075352v1]] #deflection_angle_0611086v2]] # deflection_angle_darwin]]
 
     veto += size(find(r==None))
     if False: # (amax(r)>500 and size(lambda_affine[r==amax(r)])>1):
@@ -494,8 +467,8 @@ if figure5==True:
     ## CHECK python code in appendix of A.1.1 and cpp code in A.1.2. of https://arxiv.org/pdf/1405.2919.pdf
 
     image_center_idx = find(alpha_vs_b[:,0]>0.)[0] # AVOID PLOTTING ARTEFACTS ACROSS SHADOW
-    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'.',color='gray',label="weak field limit")
-    plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,3])/pi,'--',color='gray',label="weak field w spin")
+    # plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,2])/pi,'.',color='gray',label="weak field limit")
+    # plot(alpha_vs_b[:image_center_idx,0],abs(alpha_vs_b[:image_center_idx,3])/pi,'--',color='gray',label="weak field w spin")
 
     # plot(alpha_vs_b[:,0],abs(alpha_vs_b[:,2])/pi,'.',color='gray',label="weak field limit")
     # plot(alpha_vs_b[:,0],abs(alpha_vs_b[:,3])/pi,'--',color='gray',label="weak field w spin")
@@ -514,9 +487,10 @@ if figure5==True:
     #     pass
 
     # angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid[3:]])
-    b_exact_grid = concatenate((arange(-20,-6.9),arange(3,20.1)))
+    b_exact_grid = concatenate((arange(-20,-6.981,0.02),arange(3,20.01,0.02)))
     b_exact_grid_idx = find(b_exact_grid>0)
     angle_Iyer2009 = array([deflection_angle_Iyer2009(a,b_tmp) for b_tmp in b_exact_grid])
+
     plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="exact,Iyer+2009",lw=3,alpha=0.75)
     plot(b_exact_grid[:b_exact_grid_idx[0]-1], angle_Iyer2009[:b_exact_grid_idx[0]-1]/pi,'k-',lw=3,alpha=0.75)
 
@@ -560,8 +534,10 @@ if figure5==True:
     # GET ORIENTATION CONVENTION RIGHT:
     # impact_parameter_grid_retrograd = linspace(-10,b_sc(a,-1),10)
     # impact_parameter_grid_prograd = linspace(b_sc(a,1),10,10)
-    impact_parameter_grid_prograd = linspace(-10,-b_sc(a,1),10)
-    impact_parameter_grid_retrograd = linspace(-b_sc(a,-1),10,10)
+    impact_parameter_grid_prograd = linspace(-20,-b_sc(a,1),20)
+    impact_parameter_grid_retrograd = linspace(-b_sc(a,-1),20,20)
+
+    ref_solution = array([deflection_angle_Iyer2009(a,-b_tmp) for b_tmp in impact_parameter_grid_prograd])
 
     # BEFORE SPLINE WE NEED TO SORT b,alpha
     grtrans_sort_idx = argsort(grtrans_b)
@@ -592,7 +568,8 @@ if figure5==True:
     # figure(51)
     subplot(312)
 
-    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3])/alpha_vs_b[:,3],'cD',label="VRT2 vs WEAKFIELD")
+    semilogy(-impact_parameter_grid_prograd,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid_prograd)-ref_solution)/ref_solution,'cD',label="VRT2 vs Exact")
+    # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3])/alpha_vs_b[:,3],'cD',label="VRT2 vs WEAKFIELD")
     semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1])/b_vs_deflection_angle_vrt2[:,1],'g^',label="GRTRANS vs VRT2")
     semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1])/deflection_angle_odyssey[:,1],'r.',label="ODYSSEY vs VRT2")
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1])/alpha_vs_b[:,1],'b+',label="ASTRORAY vs VRT2")
@@ -611,7 +588,8 @@ if figure5==True:
 
 
     subplot(313)
-    semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs Sereno+ (2014)") # weakfield with spin
+    semilogy(-impact_parameter_grid_prograd,abs(vrt2_deflection_angle_int_fct(impact_parameter_grid_prograd)-ref_solution),'cD',label="VRT2 vs Exact")
+    # semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,3]),'cD',label="VRT2 vs Sereno+ (2014)") # weakfield with spin
     semilogy(-b_vs_deflection_angle_vrt2[:,0],abs(grtrans_deflection_angle_int_fct(b_vs_deflection_angle_vrt2[:,0])-b_vs_deflection_angle_vrt2[:,1]),'g^',label="GRTRANS vs VRT2")
     semilogy(-deflection_angle_odyssey[:,0],abs(vrt2_deflection_angle_int_fct(deflection_angle_odyssey[:,0])-deflection_angle_odyssey[:,1]),'r.',label="ODYSSEY vs VRT2")
     semilogy(alpha_vs_b[:,0],abs(vrt2_deflection_angle_int_fct(-alpha_vs_b[:,0])-alpha_vs_b[:,1]),'b+',label="ASTRORAY vs VRT2")

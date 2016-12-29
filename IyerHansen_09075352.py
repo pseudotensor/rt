@@ -10,29 +10,33 @@ from sympy.mpmath import ellippi as Pi
 #         Setting Omega_minus=0 gives correct answer for a=0 and 
 #         also more reasonable answers for a>~0
 
-def deflection_angle_Iyer2009(a,b):
+def deflection_angle_Iyer2009(a,b,VERBOSE=False):
 
     '''Given BH spin (a) and impact parameter (b), compute deflection angle of null geodesics.
        REFERENCE: https://arxiv.org/pdf/0907.5352v1.pdf
        SEE ALSO: https://arxiv.org/pdf/0908.0085v1.pdf
 
-       KNOWN PROBLEMS: 
-          * NON-SPINNING CASE NOT CORRECT: result-2pi gets asymptotics right... :-s
-          * SCHWARZSCHILD prograd agrees well with DARWIN, but is not symmetric as expected unless one sets b=b_s and s=1.
+       WIP: TRACKING OF SIGN FOR PRO-/RETROGRAD NOT ELEGANT YET...
 
     '''
 
     # Iyer+2009 say they track retro/prograde orbit via the sign of b
+    a=sign(b)*a # necessary for retrograd (need to understand that better)
+    
+    SANITY=True
 
     s = sign(b*a) # direct orbits: s=+1 retrograd orbits: s=-1
     if a==0:
         s=1 # sign(b)
     # s=1
+    # if sign(b)<0:
+    #     a=-a
     b_s = s*abs(b) # b_s: positive magnitude of impact parameter
     b=b_s # this gives k^2=k^2_v2
     b_sc = -a + s*6*cos(arccos(-s*a)/3.)
 
-    print "Computing deflection angle for (b,b',a)=(",b,1.-s*b_sc/b,a,")"
+    if VERBOSE:
+        print "Computing deflection angle for (b,b',a)=(",b,1.-s*b_sc/b,a,")"
 
     # r_0 = r_per # see eq(20) in https://arxiv.org/pdf/0907.5352v1.pdf
     r_0 = 2.*b/sqrt(3.)*sqrt(1.-a**2/b**2)*cos(1./3.*arccos(-3.*sqrt(3.)*(1.-a/b_s)**2 /(b*(1.-(a/b)**2)**1.5) )) # eq (20)  in https://arxiv.org/pdf/0907.5352v1.pdf
@@ -49,14 +53,22 @@ def deflection_angle_Iyer2009(a,b):
     r_0_over_Q = r_0/Q # NOT THE SAME AS r_0_over_Q = 1./h_sc # eq(40)
 
     # SANITY CHECK
-    if r_0_over_Q!=r_0_over_Q_v2:
+    
+    if SANITY and not isclose(r_0_over_Q,r_0_over_Q_v2):
         print "r0/Q=",r_0_over_Q,"r0/Q_v2",r_0_over_Q_v2," should equal each other" # see e.g. page 7 after eq (20)
+    r_0_over_Q=r_0_over_Q_v2
+    if VERBOSE:
+        print "Using r_0__over_Q_v2"
+    # if SANITY and r_0_over_Q!=r_0_over_Q_v2:
+    #     print "r0/Q=",r_0_over_Q,"r0/Q_v2",r_0_over_Q_v2," should equal each other" # see e.g. page 7 after eq (20)
+    #     r_0_over_Q=r_0_over_Q_v2; print "Using r_0__over_Q_v2"
+    #     # raw_input("OK?")
 
     k_squared = (sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))+6.*h/h_sc-1.)/2./sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) # eq (41)
     k_squared_v2 = (Q-P+6.)/2./Q # see between eq(34) and eq(35) 
     
     # SANITY CHECK
-    if k_squared!=k_squared_v2:
+    if SANITY and not isclose(k_squared,k_squared_v2):
         print "k^2=",k_squared,"k^2_v2",k_squared_v2," should equal each other and be within [0,1]" # see page 11 after eq (34)
 
     k_squared=k_squared_v2
@@ -67,7 +79,7 @@ def deflection_angle_Iyer2009(a,b):
     psi_v2 = arcsin( sqrt( (Q+2.-P)/(Q+6.-P) ) ) # p11 before eq (35)
 
     # SANITY CHECK
-    if psi!=psi_v2:
+    if SANITY and not isclose(psi,psi_v2):
         print "psi=",psi,"psi_v2",psi_v2," should equal each other" # see page 11 before eq (35)
     # psi=psi_v2; print "USING psi_v2 which differs from psi"
 
@@ -75,7 +87,6 @@ def deflection_angle_Iyer2009(a,b):
     Omega_plus  =  +((1.+sqrt(1.-omega_0))*(1.-omega_s)-omega_0/2.)/sqrt(1.-omega_0)/(1.+sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
     Omega_minus =  -((1.-sqrt(1.-omega_0))*(1.-omega_s)+omega_0/2.)/sqrt(1.-omega_0)/(1.-sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) ) # eq (43)
 
-    print "[2DO]: Look for alternative expression for Omega_+ Omega_- via C_+ C_- eqs (32),(33) "
     u1 = (P-2.-Q)/4./r_0 # eq (13)
     u2 = 1/r_0 # eq (14)
     u_plus = (1.+sqrt(1.-a**2))/a**2 # eq (30)
@@ -86,37 +97,47 @@ def deflection_angle_Iyer2009(a,b):
     Omega_plus_v2 = C_plus/(u_plus-u1) # see eq (32), eq after (34) at the bottom of page 11
     Omega_minus_v2 = C_minus/(u_minus-u1) # see eq (33), eq after (34) at the bottom of page 11
 
-    if Omega_plus!=Omega_plus_v2:
+    if SANITY and not isclose(Omega_plus,Omega_plus_v2):
+    # if Omega_plus!=Omega_plus_v2:
         print "Omega_plus=",Omega_plus,"Omega_plus_v2",Omega_plus_v2," should equal each other"
-    if Omega_minus!=Omega_minus_v2:
-        print "Omega_minus=",Omega_minus,"Omega_minus_v2",Omega_minus_v2," should equal each other"
-        Omega_minus=Omega_minus_v2; print "USING Omega_minus_v2"
+    if SANITY and not isclose(Omega_minus,Omega_minus_v2):
+    # if Omega_minus!=Omega_minus_v2:
+        KNOWN_PROBLEM=True
+        if not KNOWN_PROBLEM:
+            print "Omega_minus=",Omega_minus,"Omega_minus_v2",Omega_minus_v2," should equal each other"
+            print "USING Omega_minus_v2"
+        Omega_minus=Omega_minus_v2 # ; print "USING Omega_minus_v2"
     # C'mon THE DENOMINATOR IS ZERO FOR SCHWARZSCHILD!!!
     # print 1.-sqrt(1.-omega_0)-omega_0*h_sc/4.*( 1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)) ) # eq (43)
 
-    n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (44)
-    n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (44)
+    try:
+        n_plus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.+sqrt(1.-omega_0))) # eq (44)
+        n_minus = (1.-6*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc)))/(1.-2.*h/h_sc-sqrt((1.-2.*h/h_sc)*(1.+6.*h/h_sc))-4./omega_0/h_sc*(1.-sqrt(1.-omega_0))) # eq (44)
+    except:
+        n_plus=0.
+        n_minus=0.
+        pass
 
     n_plus_v2 = (u2-u1)/(u_plus-u1) # bottom of page 11 after eq (34)
     n_minus_v2 = (u2-u1)/(u_minus-u1) # bottom of page 11 after eq (34)
 
     # some more SANITY CHECKS
-    if n_plus!=n_plus_v2:
+    if SANITY and not isclose(n_plus,n_plus_v2):
         print "n_plus=",n_plus,"n_plus_v2",n_plus_v2," should equal each other"
-    if n_minus!=n_minus_v2:
+    if SANITY and not isclose(n_minus,n_minus_v2):
         print "n_minus=",n_minus,"n_minus_v2",n_minus_v2," should equal each other"
 
     if a==0.:
-        if Omega_minus!=0:
+        if SANITY and Omega_minus!=0:
             print "Attention Omega_minus!=0 but a=0. Setting it to 0 now..."
             Omega_minus = 0. # maintext before eq (35)
-        if Omega_plus!=1:
+        if SANITY and Omega_plus!=1:
             print "Attention Omega_plus!=1 but a=0. Setting it to 1 now..."
             Omega_plus = 1. # maintext before eq (35)
-        if n_minus!=0:
+        if SANITY and n_minus!=0:
             print "Attention n_minus!=0 but a=0. Setting it to 0 now..."
             n_minus = 0. # maintext before eq (35) # no mention but given that n_plus=0 n_minus should be as well
-        if n_plus!=0:
+        if SANITY and n_plus!=0:
             print "Attention n_plus!=0 but a=0. Setting it to 0 now..."
             n_plus = 0. # maintext before eq (35)
 
