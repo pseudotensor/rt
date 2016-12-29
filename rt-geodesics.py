@@ -505,8 +505,8 @@ if figure5==True:
     darwin_tab = array([[3.2,5.23,273.],[3.4,5.30,205.],[3.6,5.40,162.],[3.8,5.53,143.],[4,5.66,125.],[5,6.46,79.],[6,7.35,58.],[7,8.28,46.],[8,9.24,38.],[9,10.22,32.],[10,11.20,28.],[11,12.17,25.],[12,13.15,23.]]) # TABLE 3 in http://www.jstor.org/stable/pdf/100508.pdf # P:Perihelion, l:impact parameter mu:deflection angle
     darwin_tab[:,-1] *= pi/180.
 
-    plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kd',lw=2,label="DARWIN (exact, tab)")
-    plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kd',lw=2) # Schwarzschild: symmetric under l->-l
+    # plot(darwin_tab[:,1],darwin_tab[:,2]/pi,'kd',label="Darwin (exact,tab)")
+    # plot(-darwin_tab[:,1],darwin_tab[:,2]/pi,'kd') # Schwarzschild: symmetric under l->-l
     # try:
     #     # plot(b_exact_grid, deflection_angle_schwarzschild_exact/pi,'k^-',lw=2,label="Schwarzschild (exact)")
     #     # plot(b_exact_grid, array(deflection_angle_kerr_eq_exact)/pi,'kv-',lw=2,label="Kerr (exact)")
@@ -514,11 +514,11 @@ if figure5==True:
     #     pass
 
     # angle_Iyer2009 = array([deflection_angle_Iyer2009(0,b_tmp) for b_tmp in b_exact_grid[3:]])
-    b_exact_grid = concatenate((arange(-20,-6.9),arange(6,20.1)))
+    b_exact_grid = concatenate((arange(-20,-6.9),arange(3,20.1)))
     b_exact_grid_idx = find(b_exact_grid>0)
     angle_Iyer2009 = array([deflection_angle_Iyer2009(a,b_tmp) for b_tmp in b_exact_grid])
-    plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="exact,Iyer+2009")
-    plot(b_exact_grid[:b_exact_grid_idx[0]-1], angle_Iyer2009[:b_exact_grid_idx[0]-1]/pi,'k-')
+    plot(b_exact_grid[b_exact_grid_idx], angle_Iyer2009[b_exact_grid_idx]/pi,'k-',label="exact,Iyer+2009",lw=3,alpha=0.75)
+    plot(b_exact_grid[:b_exact_grid_idx[0]-1], angle_Iyer2009[:b_exact_grid_idx[0]-1]/pi,'k-',lw=3,alpha=0.75)
 
     # plot(alpha_vs_b_darwin[:,0],alpha_vs_b_darwin[:,1]/pi,'kv',lw=2,label="DARWIN (exact)")
     alpha_vs_b_09075352=array(alpha_vs_b_09075352)
